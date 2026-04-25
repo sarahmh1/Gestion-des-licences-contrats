@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -46,7 +46,7 @@ export class UpdateRapid7Component implements OnInit {
         numero: [''],
         remarque: [''],
         sousContrat: [false],
-        licences: this.fb.array([])  // ðŸ‘ˆ Ajout des licences dynamiques ici
+        licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
       });
   
       this. rapid7Id = Number(this.route.snapshot.paramMap.get('id'));
@@ -62,7 +62,7 @@ export class UpdateRapid7Component implements OnInit {
     }
   // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -75,7 +75,7 @@ export class UpdateRapid7Component implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+        return CommandePasserPar.GI_TN; // Valeur par défaut
     }
   }
     createLicenceGroup(): FormGroup {
@@ -137,7 +137,7 @@ export class UpdateRapid7Component implements OnInit {
           }
         },
         error => {
-          console.error('Erreur rÃ©cupÃ©ration Rapid7:', error);
+          console.error('Erreur récupération Rapid7:', error);
         }
       );
     }
@@ -158,11 +158,11 @@ export class UpdateRapid7Component implements OnInit {
   
         this. rapid7Service.updateRapid7(updatedRapid7).subscribe(
           () => {
-            console.log('Rapid7 mis Ã  jour avec succÃ¨s');
+            console.log('Rapid7 mis à jour avec succès');
             this.router.navigate(['/Afficherrapid7']);
           },
           error => {
-            console.error('Erreur mise Ã  jour Rapid7:', error);
+            console.error('Erreur mise à jour Rapid7:', error);
           }
         );
       } else {
@@ -179,11 +179,11 @@ export class UpdateRapid7Component implements OnInit {
             this.rapid7.fichier = response.fichier;
             this.rapid7.fichierOriginalName = response.fichierOriginalName;
             this.cdr.detectChanges();
-            window.alert('Fichier uploadÃ© avec succÃ¨s');
+            window.alert('Fichier uploadé avec succès');
           },
           (error) => {
             console.error('Erreur upload fichier', error);
-            window.alert('Ã‰chec de l\'upload du fichier');
+            window.alert('Échec de l\'upload du fichier');
           }
         );
       }
@@ -200,11 +200,11 @@ export class UpdateRapid7Component implements OnInit {
             this.rapid7.fichier = undefined;
             this.rapid7.fichierOriginalName = undefined;
             this.cdr.detectChanges();
-            window.alert('Fichier supprimÃ©');
+            window.alert('Fichier supprimé');
           },
           (error) => {
             console.error('Erreur suppression fichier', error);
-            window.alert('Ã‰chec de la suppression');
+            window.alert('Échec de la suppression');
           }
         );
       }

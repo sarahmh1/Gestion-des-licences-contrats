@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
@@ -7,7 +8,7 @@ import { catchError } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'http://localhost:8089';
+  private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
 

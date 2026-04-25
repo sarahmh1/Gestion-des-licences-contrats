@@ -37,7 +37,7 @@ public class ProduitController {
      * Récupère tous les produits (actifs et inactifs) - Admins seulement
      */
     @GetMapping("/tous")
-    @PreAuthorize("hasRole('ADMINISTRATEUR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMINISTRATEUR', 'ROLE_SUPER_ADMIN')")
     public ResponseEntity<List<Produit>> getAllProduits() {
         try {
             List<Produit> produits = produitService.getAllProduits();
@@ -67,7 +67,7 @@ public class ProduitController {
      * Ajoute un nouveau produit - Admins seulement
      */
     @PostMapping("/ajouter")
-    @PreAuthorize("hasRole('ADMINISTRATEUR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMINISTRATEUR', 'ROLE_SUPER_ADMIN')")
     public ResponseEntity<?> addProduit(@RequestBody Produit produit) {
         try {
             // Vérifier si le code existe déjà
@@ -91,7 +91,7 @@ public class ProduitController {
      * Met à jour un produit - Admins seulement
      */
     @PutMapping("/modifier/{id}")
-    @PreAuthorize("hasRole('ADMINISTRATEUR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMINISTRATEUR', 'ROLE_SUPER_ADMIN')")
     public ResponseEntity<?> updateProduit(@PathVariable Long id, @RequestBody Produit produitUpdate) {
         try {
             Optional<Produit> existing = produitService.getProduitById(id);
@@ -124,7 +124,7 @@ public class ProduitController {
      * Désactive un produit - Admins seulement
      */
     @PutMapping("/desactiver/{id}")
-    @PreAuthorize("hasRole('ADMINISTRATEUR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMINISTRATEUR', 'ROLE_SUPER_ADMIN')")
     public ResponseEntity<?> desactiverProduit(@PathVariable Long id) {
         try {
             Optional<Produit> existing = produitService.getProduitById(id);
@@ -145,7 +145,7 @@ public class ProduitController {
      * Initialise les produits par défaut - Admins seulement
      */
     @PostMapping("/initialiser")
-    @PreAuthorize("hasRole('ADMINISTRATEUR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMINISTRATEUR', 'ROLE_SUPER_ADMIN')")
     public ResponseEntity<?> initializeProduits() {
         try {
             produitService.initializeDefaultProduits();

@@ -1,7 +1,7 @@
 export interface AppNotification {
     id: number;
     message: string;
-    read: boolean;
+    isRead: boolean;
     createdAt: string;
     interventionPreventiveId?: number;
 }

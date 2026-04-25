@@ -1,7 +1,8 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { NetskopeService } from 'app/Services/neskope.service';
 import { Netskope } from 'app/Model/Netskope';
 import { Router } from '@angular/router';
+import { PermissionService } from 'app/Services/permission.service';
 @Component({
   selector: 'app-affichern',
   templateUrl: './affichern.component.html',
@@ -20,7 +21,7 @@ export class AffichernComponent implements OnInit {
      totalPages: number = 0;
      pagedNetskopes:Netskope[] = [];
  
-   constructor(private netskopeService: NetskopeService, private router: Router) {}
+   constructor(private netskopeService: NetskopeService, private router: Router, public permissionService: PermissionService) {}
 
   getFileDownloadUrl(id: number): string {
     return this.netskopeService.getFileDownloadUrl(id);
@@ -45,7 +46,7 @@ export class AffichernComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération Netskopes', error);
+          console.error('Erreur r�cup�ration Netskopes', error);
         }
       );
     }
@@ -87,7 +88,7 @@ export class AffichernComponent implements OnInit {
       this.filteredNetskopes = this.filteredNetskopes.filter(netskope => netskope.netskopeId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuv� et retir� de la liste');
     });
   }
   
@@ -96,11 +97,11 @@ export class AffichernComponent implements OnInit {
         this.netskopeService.deleteNetskope(id).subscribe(
           () => {
             this.getAllNetskopes();
-            alert('Netskope supprimé avec succès');
+            alert('Netskope supprim� avec succ�s');
           },
           error => {
             console.error('Erreur suppression Netskope', error);
-            alert('Échec suppression');
+            alert('�chec suppression');
           }
         );
       }

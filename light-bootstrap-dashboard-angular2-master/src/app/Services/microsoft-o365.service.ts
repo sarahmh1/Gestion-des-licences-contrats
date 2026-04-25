@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -8,7 +9,7 @@ import { MicrosoftO365 } from 'app/Model/MicrosoftO365';
 })
 export class MicrosoftO365Service {
 
-  private baseUrl = 'http://localhost:8089/MicrosoftO365';
+  private baseUrl = `${environment.apiUrl}/MicrosoftO365`;
 
   constructor(private http: HttpClient) {}
 
@@ -63,3 +64,4 @@ export class MicrosoftO365Service {
     return this.http.delete<MicrosoftO365>(`${this.baseUrl}/${id}/delete-file`);
   }
 }
+

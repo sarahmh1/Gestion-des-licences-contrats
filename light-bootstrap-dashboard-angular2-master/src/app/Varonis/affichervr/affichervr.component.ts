@@ -1,7 +1,8 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { VaronisService } from 'app/Services/varonis.service';
 import { Varonis } from 'app/Model/Varonis';
 import { Router } from '@angular/router';
+import { PermissionService } from 'app/Services/permission.service';
 @Component({
   selector: 'app-affichervr',
   templateUrl: './affichervr.component.html',
@@ -20,7 +21,7 @@ export class AffichervrComponent implements OnInit {
      totalPages: number = 0;
      pagedVaroniss:Varonis[] = [];
  
-   constructor(private varonisService: VaronisService, private router: Router) {}
+   constructor(private varonisService: VaronisService, private router: Router, public permissionService: PermissionService) {}
  
   ngOnInit(): void {
       this.getAllVaronis();
@@ -41,7 +42,7 @@ export class AffichervrComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération Varoniss', error);
+          console.error('Erreur r�cup�ration Varoniss', error);
         }
       );
     }
@@ -83,7 +84,7 @@ export class AffichervrComponent implements OnInit {
       this.filteredVaroniss = this.filteredVaroniss.filter(varonis=> varonis.varonisId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuv� et retir� de la liste');
     });
   }
   
@@ -92,11 +93,11 @@ export class AffichervrComponent implements OnInit {
         this.varonisService.deleteVaronis(id).subscribe(
           () => {
             this.getAllVaronis();
-            alert('Varonis supprimé avec succès');
+            alert('Varonis supprim� avec succ�s');
           },
           error => {
             console.error('Erreur suppression Varonis', error);
-            alert('Échec suppression');
+            alert('�chec suppression');
           }
         );
       }

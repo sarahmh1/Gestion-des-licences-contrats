@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Fortra } from 'app/Model/Fortra';
@@ -44,7 +44,7 @@ export class UpdateFortraComponent implements OnInit {
         numero: [''],
         remarque: [''],
         sousContrat: [false],
-        licences: this.fb.array([])  // ðŸ‘ˆ Ajout des licences dynamiques ici
+        licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
       });
   
       this.fortraId = Number(this.route.snapshot.paramMap.get('id'));
@@ -76,7 +76,7 @@ export class UpdateFortraComponent implements OnInit {
     }
     // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -89,7 +89,7 @@ export class UpdateFortraComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+        return CommandePasserPar.GI_TN; // Valeur par défaut
     }
   }
   
@@ -135,7 +135,7 @@ export class UpdateFortraComponent implements OnInit {
           }
         },
         error => {
-          console.error('Erreur rÃ©cupÃ©ration Fortra:', error);
+          console.error('Erreur récupération Fortra:', error);
         }
       );
     }
@@ -156,11 +156,11 @@ export class UpdateFortraComponent implements OnInit {
   
         this.fortraService.updateFortra(updatedFortra).subscribe(
           () => {
-            console.log('Fortra mis Ã  jour avec succÃ¨s');
+            console.log('Fortra mis à jour avec succès');
             this.router.navigate(['/Afficherfortra']);
           },
           error => {
-            console.error('Erreur mise Ã  jour fortra:', error);
+            console.error('Erreur mise à jour fortra:', error);
           }
         );
       } else {
@@ -172,14 +172,14 @@ export class UpdateFortraComponent implements OnInit {
       const file = event.target.files[0];
       if (file) {
         this.selectedFile = file;
-        // Upload immÃ©diat du fichier
+        // Upload immédiat du fichier
         this.fortraService.uploadFile(this.fortraId, file).subscribe(
           (response: Fortra) => {
             this.fortra.fichier = response.fichier;
             this.fortra.fichierOriginalName = response.fichierOriginalName;
             this.selectedFile = null;
             this.cdr.detectChanges();
-            window.alert('Fichier uploadÃ© avec succÃ¨s');
+            window.alert('Fichier uploadé avec succès');
           },
           (error) => {
             console.error('Erreur upload fichier:', error);
@@ -196,7 +196,7 @@ export class UpdateFortraComponent implements OnInit {
             this.fortra.fichier = undefined;
             this.fortra.fichierOriginalName = undefined;
             this.cdr.detectChanges();
-            window.alert('Fichier supprimÃ© avec succÃ¨s');
+            window.alert('Fichier supprimé avec succès');
           },
           (error) => {
             console.error('Erreur suppression fichier:', error);

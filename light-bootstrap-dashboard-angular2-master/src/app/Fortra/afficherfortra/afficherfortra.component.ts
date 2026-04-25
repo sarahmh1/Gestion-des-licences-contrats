@@ -1,7 +1,8 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FortraService } from 'app/Services/fortra.service';
 import { Fortra } from 'app/Model/Fortra';
 import { Router } from '@angular/router';
+import { PermissionService } from 'app/Services/permission.service';
 @Component({
   selector: 'app-afficherfortra',
   templateUrl: './afficherfortra.component.html',
@@ -20,7 +21,7 @@ export class AfficherfortraComponent implements OnInit {
      pagedFortras:Fortra[] = [];
      unapprovedFortras:Fortra[] = [];
  
-   constructor(private fortraService: FortraService, private router: Router) {}
+   constructor(private fortraService: FortraService, private router: Router, public permissionService: PermissionService) {}
 
   getFileDownloadUrl(id: number): string {
     return this.fortraService.getFileDownloadUrl(id);
@@ -45,7 +46,7 @@ export class AfficherfortraComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération Fortras', error);
+          console.error('Erreur r�cup�ration Fortras', error);
         }
       );
     }
@@ -87,7 +88,7 @@ export class AfficherfortraComponent implements OnInit {
       this.filteredFortras = this.filteredFortras.filter(fortra => fortra.fortraId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuv� et retir� de la liste');
     });
   }
   
@@ -96,11 +97,11 @@ export class AfficherfortraComponent implements OnInit {
         this.fortraService.deleteFortra(id).subscribe(
           () => {
             this.getAllFortras();
-            alert('Fortra supprimé avec succès');
+            alert('Fortra supprim� avec succ�s');
           },
           error => {
             console.error('Erreur suppression fortra', error);
-            alert('Échec suppression');
+            alert('�chec suppression');
           }
         );
       }

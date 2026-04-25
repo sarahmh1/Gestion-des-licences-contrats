@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { Imperva } from 'app/Model/Imperva';
   providedIn: 'root'
 })
 export class ImpervaService {
-  private baseUrl = 'http://localhost:8089/Imperva';
+  private baseUrl = `${environment.apiUrl}/Imperva`;
 
   constructor(private http: HttpClient) {}
 
@@ -67,3 +68,4 @@ export class ImpervaService {
     return this.http.delete<Imperva>(`${this.baseUrl}/${id}/delete-file`);
   }
 }
+

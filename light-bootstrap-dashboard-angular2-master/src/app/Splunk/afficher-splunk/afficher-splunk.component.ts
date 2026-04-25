@@ -1,7 +1,8 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { SplunkService } from 'app/Services/splunk.service';
 import { Splunk } from 'app/Model/Splunk';
 import { Router } from '@angular/router';
+import { PermissionService } from 'app/Services/permission.service';
 
 @Component({
   selector: 'app-afficher-splunk',
@@ -20,7 +21,7 @@ export class AfficherSplunkComponent implements OnInit {
       totalPages: number = 0;
       pagedSplunks:Splunk[] = [];
   
-    constructor(private splunkService: SplunkService, private router: Router) {}
+    constructor(private splunkService: SplunkService, private router: Router, public permissionService: PermissionService) {}
   
    ngOnInit(): void {
        this.getAllSplunks();
@@ -41,7 +42,7 @@ export class AfficherSplunkComponent implements OnInit {
            this.changePage(0);
          },
          (error) => {
-           console.error('Erreur récupération Splunks', error);
+           console.error('Erreur r�cup�ration Splunks', error);
          }
        );
      }
@@ -84,7 +85,7 @@ export class AfficherSplunkComponent implements OnInit {
       this.filteredSplunks = this.filteredSplunks.filter(splunk => splunk.splunkid !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuv� et retir� de la liste');
     });
   }
    
@@ -93,11 +94,11 @@ export class AfficherSplunkComponent implements OnInit {
          this.splunkService.deleteSplunk(id).subscribe(
            () => {
              this.getAllSplunks();
-             alert('Splunk supprimé avec succès');
+             alert('Splunk supprim� avec succ�s');
            },
            error => {
              console.error('Erreur suppression Splunk', error);
-             alert('Échec suppression');
+             alert('�chec suppression');
            }
          );
        }

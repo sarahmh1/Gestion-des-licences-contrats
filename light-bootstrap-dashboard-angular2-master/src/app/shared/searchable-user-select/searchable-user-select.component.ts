@@ -27,7 +27,7 @@ export class SearchableUserSelectComponent implements OnChanges {
   constructor(private el: ElementRef) {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Rien de special, la liste est re-filtree a chaque fois
+    // La liste est re-filtree a chaque fois
   }
 
   get filteredUsers(): SelectableUser[] {

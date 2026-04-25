@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -152,27 +152,27 @@ export class AjouterRapid7Component implements OnInit {
    
          this.rapid7Service.addRapid7(newRapid7).subscribe(
            (response: Rapid7) => {
-             // Si un fichier a Ã©tÃ© sÃ©lectionnÃ©, l'uploader aprÃ¨s la crÃ©ation
+             // Si un fichier a été sélectionné, l'uploader après la création
              if (this.selectedFile && response.rapid7Id) {
                this.rapid7Service.uploadFile(response.rapid7Id, this.selectedFile).subscribe(
                  () => {
-                   window.alert('Rapid7 ajoutÃ© avec fichier');
+                   window.alert('Rapid7 ajouté avec fichier');
                    this.router.navigate(['/Afficherrapid7']);
                  },
                  (fileError) => {
                    console.error('Erreur upload fichier', fileError);
-                   window.alert('Rapid7 ajoutÃ© mais Ã©chec upload fichier');
+                   window.alert('Rapid7 ajouté mais échec upload fichier');
                    this.router.navigate(['/Afficherrapid7']);
                  }
                );
              } else {
-               window.alert('Rapid7 ajoutÃ© avec succÃ¨s');
+               window.alert('Rapid7 ajouté avec succès');
                this.router.navigate(['/Afficherrapid7']);
              }
            },
            error => {
              console.error('Erreur lors de l\'ajout du rapid7', error);
-             window.alert('Ã‰chec de l\'ajout');
+             window.alert('Échec de l\'ajout');
            }
          );
        } else {

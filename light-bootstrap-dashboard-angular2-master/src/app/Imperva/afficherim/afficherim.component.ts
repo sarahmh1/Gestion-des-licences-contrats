@@ -1,7 +1,8 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ImpervaService } from 'app/Services/imperva.service';
 import { Imperva} from 'app/Model/Imperva';
 import { Router } from '@angular/router';
+import { PermissionService } from 'app/Services/permission.service';
 @Component({
   selector: 'app-afficherim',
   templateUrl: './afficherim.component.html',
@@ -19,7 +20,7 @@ export class AfficherimComponent implements OnInit {
      totalPages: number = 0;
      pagedImpervas:Imperva[] = [];
  
-   constructor(private impervaService: ImpervaService, private router: Router) {}
+   constructor(private impervaService: ImpervaService, private router: Router, public permissionService: PermissionService) {}
  
   ngOnInit(): void {
       this.getAllImpervas();
@@ -40,7 +41,7 @@ export class AfficherimComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération impervas', error);
+          console.error('Erreur r�cup�ration impervas', error);
         }
       );
     }
@@ -82,7 +83,7 @@ export class AfficherimComponent implements OnInit {
       this.filteredImpervas = this.filteredImpervas.filter(imperva=> imperva.impervaId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuv� et retir� de la liste');
     });
   }
   
@@ -91,11 +92,11 @@ export class AfficherimComponent implements OnInit {
         this.impervaService.deleteImperva(id).subscribe(
           () => {
             this.getAllImpervas();
-            alert('Imperva supprimé avec succès');
+            alert('Imperva supprim� avec succ�s');
           },
           error => {
             console.error('Erreur suppression Imperva', error);
-            alert('Échec suppression');
+            alert('�chec suppression');
           }
         );
       }

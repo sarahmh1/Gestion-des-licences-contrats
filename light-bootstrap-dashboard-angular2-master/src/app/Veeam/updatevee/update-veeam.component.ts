@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -44,7 +44,7 @@ export class UpdateVeeamComponent implements OnInit {
        numero: [''],
        remarque: [''],
        sousContrat: [false],
-       licences: this.fb.array([])  // ðŸ‘ˆ Ajout des licences dynamiques ici
+       licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
      });
  
      this.VeeamId = Number(this.route.snapshot.paramMap.get('id'));
@@ -60,7 +60,7 @@ export class UpdateVeeamComponent implements OnInit {
    }
  // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -73,7 +73,7 @@ export class UpdateVeeamComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+        return CommandePasserPar.GI_TN; // Valeur par défaut
     }
   }
    createLicenceGroup(): FormGroup {
@@ -96,13 +96,13 @@ export class UpdateVeeamComponent implements OnInit {
      const file = event.target.files[0];
      if (file) {
        this.selectedFile = file;
-       // Upload immÃ©diatement le fichier
+       // Upload immédiatement le fichier
        this.veeamService.uploadFile(this.VeeamId, file).subscribe(
          (updatedVeeam) => {
            this.veeam = updatedVeeam;
            this.selectedFile = null;
            this.cdr.detectChanges();
-           window.alert('Fichier uploadÃ© avec succÃ¨s');
+           window.alert('Fichier uploadé avec succès');
          },
          (error) => {
            console.error('Erreur lors de l\'upload du fichier', error);
@@ -122,7 +122,7 @@ export class UpdateVeeamComponent implements OnInit {
          (updatedVeeam) => {
            this.veeam = updatedVeeam;
            this.cdr.detectChanges();
-           window.alert('Fichier supprimÃ© avec succÃ¨s');
+           window.alert('Fichier supprimé avec succès');
          },
          (error) => {
            console.error('Erreur lors de la suppression du fichier', error);
@@ -174,7 +174,7 @@ export class UpdateVeeamComponent implements OnInit {
          }
        },
        error => {
-         console.error('Erreur rÃ©cupÃ©ration Veeam:', error);
+         console.error('Erreur récupération Veeam:', error);
        }
      );
    }
@@ -195,11 +195,11 @@ export class UpdateVeeamComponent implements OnInit {
  
        this.veeamService.updateVeeam(updatedVeeam).subscribe(
          () => {
-           console.log('Veeam mis Ã  jour avec succÃ¨s');
+           console.log('Veeam mis à jour avec succès');
            this.router.navigate(['/Afficherveeam']);
          },
          error => {
-           console.error('Erreur mise Ã  jour Veeam:', error);
+           console.error('Erreur mise à jour Veeam:', error);
          }
        );
      } else {

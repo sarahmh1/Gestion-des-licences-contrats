@@ -1,7 +1,7 @@
 <div class="sus-wrapper">
 
   <!-- Input recherche -->
-  <div class="sus-input-row" [class.sus-open]="isOpen">
+  <div class="sus-input-row" [class.sus-open]="isOpen" (click)="onFocus()">
     <i class="fas fa-search sus-icon-left"></i>
     <input
       type="text"

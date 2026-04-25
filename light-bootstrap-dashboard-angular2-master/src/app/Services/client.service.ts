@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -15,7 +16,7 @@ export interface Client {
   providedIn: 'root'
 })
 export class ClientService {
-  private baseUrl = 'http://localhost:8089/clients';
+  private baseUrl = `${environment.apiUrl}/clients`;
 
   constructor(private http: HttpClient) {}
 
@@ -35,3 +36,4 @@ export class ClientService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }
+

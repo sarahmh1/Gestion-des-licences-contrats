@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -44,7 +44,7 @@ export class UpdateVMwareComponent implements OnInit {
         numero: [''],
         remarque: [''],
         sousContrat: [false],
-        licences: this.fb.array([])  // ðŸ‘ˆ Ajout des licences dynamiques ici
+        licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
       });
   
       this.vmwareId = Number(this.route.snapshot.paramMap.get('id'));
@@ -72,7 +72,7 @@ export class UpdateVMwareComponent implements OnInit {
     }
   // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -85,7 +85,7 @@ export class UpdateVMwareComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+        return CommandePasserPar.GI_TN; // Valeur par défaut
     }
   }
     removeLicence(index: number): void {
@@ -134,7 +134,7 @@ export class UpdateVMwareComponent implements OnInit {
           }
         },
         error => {
-          console.error('Erreur rÃ©cupÃ©ration VMware:', error);
+          console.error('Erreur récupération VMware:', error);
         }
       );
     }
@@ -155,11 +155,11 @@ export class UpdateVMwareComponent implements OnInit {
 
         this.vmwareService.updateVMware(updatedVMware).subscribe(
           () => {
-            console.log('VMware mis Ã  jour avec succÃ¨s');
+            console.log('VMware mis à jour avec succès');
             this.router.navigate(['/Affichervmw']);
           },
           error => {
-            console.error('Erreur mise Ã  jour VMware:', error);
+            console.error('Erreur mise à jour VMware:', error);
           }
         );
       } else {
@@ -171,14 +171,14 @@ export class UpdateVMwareComponent implements OnInit {
       const file = event.target.files[0];
       if (file) {
         this.selectedFile = file;
-        // Upload immÃ©diat du fichier
+        // Upload immédiat du fichier
         this.vmwareService.uploadFile(this.vmwareId, file).subscribe(
           (response: VMware) => {
             this.vmware.fichier = response.fichier;
             this.vmware.fichierOriginalName = response.fichierOriginalName;
             this.selectedFile = null;
             this.cdr.detectChanges();
-            window.alert('Fichier uploadÃ© avec succÃ¨s');
+            window.alert('Fichier uploadé avec succès');
           },
           (error) => {
             console.error('Erreur upload fichier:', error);
@@ -195,7 +195,7 @@ export class UpdateVMwareComponent implements OnInit {
             this.vmware.fichier = undefined;
             this.vmware.fichierOriginalName = undefined;
             this.cdr.detectChanges();
-            window.alert('Fichier supprimÃ© avec succÃ¨s');
+            window.alert('Fichier supprimé avec succès');
           },
           (error) => {
             console.error('Erreur suppression fichier:', error);

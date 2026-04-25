@@ -3,6 +3,7 @@ import { MessageService, ConversationDTO, MessageDTO } from '../Services/message
 import { WebsocketService } from '../Services/websocket.service';
 import { UserService } from '../Services/user.service';
 import { AuthService } from '../auth/AuthService';
+import { environment } from 'environments/environment';
 import { Subscription } from 'rxjs';
 
 interface UserDTO {
@@ -373,7 +374,7 @@ export class MessagingComponent implements OnInit, OnDestroy {
         }
 
         // Sinon, c'est un chemin relatif - ajouter l'URL du backend
-        return 'http://localhost:8089' + (profilePicture.startsWith('/') ? '' : '/') + profilePicture;
+        return environment.apiUrl + (profilePicture.startsWith('/') ? '' : '/') + profilePicture;
     }
 
     /**

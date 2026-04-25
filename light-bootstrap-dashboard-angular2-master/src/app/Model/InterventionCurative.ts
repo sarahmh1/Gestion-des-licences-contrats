@@ -8,6 +8,10 @@ export interface InterventionCurative {
   ficheIntervention: string;
   nomClient: string;
   criticite: string;
+  probleme?: string;
+  delaiResolution?: string;
+  resume?: string;
+  assignedUsers?: any[];
   intervenant?: string; // Pour compatibilité
   intervenants?: Intervenant[];
   dateHeureDemande: string;

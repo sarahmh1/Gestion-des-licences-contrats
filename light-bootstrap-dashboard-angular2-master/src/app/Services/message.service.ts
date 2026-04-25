@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -37,7 +38,7 @@ export interface ConversationDTO {
     providedIn: 'root'
 })
 export class MessageService {
-    private apiUrl = 'http://localhost:8089/api/messages';
+    private apiUrl = `${environment.apiUrl}/api/messages`;
 
     constructor(private http: HttpClient) { }
 
@@ -113,6 +114,7 @@ export class MessageService {
      * Construit l'URL de téléchargement d'un fichier
      */
     getFileDownloadUrl(filePath: string): string {
-        return `http://localhost:8089/${filePath}`;
+        return `${environment.apiUrl}/${filePath}`;
     }
 }
+

@@ -3,6 +3,9 @@ import { FormBuilder, FormGroup, FormArray } from '@angular/forms';
 import { InterventionCurativeService } from 'app/Services/intervention-curative.service';
 import { InterventionCurative } from 'app/Model/InterventionCurative';
 import { ClientService, Client } from '../../Services/client.service';
+import { ContratService } from '../../Services/contrat.service';
+import { Contrat } from '../../Model/Contrat';
+import { UserService } from '../../Services/user.service';
 import { PRODUIT_LIST } from '../../Model/NomProduit';
 import { PermissionService } from 'app/Services/permission.service';
 
@@ -13,6 +16,8 @@ import { PermissionService } from 'app/Services/permission.service';
 })
 export class AfficherInterventionCurativeComponent implements OnInit {
   clients: Client[] = [];
+  users: any[] = [];
+  contrats: Contrat[] = [];
   searchTerm: string = '';
   interventions: InterventionCurative[] = [];
   filteredInterventions: InterventionCurative[] = [];
@@ -43,12 +48,16 @@ export class AfficherInterventionCurativeComponent implements OnInit {
     private interventionCurativeService: InterventionCurativeService,
     private fb: FormBuilder,
     private clientService: ClientService,
+    private contratService: ContratService,
+    private userService: UserService,
     public permissionService: PermissionService) { }
 
   ngOnInit(): void {
     this.clientService.getAllClients().subscribe(data => this.clients = data);
+    this.userService.getAllUsers().subscribe(data => this.users = data);
+    this.contratService.getAllContrats().subscribe(data => this.contrats = data);
     this.initForm();
-    this.watchNomClient();
+    this.watchNomClientAndProduit();
     this.getAllInterventions();
   }
 
@@ -57,6 +66,10 @@ export class AfficherInterventionCurativeComponent implements OnInit {
       ficheIntervention: [''],
       nomClient: [''],
       criticite: [''],
+      probleme: [''],
+      delaiResolution: [''],
+      resume: [''],
+      assignedUsers: [[]],
       intervenants: this.fb.array([this.createIntervenantControl()]),
       dateHeureDemande: [''],
       dateHeureIntervention: [''],
@@ -67,7 +80,8 @@ export class AfficherInterventionCurativeComponent implements OnInit {
       enCoursDeResolution: [false],
       resolu: [false],
       tachesEffectuees: [''],
-      nomProduit: ['']
+      nomProduit: [''],
+      contratId: [null]
     });
   }
 
@@ -76,8 +90,8 @@ export class AfficherInterventionCurativeComponent implements OnInit {
     return this.interventionForm.get('intervenants') as FormArray;
   }
 
-  // Auto-remplissage de visAVisClient quand un client est selectionne
-  watchNomClient(): void {
+  // Auto-remplissage de visAVisClient + delaiResolution quand client/produit sélectionnés
+  watchNomClientAndProduit(): void {
     this.interventionForm.get('nomClient')!.valueChanges.subscribe((nomClient: string) => {
       if (!nomClient) return;
       const found = this.clients.find(c => c.nomClient === nomClient);
@@ -89,7 +103,34 @@ export class AfficherInterventionCurativeComponent implements OnInit {
           { emitEvent: false }
         );
       }
+      this.updateDelaiFromContrat();
     });
+
+    this.interventionForm.get('nomProduit')!.valueChanges.subscribe(() => {
+      this.updateDelaiFromContrat();
+    });
+  }
+
+  updateDelaiFromContrat(): void {
+    const nomClient = this.interventionForm.get('nomClient')?.value;
+    const nomProduit = this.interventionForm.get('nomProduit')?.value;
+
+    if (!nomClient || !nomProduit) {
+      this.interventionForm.patchValue({ delaiResolution: '' }, { emitEvent: false });
+      return;
+    }
+
+    // Chercher le contrat correspondant
+    const contrat = this.contrats.find(c =>
+      c.client === nomClient && c.nomProduit === nomProduit
+    );
+
+    if (contrat && contrat.delaiMaxResolution) {
+      this.interventionForm.patchValue(
+        { delaiResolution: contrat.delaiMaxResolution },
+        { emitEvent: false }
+      );
+    }
   }
 
   // Créer un control pour un intervenant
@@ -168,6 +209,10 @@ export class AfficherInterventionCurativeComponent implements OnInit {
       ficheIntervention: '',
       nomClient: '',
       criticite: '',
+      probleme: '',
+      delaiResolution: '',
+      resume: '',
+      assignedUsers: [],
       dateHeureDemande: '',
       dateHeureIntervention: '',
       dateHeureResolution: '',
@@ -177,7 +222,8 @@ export class AfficherInterventionCurativeComponent implements OnInit {
       enCoursDeResolution: false,
       resolu: false,
       tachesEffectuees: '',
-      nomProduit: ''
+      nomProduit: '',
+      contratId: null
     });
     // Réinitialiser les variables de fichier
     this.selectedFile = null;
@@ -210,6 +256,10 @@ export class AfficherInterventionCurativeComponent implements OnInit {
       ficheIntervention: intervention.ficheIntervention,
       nomClient: intervention.nomClient,
       criticite: intervention.criticite,
+      probleme: intervention.probleme || '',
+      delaiResolution: intervention.delaiResolution || '',
+      resume: intervention.resume || '',
+      assignedUsers: intervention.assignedUsers || [],
       dateHeureDemande: intervention.dateHeureDemande,
       dateHeureIntervention: intervention.dateHeureIntervention,
       dateHeureResolution: intervention.dateHeureResolution,
@@ -219,7 +269,8 @@ export class AfficherInterventionCurativeComponent implements OnInit {
       enCoursDeResolution: intervention.enCoursDeResolution,
       resolu: intervention.resolu,
       tachesEffectuees: intervention.tachesEffectuees,
-      nomProduit: intervention.nomProduit || ''
+      nomProduit: intervention.nomProduit || '',
+      contratId: intervention.contratId || null
     });
     // Charger info fichier existant
     this.selectedFile = null;

@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Injectable } from '@angular/core';
 import { Client, Message, StompSubscription } from '@stomp/stompjs';
 import * as SockJS from 'sockjs-client';
@@ -19,7 +20,7 @@ export class WebsocketService {
    * Connecte au serveur WebSocket
    */
   connect(userId: string): void {
-    const socket = new SockJS('http://localhost:8089/ws');
+    const socket = new SockJS(`${environment.apiUrl}/ws`);
 
     this.stompClient = new Client({
       webSocketFactory: () => socket as any,
@@ -134,3 +135,4 @@ export class WebsocketService {
     return this.connected$.asObservable();
   }
 }
+

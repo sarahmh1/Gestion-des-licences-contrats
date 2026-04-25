@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -148,27 +148,27 @@ export class AjouteroComponent implements OnInit {
     
           this.oneIdentityService.addOneIdentity(newOneIdentity).subscribe(
             (response: OneIdentity) => {
-              // Upload du fichier si sÃ©lectionnÃ©
+              // Upload du fichier si sélectionné
               if (this.selectedFile && response.oneIdentityId) {
                 this.oneIdentityService.uploadFile(response.oneIdentityId, this.selectedFile).subscribe(
                   () => {
-                    window.alert('OneIdentity ajoutÃ© avec succÃ¨s avec le fichier');
+                    window.alert('OneIdentity ajouté avec succès avec le fichier');
                     this.router.navigate(['/Affichero']);
                   },
                   (error) => {
                     console.error('Erreur upload fichier:', error);
-                    window.alert('OneIdentity ajoutÃ© mais erreur lors de l\'upload du fichier');
+                    window.alert('OneIdentity ajouté mais erreur lors de l\'upload du fichier');
                     this.router.navigate(['/Affichero']);
                   }
                 );
               } else {
-                window.alert('OneIdentity ajoutÃ© avec succÃ¨s');
+                window.alert('OneIdentity ajouté avec succès');
                 this.router.navigate(['/Affichero']);
               }
             },
             error => {
               console.error('Erreur lors de l\'ajout du oneIdentity', error);
-              window.alert('Ã‰chec de l\'ajout');
+              window.alert('Échec de l\'ajout');
             }
           );
         } else {

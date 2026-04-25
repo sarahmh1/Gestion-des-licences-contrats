@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -8,7 +9,7 @@ import { InterventionPreventive } from '../Model/InterventionPreventive';
 })
 export class InterventionPreventiveService {
 
-  private baseUrl = 'http://localhost:8089/InterventionPreventive';
+  private baseUrl = `${environment.apiUrl}/InterventionPreventive`;
 
   constructor(private http: HttpClient) { }
 
@@ -77,3 +78,4 @@ export class InterventionPreventiveService {
     return `${this.baseUrl}/periode-ligne/${periodeLigneId}/download`;
   }
 }
+

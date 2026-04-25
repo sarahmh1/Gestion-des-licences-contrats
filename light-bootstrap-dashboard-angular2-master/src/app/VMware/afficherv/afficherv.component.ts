@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { VMwareService } from 'app/Services/vmware.service';
 import { VMware } from 'app/Model/VMware';
 import { Router } from '@angular/router';
+import { PermissionService } from 'app/Services/permission.service';
 @Component({
   selector: 'app-afficherv',
   templateUrl: './afficherv.component.html',
@@ -21,7 +22,7 @@ export class AffichervComponent implements OnInit {
      unapprovedVmwares:VMware[] = [];
 
  
-   constructor(private vmwareService: VMwareService, private router: Router) {}
+   constructor(private vmwareService: VMwareService, private router: Router, public permissionService: PermissionService) {}
  
   ngOnInit(): void {
       this.getAllVMwares();

@@ -1,4 +1,4 @@
-ï»¿import { MicrosoftO365 } from './../../Model/MicrosoftO365';
+import { MicrosoftO365 } from './../../Model/MicrosoftO365';
 import { Component, OnInit } from '@angular/core';
 import {FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -142,33 +142,33 @@ export class AjoutermComponent implements OnInit {
      
            this.microsoftService.addMicrosoftO365(newMicrosoft0365).subscribe(
              (response: any) => {
-               console.log('RÃ©ponse serveur MicrosoftO365:', response);
+               console.log('Réponse serveur MicrosoftO365:', response);
                const microsoftO365Id = response.microsoftO365Id || response.id;
                
                // Upload file if selected
                if (this.selectedFile && microsoftO365Id) {
                  this.microsoftService.uploadFile(microsoftO365Id, this.selectedFile).subscribe(
                    (uploadResponse) => {
-                     console.log('Upload rÃ©ussi:', uploadResponse);
-                     window.alert('MicrosoftO365 et fichier ajoutÃ©s avec succÃ¨s');
+                     console.log('Upload réussi:', uploadResponse);
+                     window.alert('MicrosoftO365 et fichier ajoutés avec succès');
                      this.router.navigate(['/Affichermicro']);
                    },
                    error => {
                      console.error('Erreur lors de l\'upload du fichier:', error);
                      console.error('Status:', error.status);
                      console.error('Error body:', error.error);
-                     window.alert('MicrosoftO365 ajoutÃ© mais erreur lors de l\'upload du fichier');
+                     window.alert('MicrosoftO365 ajouté mais erreur lors de l\'upload du fichier');
                      this.router.navigate(['/Affichermicro']);
                    }
                  );
                } else {
-                 window.alert('MicrosoftO365 ajoutÃ© avec succÃ¨s');
+                 window.alert('MicrosoftO365 ajouté avec succès');
                  this.router.navigate(['/Affichermicro']);
                }
              },
              error => {
                console.error('Erreur lors de l\'ajout du MicrosoftO365:', error);
-               window.alert('Ã‰chec de l\'ajout');
+               window.alert('Échec de l\'ajout');
              }
            );
          } else {

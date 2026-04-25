@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -45,7 +45,7 @@ export class UpdateSecPointComponent implements OnInit {
         numero: [''],
         remarque: [''],
         sousContrat: [false],
-        licences: this.fb.array([])  // ðŸ‘ˆ Ajout des licences dynamiques ici
+        licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
       });
   
       this.secPointId = Number(this.route.snapshot.paramMap.get('id'));
@@ -69,7 +69,7 @@ export class UpdateSecPointComponent implements OnInit {
     }
   // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -82,7 +82,7 @@ export class UpdateSecPointComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+        return CommandePasserPar.GI_TN; // Valeur par défaut
     }
   }
     addLicence(): void {
@@ -135,7 +135,7 @@ export class UpdateSecPointComponent implements OnInit {
           }
         },
         error => {
-          console.error('Erreur rÃ©cupÃ©ration SecPoint:', error);
+          console.error('Erreur récupération SecPoint:', error);
         }
       );
     }
@@ -156,11 +156,11 @@ export class UpdateSecPointComponent implements OnInit {
   
         this.secPointService.updateSecPoint(updatedSecPoint).subscribe(
           () => {
-            console.log('SecPoint mis Ã  jour avec succÃ¨s');
+            console.log('SecPoint mis à jour avec succès');
             this.router.navigate(['/Affichers']);
           },
           error => {
-            console.error('Erreur mise Ã  jour SecPoint:', error);
+            console.error('Erreur mise à jour SecPoint:', error);
           }
         );
       } else {
@@ -172,14 +172,14 @@ export class UpdateSecPointComponent implements OnInit {
       const file = event.target.files[0];
       if (file) {
         this.selectedFile = file;
-        // Upload immÃ©diat du fichier
+        // Upload immédiat du fichier
         this.secPointService.uploadFile(this.secPointId, file).subscribe(
           (response: SecPoint) => {
             this.secPoint.fichier = response.fichier;
             this.secPoint.fichierOriginalName = response.fichierOriginalName;
             this.selectedFile = null;
             this.cdr.detectChanges();
-            window.alert('Fichier uploadÃ© avec succÃ¨s');
+            window.alert('Fichier uploadé avec succès');
           },
           (error) => {
             console.error('Erreur upload fichier:', error);
@@ -196,7 +196,7 @@ export class UpdateSecPointComponent implements OnInit {
             this.secPoint.fichier = undefined;
             this.secPoint.fichierOriginalName = undefined;
             this.cdr.detectChanges();
-            window.alert('Fichier supprimÃ© avec succÃ¨s');
+            window.alert('Fichier supprimé avec succès');
           },
           (error) => {
             console.error('Erreur suppression fichier:', error);

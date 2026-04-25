@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -44,7 +44,7 @@ export class UpdateSentineIOneComponent implements OnInit {
         numero: [''],
         remarque: [''],
         sousContrat: [false],
-        licences: this.fb.array([])  // ðŸ‘ˆ Ajout des licences dynamiques ici
+        licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
       });
   
       this.sentineIOneId = Number(this.route.snapshot.paramMap.get('id'));
@@ -68,7 +68,7 @@ export class UpdateSentineIOneComponent implements OnInit {
     }
    // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -81,7 +81,7 @@ export class UpdateSentineIOneComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+        return CommandePasserPar.GI_TN; // Valeur par défaut
     }
   }
     addLicence(): void {
@@ -134,7 +134,7 @@ export class UpdateSentineIOneComponent implements OnInit {
           }
         },
         error => {
-          console.error('Erreur rÃ©cupÃ©ration SentineIOne:', error);
+          console.error('Erreur récupération SentineIOne:', error);
         }
       );
     }
@@ -155,11 +155,11 @@ export class UpdateSentineIOneComponent implements OnInit {
   
         this.sentineIOneService.updateSentineIOne(updatedSentineIOne).subscribe(
           () => {
-            console.log('SentineIOne mis Ã  jour avec succÃ¨s');
+            console.log('SentineIOne mis à jour avec succès');
             this.router.navigate(['/Affichers']);
           },
           error => {
-            console.error('Erreur mise Ã  jour SentineIOne:', error);
+            console.error('Erreur mise à jour SentineIOne:', error);
           }
         );
       } else {
@@ -171,14 +171,14 @@ export class UpdateSentineIOneComponent implements OnInit {
       const file = event.target.files[0];
       if (file) {
         this.selectedFile = file;
-        // Upload immÃ©diat du fichier
+        // Upload immédiat du fichier
         this.sentineIOneService.uploadFile(this.sentineIOneId, file).subscribe(
           (response: SentineIOne) => {
             this.sentineIOne.fichier = response.fichier;
             this.sentineIOne.fichierOriginalName = response.fichierOriginalName;
             this.selectedFile = null;
             this.cdr.detectChanges();
-            window.alert('Fichier uploadÃ© avec succÃ¨s');
+            window.alert('Fichier uploadé avec succès');
           },
           (error) => {
             console.error('Erreur upload fichier:', error);
@@ -195,7 +195,7 @@ export class UpdateSentineIOneComponent implements OnInit {
             this.sentineIOne.fichier = undefined;
             this.sentineIOne.fichierOriginalName = undefined;
             this.cdr.detectChanges();
-            window.alert('Fichier supprimÃ© avec succÃ¨s');
+            window.alert('Fichier supprimé avec succès');
           },
           (error) => {
             console.error('Erreur suppression fichier:', error);

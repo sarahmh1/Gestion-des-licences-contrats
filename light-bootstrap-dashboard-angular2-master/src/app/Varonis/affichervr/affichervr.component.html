@@ -2,7 +2,7 @@
   <div class="header-row">
     <h2>Licences Varonis</h2>
     <div class="action-group">
-      <button (click)="goToAddVaronis()" class="btn btn-sm action-button"><i class="fa fa-plus"></i></button>
+      <button (click)="goToAddVaronis()" class="btn btn-sm action-button" *ngIf="permissionService.canAddProduct('varonis')"><i class="fa fa-plus"></i></button>
       <div class="input-group search-box">
         <input type="text" class="form-control" placeholder="Rechercher..." [(ngModel)]="searchTerm" (input)="onSearch()" />
       </div>
@@ -22,9 +22,9 @@
           </div>
           <div class="md-item-actions" (click)="$event.stopPropagation()">
             <button class="md-btn-icon md-btn-view" (click)="selectVaronis(x)" title="Voir details"><i class="fas fa-eye"></i></button>
-            <button class="md-btn-icon md-btn-edit" (click)="updateVaronis(x)"><i class="fas fa-pen"></i></button>
-            <button class="md-btn-icon md-btn-delete" (click)="deleteVaronis(x.varonisId)"><i class="fas fa-trash"></i></button>
-            <button class="md-btn-icon md-btn-approve" (click)="approveVaronis(x.varonisId)"><i class="fas fa-check"></i></button>
+            <button class="md-btn-icon md-btn-edit" (click)="updateVaronis(x)" *ngIf="permissionService.canEditProduct('varonis')"><i class="fas fa-pen"></i></button>
+            <button class="md-btn-icon md-btn-delete" (click)="deleteVaronis(x.varonisId)" *ngIf="permissionService.canDeleteProduct('varonis')"><i class="fas fa-trash"></i></button>
+            <button class="md-btn-icon md-btn-approve" (click)="approveVaronis(x.varonisId)" *ngIf="permissionService.canEditProduct('varonis')"><i class="fas fa-check"></i></button>
           </div>
         </div>
         <div *ngIf="pagedVaroniss.length === 0" class="md-empty"><i class="fas fa-folder-open"></i><p>Aucun Varonis trouvé.</p></div>
@@ -62,9 +62,9 @@
           </div>
           <div class="md-detail-divider"></div>
           <div class="md-detail-actions">
-            <button (click)="updateVaronis(selectedVaronis)" class="btn btn-sm btn-primary"><i class="fas fa-pen"></i> Modifier</button>
-            <button (click)="deleteVaronis(selectedVaronis.varonisId)" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Supprimer</button>
-            <button (click)="approveVaronis(selectedVaronis.varonisId)" class="btn btn-sm btn-success"><i class="fas fa-check"></i> Approuver</button>
+            <button (click)="updateVaronis(selectedVaronis)" class="btn btn-sm btn-primary" *ngIf="permissionService.canEditProduct('varonis')"><i class="fas fa-pen"></i> Modifier</button>
+            <button (click)="deleteVaronis(selectedVaronis.varonisId)" class="btn btn-sm btn-danger" *ngIf="permissionService.canDeleteProduct('varonis')"><i class="fas fa-trash"></i> Supprimer</button>
+            <button (click)="approveVaronis(selectedVaronis.varonisId)" class="btn btn-sm btn-success" *ngIf="permissionService.canEditProduct('varonis')"><i class="fas fa-check"></i> Approuver</button>
           </div>
         </div>
       </div>

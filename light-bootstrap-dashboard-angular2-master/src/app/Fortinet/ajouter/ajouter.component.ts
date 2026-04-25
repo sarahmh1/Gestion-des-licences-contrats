@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Fortinet } from 'app/Model/Fortinet';
@@ -163,26 +163,26 @@ addFortinet() {
       licences: this.licences.value
     };
 
-    console.log('DonnÃ©es Ã  envoyer:', newFortinet);
+    console.log('Données à envoyer:', newFortinet);
 
     this.fortinetService.addFortinet(newFortinet).subscribe(
       (response: any) => {
-        console.log('RÃ©ponse serveur:', response);
+        console.log('Réponse serveur:', response);
         
-        // Si un fichier est sÃ©lectionnÃ©, l'uploader aprÃ¨s la crÃ©ation
+        // Si un fichier est sélectionné, l'uploader après la création
         if (this.selectedFile && response.fortinetId) {
           this.uploadFileAfterCreation(response.fortinetId);
         } else {
-          window.alert('Fortinet ajoutÃ© avec succÃ¨s');
+          window.alert('Fortinet ajouté avec succès');
           this.fortinetAdded.emit();
         }
       },
       error => {
-        console.error('Erreur complÃ¨te:', error);
+        console.error('Erreur complète:', error);
         console.error('Status:', error.status);
         console.error('Message:', error.message);
         console.error('Error body:', error.error);
-        window.alert('Ã‰chec de l\'ajout: ' + (error.error?.message || error.message));
+        window.alert('Échec de l\'ajout: ' + (error.error?.message || error.message));
       }
     );
   } else {
@@ -199,7 +199,7 @@ resetForm(): void {
   this.fortinetForm.reset();
   this.selectedFile = null;
   this.uploadMessage = null;
-  // RÃ©initialiser les arrays
+  // Réinitialiser les arrays
   while (this.licences.length > 1) {
     this.licences.removeAt(1);
   }
@@ -220,7 +220,7 @@ resetForm(): void {
 
   uploadFileAfterCreation(fortinetId: number): void {
     if (!this.selectedFile) {
-      window.alert('Fortinet ajoutÃ© avec succÃ¨s');
+      window.alert('Fortinet ajouté avec succès');
       this.fortinetAdded.emit();
       return;
     }
@@ -230,13 +230,13 @@ resetForm(): void {
         if (event.type === HttpEventType.Response) {
           if (event.body.success) {
             this.uploadSuccess = true;
-            this.uploadMessage = 'Fichier uploadÃ© avec succÃ¨s!';
-            window.alert('Fortinet et fichier ajoutÃ©s avec succÃ¨s');
+            this.uploadMessage = 'Fichier uploadé avec succès!';
+            window.alert('Fortinet et fichier ajoutés avec succès');
             this.fortinetAdded.emit();
           } else {
             this.uploadSuccess = false;
             this.uploadMessage = event.body.message || 'Erreur lors de l\'upload';
-            window.alert('Fortinet ajoutÃ© mais erreur lors de l\'upload du fichier');
+            window.alert('Fortinet ajouté mais erreur lors de l\'upload du fichier');
             this.fortinetAdded.emit();
           }
         }
@@ -245,7 +245,7 @@ resetForm(): void {
         this.uploadSuccess = false;
         this.uploadMessage = 'Erreur lors de l\'upload: ' + (error.error?.message || error.message);
         console.error('Erreur upload:', error);
-        window.alert('Fortinet ajoutÃ© mais erreur lors de l\'upload du fichier: ' + this.uploadMessage);
+        window.alert('Fortinet ajouté mais erreur lors de l\'upload du fichier: ' + this.uploadMessage);
         this.fortinetAdded.emit();
       }
     });

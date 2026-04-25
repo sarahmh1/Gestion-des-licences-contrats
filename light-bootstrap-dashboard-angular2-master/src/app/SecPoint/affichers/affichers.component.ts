@@ -1,7 +1,8 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { SecPointService } from 'app/Services/sec-point.service';
 import { SecPoint } from 'app/Model/SecPoint';
 import { Router } from '@angular/router';
+import { PermissionService } from 'app/Services/permission.service';
 @Component({
   selector: 'app-affichers',
   templateUrl: './affichers.component.html',
@@ -19,7 +20,7 @@ export class AffichersComponent implements OnInit {
      totalPages: number = 0;
      pagedSecPoints:SecPoint[] = [];
  
-   constructor(private secPointService: SecPointService, private router: Router) {}
+   constructor(private secPointService: SecPointService, private router: Router, public permissionService: PermissionService) {}
  
   ngOnInit(): void {
       this.getAllSecPoints();
@@ -40,7 +41,7 @@ export class AffichersComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération SecPoints', error);
+          console.error('Erreur r�cup�ration SecPoints', error);
         }
       );
     }
@@ -82,7 +83,7 @@ export class AffichersComponent implements OnInit {
       this.filteredSecPoints = this.filteredSecPoints.filter(secPoint => secPoint.secPointId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuv� et retir� de la liste');
     });
   }
   
@@ -91,11 +92,11 @@ export class AffichersComponent implements OnInit {
         this.secPointService.deleteSecPoint(id).subscribe(
           () => {
             this.getAllSecPoints();
-            alert('SecPoint supprimé avec succès');
+            alert('SecPoint supprim� avec succ�s');
           },
           error => {
             console.error('Erreur suppression SecPoint', error);
-            alert('Échec suppression');
+            alert('�chec suppression');
           }
         );
       }

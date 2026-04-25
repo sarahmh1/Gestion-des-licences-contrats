@@ -99,7 +99,7 @@
           <a [href]="getFileDownloadUrl()" target="_blank" class="btn btn-outline-primary btn-sm">
             <i class="fa fa-download"></i> {{ rapid7.fichierOriginalName }}
           </a>
-          <button type="button" class="btn btn-danger btn-sm" (click)="deleteFile()">
+          <button type="button" class="btn btn-danger btn-sm" (click)="deleteFile()" *ngIf="permissionService.canDeleteProduct('rapid7')">
             <i class="fa fa-trash"></i> Supprimer
           </button>
         </div>

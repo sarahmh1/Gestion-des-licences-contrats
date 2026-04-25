@@ -22,7 +22,9 @@ export class PermissionService {
       'edit_preventive_interventions',
       'view_curative_interventions',
       'add_curative_interventions',
-      'edit_curative_interventions'
+      'edit_curative_interventions',
+      'delete_notification',
+      'delete_message'
     ],
 
     // Admin Commercial: consulter tous sauf utilisateur, pas de modification
@@ -32,7 +34,9 @@ export class PermissionService {
       'view_clients',
       'view_products',
       'view_preventive_interventions',
-      'view_curative_interventions'
+      'view_curative_interventions',
+      'delete_notification',
+      'delete_message'
     ],
 
     // Admin Technique: consulter licences, ajouter et modifier contrats/clients/interventions (sans supprimer)
@@ -49,7 +53,9 @@ export class PermissionService {
       'add_preventive_interventions',
       'view_curative_interventions',
       'edit_curative_interventions',
-      'add_curative_interventions'
+      'add_curative_interventions',
+      'delete_notification',
+      'delete_message'
     ],
 
     // Super Admin: tout faire - accès complet à TOUT
@@ -303,14 +309,27 @@ export class PermissionService {
   }
 
   /**
-   * Méthodes product-spécifiques pour vérifier edit/delete sur un produit donné
+   * Méthodes product-spécifiques pour vérifier add/edit/delete sur un produit donné
    */
+  canAddProduct(productName: string): boolean {
+    if (this.currentUserRole === 'ROLE_COMMERCIAL') {
+      return false; // Le rôle commercial ne peut ajouter aucun produit
+    }
+    return this.hasPermission(`add_${productName.toLowerCase()}_licenses`) || this.hasPermission('add_licenses');
+  }
+
   canEditProduct(productName: string): boolean {
-    return this.hasPermission(`edit_${productName.toLowerCase()}_licenses`);
+    if (this.currentUserRole === 'ROLE_COMMERCIAL') {
+      return false; // Le rôle commercial ne peut modifier aucun produit
+    }
+    return this.hasPermission(`edit_${productName.toLowerCase()}_licenses`) || this.hasPermission('edit_licenses');
   }
 
   canDeleteProduct(productName: string): boolean {
-    return this.hasPermission(`delete_${productName.toLowerCase()}_licenses`);
+    if (this.currentUserRole === 'ROLE_COMMERCIAL') {
+      return false; // Le rôle commercial ne peut supprimer aucun produit
+    }
+    return this.hasPermission(`delete_${productName.toLowerCase()}_licenses`) || this.hasPermission('delete_licenses');
   }
 
   /**

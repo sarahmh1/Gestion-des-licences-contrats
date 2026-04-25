@@ -1,7 +1,8 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ProofpointService } from 'app/Services/proofpoint.service';
 import { Proofpoint } from 'app/Model/Proofpoint';
 import { Router } from '@angular/router';
+import { PermissionService } from 'app/Services/permission.service';
 
 @Component({
   selector: 'app-afficher-proofpoint',
@@ -20,7 +21,7 @@ export class AfficherProofpointComponent implements OnInit {
     totalPages: number = 0;
     pagedProofpoints: Proofpoint[] = [];
 
-  constructor(private proofpointService: ProofpointService, private router: Router) {}
+  constructor(private proofpointService: ProofpointService, private router: Router, public permissionService: PermissionService) {}
 
  ngOnInit(): void {
      this.getAllProofpoints();
@@ -41,7 +42,7 @@ export class AfficherProofpointComponent implements OnInit {
          this.changePage(0);
        },
        (error) => {
-         console.error('Erreur récupération Proofpoints', error);
+         console.error('Erreur r�cup�ration Proofpoints', error);
        }
      );
    }
@@ -83,7 +84,7 @@ export class AfficherProofpointComponent implements OnInit {
       this.filteredProofpoints = this.filteredProofpoints.filter(proofpoint => proofpoint.proofpointId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuv� et retir� de la liste');
     });
   }
  
@@ -92,11 +93,11 @@ export class AfficherProofpointComponent implements OnInit {
        this.proofpointService.deleteProofpoint(id).subscribe(
          () => {
            this.getAllProofpoints();
-           alert('proofpoint supprimé avec succès');
+           alert('proofpoint supprim� avec succ�s');
          },
          error => {
            console.error('Erreur suppression proofpoint', error);
-           alert('Échec suppression');
+           alert('�chec suppression');
          }
        );
      }

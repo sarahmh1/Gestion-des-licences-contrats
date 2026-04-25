@@ -159,7 +159,12 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:4200")); // Autorise uniuement Angular
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:4200",           // Local development
+                "http://localhost:3000",           // Alternative local port
+                "http://127.0.0.1:4200",           // Local loopback
+                "http://192.168.1.50:4200"         // VM access
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList(
                 "Authorization",

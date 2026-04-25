@@ -1,7 +1,8 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { BitdefenderService } from 'app/Services/bitdefender.service';
 import { Bitdefender } from 'app/Model/Bitdefender';
 import { Router } from '@angular/router';
+import { PermissionService } from 'app/Services/permission.service';
 @Component({
   selector: 'app-afficherb',
   templateUrl: './afficherb.component.html',
@@ -19,7 +20,7 @@ export class AfficherbComponent implements OnInit {
      totalPages: number = 0;
      pagedBitdefenders:Bitdefender[] = [];
  
-   constructor(private bitdefenderService: BitdefenderService, private router: Router) {}
+   constructor(private bitdefenderService: BitdefenderService, private router: Router, public permissionService: PermissionService) {}
  
   ngOnInit(): void {
       this.getAllBitdefenders();
@@ -40,7 +41,7 @@ export class AfficherbComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération bitdefenders', error);
+          console.error('Erreur r�cup�ration bitdefenders', error);
         }
       );
     }
@@ -82,7 +83,7 @@ export class AfficherbComponent implements OnInit {
       this.filteredBitdefenders = this.filteredBitdefenders.filter(bitdefender => bitdefender.bitdefenderId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuv� et retir� de la liste');
     });
   }
   
@@ -91,11 +92,11 @@ export class AfficherbComponent implements OnInit {
         this.bitdefenderService.deleteBitdefender(id).subscribe(
           () => {
             this.getAllBitdefenders();
-            alert('Bitdefender supprimé avec succès');
+            alert('Bitdefender supprim� avec succ�s');
           },
           error => {
             console.error('Erreur suppression Bitdefender', error);
-            alert('Échec suppression');
+            alert('�chec suppression');
           }
         );
       }

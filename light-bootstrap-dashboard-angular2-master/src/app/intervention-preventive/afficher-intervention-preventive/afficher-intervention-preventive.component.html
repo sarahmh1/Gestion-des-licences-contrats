@@ -634,7 +634,7 @@
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-secondary" (click)="closeDeleteModal()">Annuler</button>
-      <button type="button" class="btn btn-danger" (click)="deleteIntervention()">Supprimer</button>
+      <button type="button" class="btn btn-danger" (click)="deleteIntervention()" *ngIf="permissionService.canDeleteProduct('intervention-preventive')">Supprimer</button>
     </div>
   </div>
 </div>

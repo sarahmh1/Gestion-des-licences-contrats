@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -141,33 +141,33 @@ export class AjoutervrComponent implements OnInit {
     
           this.varonisService.addVaronis(newVaronis).subscribe(
             (response: any) => {
-              console.log('RÃ©ponse serveur Varonis:', response);
+              console.log('Réponse serveur Varonis:', response);
               const varonisId = response.varonisId || response.id;
               
               // Upload file if selected
               if (this.selectedFile && varonisId) {
                 this.varonisService.uploadFile(varonisId, this.selectedFile).subscribe(
                   (uploadResponse) => {
-                    console.log('Upload rÃ©ussi:', uploadResponse);
-                    window.alert('Varonis et fichier ajoutÃ©s avec succÃ¨s');
+                    console.log('Upload réussi:', uploadResponse);
+                    window.alert('Varonis et fichier ajoutés avec succès');
                     this.router.navigate(['/Affichervr']);
                   },
                   error => {
                     console.error('Erreur lors de l\'upload du fichier:', error);
                     console.error('Status:', error.status);
                     console.error('Error body:', error.error);
-                    window.alert('Varonis ajoutÃ© mais erreur lors de l\'upload du fichier');
+                    window.alert('Varonis ajouté mais erreur lors de l\'upload du fichier');
                     this.router.navigate(['/Affichervr']);
                   }
                 );
               } else {
-                window.alert('Varonis ajoutÃ© avec succÃ¨s');
+                window.alert('Varonis ajouté avec succès');
                 this.router.navigate(['/Affichervr']);
               }
             },
             error => {
               console.error('Erreur lors de l\'ajout du Varonis:', error);
-              window.alert('Ã‰chec de l\'ajout');
+              window.alert('Échec de l\'ajout');
             }
           );
         } else {

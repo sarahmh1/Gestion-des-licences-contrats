@@ -1,6 +1,7 @@
 .sus-wrapper {
   position: relative;
   width: 100%;
+  z-index: 10001; /* Higher than modal */
 }
 
 .sus-input-row {
@@ -61,6 +62,7 @@
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
   z-index: 9999;
   animation: susSlideIn 0.15s ease;
+  overflow: visible; /* Allow dropdown to overflow */
 }
 
 @keyframes susSlideIn {

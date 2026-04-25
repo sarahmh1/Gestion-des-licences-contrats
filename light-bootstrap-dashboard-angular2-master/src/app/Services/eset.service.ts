@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 
 import { Injectable } from '@angular/core';
@@ -8,7 +9,7 @@ import { Eset } from 'app/Model/Eset';
   providedIn: 'root'
 })
 export class EsetService {
-  private baseUrl = 'http://localhost:8089/Eset'; // ✅ Bon chemin
+  private baseUrl = `${environment.apiUrl}/Eset`; // ✅ Bon chemin
 
 
   constructor(private http: HttpClient) { }
@@ -27,7 +28,7 @@ getEsetById(id: number): Observable<Eset> {
 
 
 deleteEset(id: number): Observable<void> {
-  return this.http.delete<void>(`http://localhost:8089/Eset/Delete-ESET/${id}`);;
+  return this.http.delete<void>(`${environment.apiUrl}/Eset/Delete-ESET/${id}`);;
 }
 
 

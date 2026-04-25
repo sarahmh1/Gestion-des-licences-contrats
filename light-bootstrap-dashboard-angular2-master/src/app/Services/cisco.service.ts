@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { Cisco } from 'app/Model/Cisco';
   providedIn: 'root'
 })
 export class CiscoService {
-  private baseUrl = 'http://localhost:8089/Cisco';
+  private baseUrl = `${environment.apiUrl}/Cisco`;
 
   constructor(private http: HttpClient) {}
 
@@ -67,3 +68,4 @@ export class CiscoService {
     return this.http.delete<Cisco>(`${this.baseUrl}/${id}/delete-file`);
   }
 }
+

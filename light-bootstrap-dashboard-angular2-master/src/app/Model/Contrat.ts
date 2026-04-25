@@ -21,4 +21,7 @@ export interface Contrat {
   ccMail?: string[];
   datesAvenants?: DateAvenant[];
   nomProduit?: string;
+  criticite?: string;
+  delaiMaxIntervention?: number;
+  delaiMaxResolution?: number;
 }

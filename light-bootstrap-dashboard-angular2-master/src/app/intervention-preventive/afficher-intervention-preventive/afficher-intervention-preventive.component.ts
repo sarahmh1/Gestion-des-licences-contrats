@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -91,7 +92,7 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
   loadAllContrats(): void {
     const token = localStorage.getItem('token');
     const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
-    this.http.get<any[]>('http://localhost:8089/Contrat/all', { headers }).subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/Contrat/all`, { headers }).subscribe({
       next: (data) => {
         this.allContrats = data;
         // Abonner les watchers une fois les contrats charges
@@ -134,6 +135,10 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
 
   isTechnique(): boolean {
     return this.currentUserRole === 'ROLE_TECHNIQUE';
+  }
+
+  isSuperAdmin(): boolean {
+    return this.currentUserRole === 'ROLE_SUPER_ADMIN';
   }
 
   canEditAdminFields(): boolean {
@@ -425,16 +430,48 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
 
   // ── Utilisateurs assignés ───────────────────────────────────────────────────
   loadAllUsers(): void {
+    // Ne charger les utilisateurs que si l'utilisateur peut modifier les champs admin
+    if (!this.canEditAdminFields()) {
+      console.log('ℹ️ Skipping user load - user cannot edit admin fields');
+      this.allUsers = [];
+      this.updateFilteredAssignableUsers();
+      return;
+    }
+
     const token = localStorage.getItem('token');
     const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
-    this.http.get<any[]>('http://localhost:8089/Users', { headers }).subscribe({
-      next: (users) => { this.allUsers = users; },
-      error: () => { this.allUsers = []; }
+    this.http.get<any>(`${environment.apiUrl}/Users`, { headers }).subscribe({
+      next: (response) => { 
+        console.log('✅ Users loaded from API:', response);
+        // Handle both array and object responses
+        if (Array.isArray(response)) {
+          this.allUsers = response;
+        } else if (response && typeof response === 'object') {
+          // Si c'est un objet, chercher un tableau à l'intérieur
+          this.allUsers = response.users || response.data || Object.values(response).flat();
+        } else {
+          this.allUsers = [];
+        }
+        console.log('📊 Processed users:', this.allUsers);
+        // ✅ UPDATE filteredAssignableUsers immediately after loading
+        this.updateFilteredAssignableUsers();
+      },
+      error: (err) => { 
+        console.error('❌ Error loading users:', err);
+        this.allUsers = [];
+        this.updateFilteredAssignableUsers();
+      }
     });
   }
 
+  // ✅ NEW: Method to update filtered users
+  updateFilteredAssignableUsers(): void {
+    this.filteredAssignableUsers = this.allUsers.filter(u => !this.assignedUsers.find(a => a.id === u.id));
+    console.log('🔄 Filtered assignable users updated:', this.filteredAssignableUsers);
+  }
+
   getUnassignedUsers(): any[] {
-    return this.allUsers.filter(u => !this.assignedUsers.find(a => a.id === u.id));
+    return this.filteredAssignableUsers;
   }
 
   assignUserFromDropdown(event: any): void {
@@ -451,11 +488,12 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
       this.assignedUsers.push(user);
     }
     this.userSearchQuery = '';
-    this.filteredAssignableUsers = [];
+    this.updateFilteredAssignableUsers(); // ✅ Update instead of clearing
   }
 
   removeAssignedUser(index: number): void {
     this.assignedUsers.splice(index, 1);
+    this.updateFilteredAssignableUsers(); // ✅ Update after removing
   }
 
   // Appele par app-searchable-user-select via (userSelected)
@@ -586,7 +624,7 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
     const firstLine = this.periodeLinesArray.length > 0 ? this.periodeLinesArray.at(0).value : {};
     let newStatut = formValue.statut || StatutInterventionPreventive.CREE;
 
-    if (this.isAdmin() && !this.isEditMode) {
+    if ((this.isAdmin() || this.isSuperAdmin()) && !this.isEditMode) {
       newStatut = StatutInterventionPreventive.EN_ATTENTE_INTERVENTION;
     } else if (this.isTechnique() &&
       (this.currentEditingStatut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION ||
@@ -702,6 +740,8 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
     this.assignedUsers = [];
     this.userSearchQuery = '';
     this.filteredAssignableUsers = [];
+    // ✅ CHARGER LES UTILISATEURS POUR LE DROPDOWN
+    this.loadAllUsers();
     // Réinitialiser les variables de fichier
     this.selectedFile = null;
     this.existingFile = null;
@@ -790,6 +830,8 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
     this.selectedFile = null;
     this.existingFile = intervention.fichier || null;
     this.existingFileName = intervention.fichierOriginalName || null;
+    // ✅ CHARGER LES UTILISATEURS POUR LE DROPDOWN
+    this.loadAllUsers();
     this.showModal = true;
   }
 
@@ -802,8 +844,8 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
     // Déterminer le nouveau statut basé sur le rôle et l'action
     let newStatut = formValue.statut || StatutInterventionPreventive.CREE;
 
-    if (this.isAdmin() && !this.isEditMode) {
-      // Admin crée une nouvelle intervention -> statut EN_ATTENTE_INTERVENTION
+    if ((this.isAdmin() || this.isSuperAdmin()) && !this.isEditMode) {
+      // Admin ou Super Admin crée une nouvelle intervention -> statut EN_ATTENTE_INTERVENTION
       newStatut = StatutInterventionPreventive.EN_ATTENTE_INTERVENTION;
     } else if (this.isTechnique() &&
       (this.currentEditingStatut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION ||
@@ -1007,3 +1049,4 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
     }
   }
 }
+

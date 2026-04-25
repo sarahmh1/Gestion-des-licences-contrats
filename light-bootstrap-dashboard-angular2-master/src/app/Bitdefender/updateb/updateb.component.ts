@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Bitdefender } from 'app/Model/Bitdefender';
@@ -45,7 +45,7 @@ export class UpdateBitdefenderComponent implements OnInit {
         numero: [''],
         remarque: [''],
         sousContrat: [false],
-        licences: this.fb.array([])  // ðŸ‘ˆ Ajout des licences dynamiques ici
+        licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
       });
   
       this.bitdefenderId = Number(this.route.snapshot.paramMap.get('id'));
@@ -77,7 +77,7 @@ export class UpdateBitdefenderComponent implements OnInit {
     }
       // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -90,7 +90,7 @@ export class UpdateBitdefenderComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+        return CommandePasserPar.GI_TN; // Valeur par défaut
     }
   }
   
@@ -136,7 +136,7 @@ export class UpdateBitdefenderComponent implements OnInit {
           }
         },
         error => {
-          console.error('Erreur rÃ©cupÃ©ration bitdefender:', error);
+          console.error('Erreur récupération bitdefender:', error);
         }
       );
     }
@@ -157,11 +157,11 @@ export class UpdateBitdefenderComponent implements OnInit {
   
         this.bitdefenderService.updateBitdefender(updatedbitdefender).subscribe(
           () => {
-            console.log('Bitdefender mis Ã  jour avec succÃ¨s');
+            console.log('Bitdefender mis à jour avec succès');
             this.router.navigate(['/Afficherb']);
           },
           error => {
-            console.error('Erreur mise Ã  jour bitdefender:', error);
+            console.error('Erreur mise à jour bitdefender:', error);
           }
         );
       } else {
@@ -173,14 +173,14 @@ export class UpdateBitdefenderComponent implements OnInit {
       const file = event.target.files[0];
       if (file) {
         this.selectedFile = file;
-        // Upload immÃ©diat du fichier
+        // Upload immédiat du fichier
         this.bitdefenderService.uploadFile(this.bitdefenderId, file).subscribe(
           (response: Bitdefender) => {
             this.bitdefender.fichier = response.fichier;
             this.bitdefender.fichierOriginalName = response.fichierOriginalName;
             this.selectedFile = null;
             this.cdr.detectChanges();
-            window.alert('Fichier uploadÃ© avec succÃ¨s');
+            window.alert('Fichier uploadé avec succès');
           },
           (error) => {
             console.error('Erreur upload fichier:', error);
@@ -197,7 +197,7 @@ export class UpdateBitdefenderComponent implements OnInit {
             this.bitdefender.fichier = undefined;
             this.bitdefender.fichierOriginalName = undefined;
             this.cdr.detectChanges();
-            window.alert('Fichier supprimÃ© avec succÃ¨s');
+            window.alert('Fichier supprimé avec succès');
           },
           (error) => {
             console.error('Erreur suppression fichier:', error);

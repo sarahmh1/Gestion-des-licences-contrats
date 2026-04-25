@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit, ChangeDetectorRef, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FortinetService } from 'app/Services/fortinet.service';
@@ -55,7 +55,7 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
       this.fortinetId = this.fortinetToEdit.fortinetId!;
       this.loadFortinetIntoForm(this.fortinet);
     } else {
-      // Mode route normal: rÃ©cupÃ©rer l'ID depuis l'URL
+      // Mode route normal: récupérer l'ID depuis l'URL
       this.fortinetId = Number(this.route.snapshot.paramMap.get('id'));
       
       if (this.fortinetId) {
@@ -136,7 +136,7 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
 
   // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -149,13 +149,13 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+        return CommandePasserPar.GI_TN; // Valeur par défaut
     }
   }
 
   loadFortinetIntoForm(fortinet: Fortinet): void {
-    console.log('Fortinet chargÃ©:', fortinet);
-    console.log('Licences reÃ§ues:', fortinet.licences);
+    console.log('Fortinet chargé:', fortinet);
+    console.log('Licences reçues:', fortinet.licences);
     
     // Convertir la valeur en enum
     const commandePasserParValue = this.getCommandePasserParValue(fortinet.commandePasserPar);
@@ -217,14 +217,14 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
   formatDate(date: string | Date): string {
     if (!date) return '';
     
-    // Si c'est dÃ©jÃ  une string au format YYYY-MM-DD, la retourner telle quelle
+    // Si c'est déjà une string au format YYYY-MM-DD, la retourner telle quelle
     if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return date;
     }
     
     const d = new Date(date);
     
-    // VÃ©rifier si la date est valide
+    // Vérifier si la date est valide
     if (isNaN(d.getTime())) {
       console.warn('Date invalide:', date);
       return '';
@@ -251,18 +251,18 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
         approuve: this.fortinet?.approuve || false,
         remarque: this.updateForm.value.remarque || '',
         licences: this.licences.value,
-        // Inclure les champs fichier pour ne pas les Ã©craser
+        // Inclure les champs fichier pour ne pas les écraser
         fichier: this.currentFileName || undefined,
         fichierOriginalName: this.currentFileOriginalName || undefined
       };
 
-      console.log('DonnÃ©es Ã  mettre Ã  jour:', updatedFortinet);
+      console.log('Données à mettre à jour:', updatedFortinet);
 
       this.fortinetService.updateFortinet(updatedFortinet).subscribe(
         response => {
-          console.log('RÃ©ponse mise Ã  jour:', response);
-          window.alert('Fortinet mis Ã  jour avec succÃ¨s');
-          // Mode modal: Ã©mettre l'Ã©vÃ©nement updated
+          console.log('Réponse mise à jour:', response);
+          window.alert('Fortinet mis à jour avec succès');
+          // Mode modal: émettre l'événement updated
           if (this.fortinetToEdit) {
             this.updated.emit(updatedFortinet);
           } else {
@@ -271,22 +271,22 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
           }
         },
         error => {
-          console.error('Erreur lors de la mise Ã  jour:', error);
+          console.error('Erreur lors de la mise à jour:', error);
           if (error.error) {
-            console.error('DÃ©tails de l\'erreur:', error.error);
+            console.error('Détails de l\'erreur:', error.error);
           }
-          window.alert('Ã‰chec de la mise Ã  jour: ' + (error.error?.message || error.message));
+          window.alert('Échec de la mise à jour: ' + (error.error?.message || error.message));
         }
       );
     } else {
       console.log('Formulaire invalide', this.updateForm.errors);
-      // Marquer tous les champs comme touchÃ©s pour afficher les erreurs
+      // Marquer tous les champs comme touchés pour afficher les erreurs
       this.markFormGroupTouched(this.updateForm);
       window.alert('Le formulaire est invalide. Veuillez corriger les erreurs.');
     }
   }
 
-  // MÃ©thode pour marquer tous les champs comme touchÃ©s
+  // Méthode pour marquer tous les champs comme touchés
   private markFormGroupTouched(formGroup: FormGroup | FormArray) {
     Object.keys(formGroup.controls).forEach(key => {
       const control = formGroup.controls[key];
@@ -303,7 +303,7 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
   }
 
   onCancel(): void {
-    // Mode modal: Ã©mettre l'Ã©vÃ©nement cancelled
+    // Mode modal: émettre l'événement cancelled
     if (this.fortinetToEdit) {
       this.cancelled.emit();
     } else {
@@ -324,7 +324,7 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
 
   uploadFile(): void {
     if (!this.selectedFile) {
-      this.uploadMessage = 'Veuillez sÃ©lectionner un fichier';
+      this.uploadMessage = 'Veuillez sélectionner un fichier';
       this.uploadSuccess = false;
       return;
     }
@@ -333,7 +333,7 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
     this.uploadProgress = 0;
     this.uploadMessage = null;
 
-    console.log('DÃ©but upload fichier:', this.selectedFile.name);
+    console.log('Début upload fichier:', this.selectedFile.name);
 
     this.fortinetService.uploadFile(this.fortinetId, this.selectedFile).subscribe({
       next: (event: any) => {
@@ -341,20 +341,20 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
           this.uploadProgress = Math.round(100 * event.loaded / event.total);
         } else if (event.type === HttpEventType.Response) {
           this.uploading = false;
-          console.log('RÃ©ponse upload:', event.body);
+          console.log('Réponse upload:', event.body);
           if (event.body.success) {
             this.uploadSuccess = true;
-            this.uploadMessage = 'Fichier uploadÃ© avec succÃ¨s!';
+            this.uploadMessage = 'Fichier uploadé avec succès!';
             this.currentFileName = event.body.fichier;
             this.currentFileOriginalName = event.body.originalName || this.selectedFile?.name;
             console.log('Nouveau fichier:', this.currentFileName, this.currentFileOriginalName);
             this.selectedFile = null;
-            // RÃ©initialiser l'input file
+            // Réinitialiser l'input file
             const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
             if (fileInput) {
               fileInput.value = '';
             }
-            // Forcer la dÃ©tection de changement
+            // Forcer la détection de changement
             this.cdr.detectChanges();
           } else {
             this.uploadSuccess = false;
@@ -379,16 +379,16 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
   }
 
   deleteFile(): void {
-    if (confirm('ÃŠtes-vous sÃ»r de vouloir supprimer ce fichier?')) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce fichier?')) {
       this.fortinetService.deleteFile(this.fortinetId).subscribe({
         next: (response: any) => {
-          console.log('RÃ©ponse suppression:', response);
+          console.log('Réponse suppression:', response);
           if (response.success) {
             this.currentFileName = null;
             this.currentFileOriginalName = null;
-            this.uploadMessage = 'Fichier supprimÃ© avec succÃ¨s';
+            this.uploadMessage = 'Fichier supprimé avec succès';
             this.uploadSuccess = true;
-            // Forcer la dÃ©tection de changement
+            // Forcer la détection de changement
             this.cdr.detectChanges();
           } else {
             this.uploadMessage = response.message || 'Erreur lors de la suppression';

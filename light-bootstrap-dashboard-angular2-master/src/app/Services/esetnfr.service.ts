@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { EsetNFR } from './../Model/EsetNFR';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -6,7 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class EsetnfrService {
-  private baseUrl = 'http://localhost:8089/Eset'; // ✅ Bon chemin
+  private baseUrl = `${environment.apiUrl}/Eset`; // ✅ Bon chemin
 
 
   constructor(private http: HttpClient) { }
@@ -37,3 +38,4 @@ updateEsetStatusToTrue(claimId: number): Observable<void> {
 activateFR(id: number): Observable<void> {
   return this.http.put<void>(`${this.baseUrl}/approuveNFR/${id}`, {});
 } }
+

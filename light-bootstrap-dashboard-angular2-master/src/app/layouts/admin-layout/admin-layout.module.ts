@@ -117,7 +117,7 @@ import { UpdateCiscoComponent } from '../../Cisco/updatec/updatec.component';
 import { AjouterimComponent } from '../../Imperva/ajouterim/ajouterim.component';
 import { AfficherimComponent } from '../../Imperva/afficherim/afficherim.component';
 import { UpdateImpervaComponent } from '../../Imperva/updateim/updateim.component';
-import { UserrComponent } from '../../User/user.component';
+import { UserComponent } from '../../User/user.component';
 //import { FortinetComponent } from '../../Fortinet/fortinet.component';
 import { ProfileComponent } from '../../Profil/profil.component';
 import { MessagingComponent } from '../../messaging/messaging.component';
@@ -221,7 +221,7 @@ import { HistoriqueContratComponent } from '../../Contrat/historique-contrat/his
     AjouterimComponent,
     AfficherimComponent,
     UpdateImpervaComponent,
-    UserrComponent,
+    UserComponent,
     //FortinetComponent,
     ProfileComponent,
     ExpiredFortinetComponent,

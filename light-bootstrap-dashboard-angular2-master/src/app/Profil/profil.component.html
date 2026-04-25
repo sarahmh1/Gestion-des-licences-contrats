@@ -257,7 +257,7 @@
               <i class="glyphicon glyphicon-remove"></i> Annuler
             </button>
             <button type="button" class="btn btn-primary" (click)="updateProfile()" 
-                    [disabled]="!profileForm.valid || updating" style="margin-left: 10px;">
+                    [disabled]="!profileForm.valid || updating" style="margin-left: 10px;" *ngIf="permissionService.canEditProduct('profil')">
               <i class="glyphicon glyphicon-floppy-disk"></i> 
               {{ updating ? 'Enregistrement...' : 'Enregistrer les modifications' }}
             </button>

@@ -95,7 +95,7 @@
         <a [href]="getFileDownloadUrl()" target="_blank" class="btn btn-sm btn-info me-2">
           <i class="fa fa-download"></i> {{ f5.fichierOriginalName }}
         </a>
-        <button type="button" class="btn btn-sm btn-danger" (click)="deleteFile()">
+        <button type="button" class="btn btn-sm btn-danger" (click)="deleteFile()" *ngIf="permissionService.canDeleteProduct('f5')">
           <i class="fa fa-trash"></i> Supprimer
         </button>
       </div>

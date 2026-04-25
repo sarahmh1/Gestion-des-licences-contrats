@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Cisco } from 'app/Model/Cisco';
@@ -46,7 +46,7 @@ export class UpdateCiscoComponent implements OnInit {
         numero: [''],
         remarque: [''],
         sousContrat: [false],
-        licences: this.fb.array([])  // ðŸ‘ˆ Ajout des licences dynamiques ici
+        licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
       });
   
       this.ciscoId = Number(this.route.snapshot.paramMap.get('id'));
@@ -78,7 +78,7 @@ export class UpdateCiscoComponent implements OnInit {
     }
   // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -91,7 +91,7 @@ export class UpdateCiscoComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+        return CommandePasserPar.GI_TN; // Valeur par défaut
     }
   }
 
@@ -139,7 +139,7 @@ export class UpdateCiscoComponent implements OnInit {
           }
         },
         error => {
-          console.error('Erreur rÃ©cupÃ©ration cisco:', error);
+          console.error('Erreur récupération cisco:', error);
         }
       );
     }
@@ -160,11 +160,11 @@ export class UpdateCiscoComponent implements OnInit {
   
         this.ciscoService.updateCisco(updatedCisco).subscribe(
           () => {
-            console.log('Cisco mis Ã  jour avec succÃ¨s');
+            console.log('Cisco mis à jour avec succès');
             this.router.navigate(['/Afficherc']);
           },
           error => {
-            console.error('Erreur mise Ã  jour Cisco:', error);
+            console.error('Erreur mise à jour Cisco:', error);
           }
         );
       } else {
@@ -194,11 +194,11 @@ export class UpdateCiscoComponent implements OnInit {
             this.currentFileName = response.fichier || null;
             this.currentFileOriginalName = response.fichierOriginalName || null;
             this.selectedFile = null;
-            window.alert('Fichier uploadÃ© avec succÃ¨s');
+            window.alert('Fichier uploadé avec succès');
           },
           (error) => {
             console.error('Erreur upload fichier:', error);
-            window.alert('Ã‰chec de l\'upload du fichier');
+            window.alert('Échec de l\'upload du fichier');
           }
         );
       }
@@ -210,11 +210,11 @@ export class UpdateCiscoComponent implements OnInit {
           () => {
             this.currentFileName = null;
             this.currentFileOriginalName = null;
-            window.alert('Fichier supprimÃ© avec succÃ¨s');
+            window.alert('Fichier supprimé avec succès');
           },
           (error) => {
             console.error('Erreur suppression fichier:', error);
-            window.alert('Ã‰chec de la suppression du fichier');
+            window.alert('Échec de la suppression du fichier');
           }
         );
       }

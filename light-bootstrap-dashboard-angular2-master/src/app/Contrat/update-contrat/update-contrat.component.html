@@ -131,7 +131,7 @@
         <a [href]="getFileDownloadUrl()" target="_blank" class="btn btn-sm btn-info ms-2">
           <i class="fas fa-download"></i> Télécharger
         </a>
-        <button type="button" class="btn btn-sm btn-danger ms-2" (click)="deleteFile()">
+        <button type="button" class="btn btn-sm btn-danger ms-2" (click)="deleteFile()" *ngIf="permissionService.canDeleteProduct('contrat')">
           <i class="fas fa-trash"></i> Supprimer
         </button>
       </div>

@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { Alwarebytes } from 'app/Model/Alwarebytes';
   providedIn: 'root'
 })
 export class AlwarebytesService {
-  private baseUrl = 'http://localhost:8089/Alwarebytes';
+  private baseUrl = `${environment.apiUrl}/Alwarebytes`;
 
   constructor(private http: HttpClient) {}
 
@@ -61,3 +62,4 @@ export class AlwarebytesService {
     return this.http.put<void>(url, { remarque });
   }
 }
+

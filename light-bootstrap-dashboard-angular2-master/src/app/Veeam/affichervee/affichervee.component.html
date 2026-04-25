@@ -2,7 +2,7 @@
   <div class="header-row">
     <h2>Licences Veeam</h2>
     <div class="action-group">
-      <button (click)="goToAddVeeam()" class="btn btn-sm action-button"><i class="fa fa-plus"></i></button>
+      <button (click)="goToAddVeeam()" class="btn btn-sm action-button" *ngIf="permissionService.canAddProduct('veeam')"><i class="fa fa-plus"></i></button>
       <div class="input-group search-box">
         <input type="text" class="form-control" placeholder="Rechercher..." [(ngModel)]="searchTerm" (input)="onSearch()" />
       </div>

@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -8,7 +9,7 @@ import { AppNotification } from '../Model/Notification';
 })
 export class NotificationAppService {
 
-    private baseUrl = 'http://localhost:8089/notifications';
+    private baseUrl = `${environment.apiUrl}/notifications`;
 
     constructor(private http: HttpClient) { }
 
@@ -48,3 +49,4 @@ export class NotificationAppService {
         return this.http.post<any>(`${this.baseUrl}/create`, body, { headers: this.getHeaders() });
     }
 }
+

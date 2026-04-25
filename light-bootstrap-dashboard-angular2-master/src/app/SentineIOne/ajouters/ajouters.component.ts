@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -148,27 +148,27 @@ export class AjouterssComponent implements OnInit {
     
           this.sentineIOneService.addSentineIOne(newSentineIOne).subscribe(
             (response: SentineIOne) => {
-              // Upload du fichier si sÃ©lectionnÃ©
+              // Upload du fichier si sélectionné
               if (this.selectedFile && response.sentineIOneId) {
                 this.sentineIOneService.uploadFile(response.sentineIOneId, this.selectedFile).subscribe(
                   () => {
-                    window.alert('SentineIOne ajoutÃ© avec succÃ¨s');
+                    window.alert('SentineIOne ajouté avec succès');
                     this.router.navigate(['/Affichers']);
                   },
                   (error) => {
                     console.error('Erreur upload fichier:', error);
-                    window.alert('SentineIOne ajoutÃ© mais erreur lors de l\'upload du fichier');
+                    window.alert('SentineIOne ajouté mais erreur lors de l\'upload du fichier');
                     this.router.navigate(['/Affichers']);
                   }
                 );
               } else {
-                window.alert('SentineIOne ajoutÃ© avec succÃ¨s');
+                window.alert('SentineIOne ajouté avec succès');
                 this.router.navigate(['/Affichers']);
               }
             },
             error => {
               console.error('Erreur lors de l\'ajout du SentineIOne', error);
-              window.alert('Ã‰chec de l\'ajout');
+              window.alert('Échec de l\'ajout');
             }
           );
         } else {

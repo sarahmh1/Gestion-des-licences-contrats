@@ -95,7 +95,7 @@
         <a [href]="getFileDownloadUrl()" target="_blank" class="btn btn-sm btn-info">
           <i class="fa fa-download"></i> {{ vmware.fichierOriginalName }}
         </a>
-        <button type="button" class="btn btn-sm btn-danger ms-2" (click)="deleteFile()">
+        <button type="button" class="btn btn-sm btn-danger ms-2" (click)="deleteFile()" *ngIf="permissionService.canDeleteProduct('vmware')">
           <i class="fa fa-trash"></i> Supprimer
         </button>
       </div>

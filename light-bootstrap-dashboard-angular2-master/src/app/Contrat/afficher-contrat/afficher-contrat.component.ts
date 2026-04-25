@@ -65,7 +65,10 @@ export class AfficherContratComponent implements OnInit {
       emailCommercial: [''],
       ccMail: this.fb.array([]),
       datesAvenants: this.fb.array([]),
-      nomProduit: ['']
+      nomProduit: [''],
+      criticite: [''],
+      delaiMaxIntervention: [''],
+      delaiMaxResolution: ['']
     });
   }
 
@@ -204,7 +207,11 @@ export class AfficherContratComponent implements OnInit {
       dateFin: '',
       renouvelable: false,
       remarque: '',
-      emailCommercial: ''
+      emailCommercial: '',
+      nomProduit: '',
+      criticite: '',
+      delaiMaxIntervention: '',
+      delaiMaxResolution: ''
     });
     this.showModal = true;
   }
@@ -256,7 +263,10 @@ export class AfficherContratComponent implements OnInit {
       renouvelable: contrat.renouvelable,
       remarque: contrat.remarque,
       emailCommercial: contrat.emailCommercial || '',
-      nomProduit: contrat.nomProduit || ''
+      nomProduit: contrat.nomProduit || '',
+      criticite: contrat.criticite || '',
+      delaiMaxIntervention: contrat.delaiMaxIntervention || '',
+      delaiMaxResolution: contrat.delaiMaxResolution || ''
     });
     this.showModal = true;
   }

@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { SentineIOne } from 'app/Model/SentineIOne';
   providedIn: 'root'
 })
 export class SentineIOneService {
-  private baseUrl = 'http://localhost:8089/SentineIOne';
+  private baseUrl = `${environment.apiUrl}/SentineIOne`;
 
   constructor(private http: HttpClient) {}
 
@@ -66,3 +67,4 @@ export class SentineIOneService {
     return this.http.delete<SentineIOne>(`${this.baseUrl}/${sentineIOneId}/delete-file`);
   }
 }
+

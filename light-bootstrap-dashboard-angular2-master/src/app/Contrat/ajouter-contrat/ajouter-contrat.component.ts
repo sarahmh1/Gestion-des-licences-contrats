@@ -40,7 +40,10 @@ export class AjouterContratComponent implements OnInit {
       remarque: [''],
       emailCommercial: ['', Validators.email],
       ccMail: this.fb.array([]),
-      nomProduit: ['']
+      nomProduit: [''],
+      criticite: ['', Validators.required],
+      delaiMaxIntervention: ['', Validators.required],
+      delaiMaxResolution: ['', Validators.required]
     });
   }
 

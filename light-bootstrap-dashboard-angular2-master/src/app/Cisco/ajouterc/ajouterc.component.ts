@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Cisco } from 'app/Model/Cisco';
@@ -148,32 +148,32 @@ export class AjoutercComponent implements OnInit {
     
           this.ciscoService.addCisco(newCisco).subscribe(
             (response: any) => {
-              console.log('RÃ©ponse serveur Cisco:', response);
+              console.log('Réponse serveur Cisco:', response);
               const ciscoId = response.ciscoId || response.id;
               
               if (this.selectedFile && ciscoId) {
                 this.ciscoService.uploadFile(ciscoId, this.selectedFile).subscribe(
                   (uploadResponse) => {
-                    console.log('Upload rÃ©ussi:', uploadResponse);
-                    window.alert('Cisco et fichier ajoutÃ©s avec succÃ¨s');
+                    console.log('Upload réussi:', uploadResponse);
+                    window.alert('Cisco et fichier ajoutés avec succès');
                     this.router.navigate(['/Afficherc']);
                   },
                   error => {
                     console.error('Erreur lors de l\'upload du fichier:', error);
                     console.error('Status:', error.status);
                     console.error('Error body:', error.error);
-                    window.alert('Cisco ajoutÃ© mais Ã©chec de l\'upload du fichier');
+                    window.alert('Cisco ajouté mais échec de l\'upload du fichier');
                     this.router.navigate(['/Afficherc']);
                   }
                 );
               } else {
-                window.alert('Cisco ajoutÃ© avec succÃ¨s');
+                window.alert('Cisco ajouté avec succès');
                 this.router.navigate(['/Afficherc']);
               }
             },
             error => {
               console.error('Erreur lors de l\'ajout du Cisco:', error);
-              window.alert('Ã‰chec de l\'ajout');
+              window.alert('Échec de l\'ajout');
             }
           );
         } else {

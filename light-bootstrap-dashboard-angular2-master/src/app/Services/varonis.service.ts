@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { Varonis } from 'app/Model/Varonis';
   providedIn: 'root'
 })
 export class VaronisService {
-  private baseUrl = 'http://localhost:8089/Varonis';
+  private baseUrl = `${environment.apiUrl}/Varonis`;
 
   constructor(private http: HttpClient) {}
 
@@ -66,3 +67,4 @@ export class VaronisService {
     return this.http.delete<Varonis>(`${this.baseUrl}/${id}/delete-file`);
   }
 }
+

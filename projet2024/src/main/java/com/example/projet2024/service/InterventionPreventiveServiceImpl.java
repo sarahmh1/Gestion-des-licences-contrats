@@ -112,15 +112,55 @@ public class InterventionPreventiveServiceImpl implements IInterventionPreventiv
         existing.setCcMail(intervention.getCcMail());
         existing.setNomProduit(intervention.getNomProduit());
 
+        // ── Détection des utilisateurs nouvellement assignés ──
+        List<Long> oldUserIds = existing.getAssignedUsers().stream()
+                .map(User::getId)
+                .toList();
+        
         // ── Mise à jour des utilisateurs assignés ──
         existing.getAssignedUsers().clear();
+        List<User> newlyAssignedUsers = new ArrayList<>();
+        
         if (intervention.getAssignedUsers() != null) {
             for (User u : intervention.getAssignedUsers()) {
                 User managedUser = userRepository.findById(u.getId()).orElse(null);
                 if (managedUser != null) {
                     existing.getAssignedUsers().add(managedUser);
+                    // Identifier les utilisateurs nouvellement assignés
+                    if (!oldUserIds.contains(u.getId())) {
+                        newlyAssignedUsers.add(managedUser);
+                    }
                 }
             }
+        }
+        
+        // ── Notifier les utilisateurs nouvellement assignés ──
+        if (!newlyAssignedUsers.isEmpty()) {
+            String nomClient = existing.getNomClient() != null ? existing.getNomClient() : "N/A";
+            String nomProduit = existing.getNomProduit() != null ? " (" + existing.getNomProduit() + ")" : "";
+            
+            // Construire un message détaillé avec toutes les infos de l'intervention
+            StringBuilder msgBuilder = new StringBuilder();
+            msgBuilder.append("👤 Nouvelle assignation - Intervention Préventive\n");
+            msgBuilder.append("📦 Client: ").append(nomClient).append(nomProduit).append("\n");
+            
+            if (existing.getPeriodeLignes() != null && !existing.getPeriodeLignes().isEmpty()) {
+                PeriodeLigne ligne = existing.getPeriodeLignes().get(0);
+                if (ligne.getPeriodeDe() != null && ligne.getPeriodeA() != null) {
+                    msgBuilder.append("📅 Période: ").append(ligne.getPeriodeDe()).append(" → ").append(ligne.getPeriodeA()).append("\n");
+                }
+                if (ligne.getPeriodeRecommandeDe() != null && ligne.getPeriodeRecommandeA() != null) {
+                    msgBuilder.append("⭐ Recommandée: ").append(ligne.getPeriodeRecommandeDe()).append(" → ").append(ligne.getPeriodeRecommandeA()).append("\n");
+                }
+            }
+            
+            if (existing.getNbInterventionsParAn() != null) {
+                msgBuilder.append("🔁 Fréquence: ").append(existing.getNbInterventionsParAn()).append(" fois par an");
+            }
+            
+            String msg = msgBuilder.toString();
+            sendInAppNotificationToAssignedUsers(newlyAssignedUsers, msg, existing.getInterventionPreventiveId());
+            logger.info("Notification détaillée envoyée à {} utilisateur(s) nouvellement assigné(s)", newlyAssignedUsers.size());
         }
 
         // ── Mise à jour des intervenants (niveau intervention) ──

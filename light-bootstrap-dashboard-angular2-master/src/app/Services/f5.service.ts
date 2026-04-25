@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { F5 } from 'app/Model/F5';
   providedIn: 'root'
 })
 export class F5Service {
-  private baseUrl = 'http://localhost:8089/F5';
+  private baseUrl = `${environment.apiUrl}/F5`;
 
   constructor(private http: HttpClient) {}
 
@@ -68,3 +69,4 @@ export class F5Service {
     return this.http.delete<F5>(`${this.baseUrl}/${f5Id}/delete-file`);
   }
 }
+

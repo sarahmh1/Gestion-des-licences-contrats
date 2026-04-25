@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { Contrat } from 'app/Model/Contrat';
   providedIn: 'root'
 })
 export class ContratService {
-  private baseUrl = 'http://localhost:8089/Contrat';
+  private baseUrl = `${environment.apiUrl}/Contrat`;
 
   constructor(private http: HttpClient) { }
 
@@ -58,3 +59,4 @@ export class ContratService {
     return this.http.delete<any>(`${this.baseUrl}/${id}/delete-file`);
   }
 }
+

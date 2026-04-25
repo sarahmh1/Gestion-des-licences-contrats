@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -148,27 +148,27 @@ export class AjouterwComponent implements OnInit {
    
          this.wallixService.addWallix(newWallix).subscribe(
            (response: Wallix) => {
-             // Si un fichier a Ã©tÃ© sÃ©lectionnÃ©, l'uploader aprÃ¨s la crÃ©ation
+             // Si un fichier a été sélectionné, l'uploader après la création
              if (this.selectedFile && response.wallixId) {
                this.wallixService.uploadFile(response.wallixId, this.selectedFile).subscribe(
                  () => {
-                   window.alert('Wallix ajoutÃ© avec fichier');
+                   window.alert('Wallix ajouté avec fichier');
                    this.router.navigate(['/Afficherwallix']);
                  },
                  (fileError) => {
                    console.error('Erreur upload fichier', fileError);
-                   window.alert('Wallix ajoutÃ© mais Ã©chec upload fichier');
+                   window.alert('Wallix ajouté mais échec upload fichier');
                    this.router.navigate(['/Afficherwallix']);
                  }
                );
              } else {
-               window.alert('Wallix ajoutÃ© avec succÃ¨s');
+               window.alert('Wallix ajouté avec succès');
                this.router.navigate(['/Afficherwallix']);
              }
            },
            error => {
              console.error('Erreur lors de l\'ajout du wallix', error);
-             window.alert('Ã‰chec de l\'ajout');
+             window.alert('Échec de l\'ajout');
            }
          );
        } else {

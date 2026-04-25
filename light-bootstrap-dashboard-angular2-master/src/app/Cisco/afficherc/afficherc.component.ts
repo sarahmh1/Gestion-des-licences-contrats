@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CiscoService } from 'app/Services/cisco.service';
 import { Cisco } from 'app/Model/Cisco';
 import { Router } from '@angular/router';
@@ -42,7 +42,7 @@ export class AffichercComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur rÃ©cupÃ©ration Ciscos', error);
+          console.error('Erreur récupération Ciscos', error);
         }
       );
     }
@@ -84,7 +84,7 @@ export class AffichercComponent implements OnInit {
       this.filteredCiscos = this.filteredCiscos.filter(cisco=> cisco.ciscoId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvÃ© et retirÃ© de la liste');
+      console.log('Article approuvé et retiré de la liste');
     });
   }
   
@@ -93,11 +93,11 @@ export class AffichercComponent implements OnInit {
         this.ciscoService.deleteCisco(id).subscribe(
           () => {
             this.getAllCiscos();
-            alert('Cisco supprimÃ© avec succÃ¨s');
+            alert('Cisco supprimé avec succès');
           },
           error => {
             console.error('Erreur suppression Cisco', error);
-            alert('Ã‰chec suppression');
+            alert('Échec suppression');
           }
         );
       }

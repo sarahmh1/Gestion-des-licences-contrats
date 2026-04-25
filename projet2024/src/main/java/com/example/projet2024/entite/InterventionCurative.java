@@ -75,6 +75,26 @@ public class InterventionCurative {
     @Column(name = "Taches_Effectuees", length = 2000)
     private String tachesEffectuees;
 
+    @Basic
+    @Column(name = "Probleme", length = 1000)
+    private String probleme;
+
+    @Basic
+    @Column(name = "Delai_Resolution")
+    private Integer delaiResolution;
+
+    @Basic
+    @Column(name = "Resume", length = 2000)
+    private String resume;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "intervention_curative_assigned_users",
+        joinColumns = @JoinColumn(name = "intervention_curative_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> assignedUsers = new ArrayList<>();
+
     @ManyToOne
     @JoinColumn(name = "ContratId")
     private Contrat contrat;

@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -45,7 +45,7 @@ export class UpdateNetskopeComponent implements OnInit {
         numero: [''],
         remarque: [''],
         sousContrat: [false],
-        licences: this.fb.array([])  // ðŸ‘ˆ Ajout des licences dynamiques ici
+        licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
       });
   
       this.netskopeId = Number(this.route.snapshot.paramMap.get('id'));
@@ -61,7 +61,7 @@ export class UpdateNetskopeComponent implements OnInit {
     }
    // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -74,7 +74,7 @@ export class UpdateNetskopeComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+        return CommandePasserPar.GI_TN; // Valeur par défaut
     }
   }
     createLicenceGroup(): FormGroup {
@@ -135,7 +135,7 @@ export class UpdateNetskopeComponent implements OnInit {
           }
         },
         error => {
-          console.error('Erreur rÃ©cupÃ©ration netskope:', error);
+          console.error('Erreur récupération netskope:', error);
         }
       );
     }
@@ -156,11 +156,11 @@ export class UpdateNetskopeComponent implements OnInit {
   
         this.netskopeService.updateNetskope(updatedNetskope).subscribe(
           () => {
-            console.log('Netskope mis Ã  jour avec succÃ¨s');
+            console.log('Netskope mis à jour avec succès');
             this.router.navigate(['/Affichern']);
           },
           error => {
-            console.error('Erreur mise Ã  jour Netskope:', error);
+            console.error('Erreur mise à jour Netskope:', error);
           }
         );
       } else {
@@ -172,14 +172,14 @@ export class UpdateNetskopeComponent implements OnInit {
       const file = event.target.files[0];
       if (file) {
         this.selectedFile = file;
-        // Upload immÃ©diat du fichier
+        // Upload immédiat du fichier
         this.netskopeService.uploadFile(this.netskopeId, file).subscribe(
           (response: Netskope) => {
             this.netskope.fichier = response.fichier;
             this.netskope.fichierOriginalName = response.fichierOriginalName;
             this.selectedFile = null;
             this.cdr.detectChanges();
-            window.alert('Fichier uploadÃ© avec succÃ¨s');
+            window.alert('Fichier uploadé avec succès');
           },
           (error) => {
             console.error('Erreur upload fichier:', error);
@@ -196,7 +196,7 @@ export class UpdateNetskopeComponent implements OnInit {
             this.netskope.fichier = undefined;
             this.netskope.fichierOriginalName = undefined;
             this.cdr.detectChanges();
-            window.alert('Fichier supprimÃ© avec succÃ¨s');
+            window.alert('Fichier supprimé avec succès');
           },
           (error) => {
             console.error('Erreur suppression fichier:', error);

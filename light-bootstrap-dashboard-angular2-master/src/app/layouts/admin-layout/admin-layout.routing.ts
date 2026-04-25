@@ -81,7 +81,7 @@ import { AjouterimComponent } from '../../Imperva/ajouterim/ajouterim.component'
 import { AfficherimComponent } from '../../Imperva/afficherim/afficherim.component';
 import { UpdateImpervaComponent } from '../../Imperva/updateim/updateim.component';
 import { ExpiredFortinetComponent } from '../../Fortinet/expired-fortinet/expired-fortinet.component';
-import { UserrComponent } from '../../User/user.component';
+import { UserComponent } from '../../User/user.component';
 //import { FortinetComponent } from '../../Fortinet/fortinet.component';
 import { ProfileComponent } from '../../Profil/profil.component';
 import { ExpiredPaloComponent } from '../../Palo/expired-palo/expired-palo.component';
@@ -119,7 +119,7 @@ import { HistoriqueContratComponent } from '../../Contrat/historique-contrat/his
 
 export const AdminLayoutRoutes: Routes = [
   { path: 'dashboard', component: HomeComponent },
-  { path: 'user', component: UserrComponent },
+  { path: 'user', component: UserComponent },
   { path: 'table', component: TablesComponent },
   { path: 'typography', component: TypographyComponent },
   { path: 'icons', component: IconsComponent },

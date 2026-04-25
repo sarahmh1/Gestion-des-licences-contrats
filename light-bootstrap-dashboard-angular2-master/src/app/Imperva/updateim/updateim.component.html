@@ -93,7 +93,7 @@
       <label class="form-label">Fichier</label>
       <div *ngIf="currentFileName" class="mb-2">
         <span class="me-2">Fichier actuel: <a [href]="getFileDownloadUrl()" target="_blank">{{ currentFileOriginalName || currentFileName }}</a></span>
-        <button type="button" class="btn btn-danger btn-sm" (click)="deleteFile()">Supprimer</button>
+        <button type="button" class="btn btn-danger btn-sm" (click)="deleteFile()" *ngIf="permissionService.canDeleteProduct('imperva')">Supprimer</button>
       </div>
       <input type="file" class="form-control" (change)="onFileSelected($event)" />
     </div>

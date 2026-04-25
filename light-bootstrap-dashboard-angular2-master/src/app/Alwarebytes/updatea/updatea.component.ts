@@ -1,4 +1,4 @@
-ï»¿
+
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -36,14 +36,14 @@ export class UpdateAlwarebytesComponent implements OnInit {
     const file = event.target.files[0];
     if (file) {
       this.selectedFile = file;
-      // Upload immÃ©diat du fichier
+      // Upload immédiat du fichier
       this.alwarebytesService.uploadFile(this.alwarebytesId, file).subscribe(
         (response: Alwarebytes) => {
           this.alwarebytes.fichier = response.fichier;
           this.alwarebytes.fichierOriginalName = response.fichierOriginalName;
           this.selectedFile = null;
           this.cdr.detectChanges();
-          window.alert('Fichier uploadÃ© avec succÃ¨s');
+          window.alert('Fichier uploadé avec succès');
         },
         (error) => {
           console.error('Erreur upload fichier:', error);
@@ -60,7 +60,7 @@ export class UpdateAlwarebytesComponent implements OnInit {
           this.alwarebytes.fichier = undefined;
           this.alwarebytes.fichierOriginalName = undefined;
           this.cdr.detectChanges();
-          window.alert('Fichier supprimÃ© avec succÃ¨s');
+          window.alert('Fichier supprimé avec succès');
         },
         (error) => {
           console.error('Erreur suppression fichier:', error);
@@ -87,7 +87,7 @@ export class UpdateAlwarebytesComponent implements OnInit {
       numero: [''],
       remarque: [''],
       sousContrat: [false],
-      licences: this.fb.array([])  // ðŸ‘ˆ Ajout des licences dynamiques ici
+      licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
     });
 
     this.alwarebytesId = Number(this.route.snapshot.paramMap.get('id'));
@@ -119,7 +119,7 @@ export class UpdateAlwarebytesComponent implements OnInit {
   }
   // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
 
     const stringValue = String(value).toUpperCase().trim();
 
@@ -132,7 +132,7 @@ export class UpdateAlwarebytesComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+        return CommandePasserPar.GI_TN; // Valeur par défaut
     }
   }
 
@@ -178,7 +178,7 @@ export class UpdateAlwarebytesComponent implements OnInit {
         }
       },
       error => {
-        console.error('Erreur rÃ©cupÃ©ration alwarebytes:', error);
+        console.error('Erreur récupération alwarebytes:', error);
       }
     );
   }
@@ -193,18 +193,18 @@ export class UpdateAlwarebytesComponent implements OnInit {
       const updatedAlwarebytes: Alwarebytes = {
         alwarebytesId: this.alwarebytesId,
         ...this.updateForm.value,
-        // PrÃ©server les champs fichier
+        // Préserver les champs fichier
         fichier: this.alwarebytes?.fichier,
         fichierOriginalName: this.alwarebytes?.fichierOriginalName
       };
 
       this.alwarebytesService.updateAlwarebytes(updatedAlwarebytes).subscribe(
         () => {
-          console.log('Alwarebytes mis Ã  jour avec succÃ¨s');
+          console.log('Alwarebytes mis à jour avec succès');
           this.router.navigate(['/Affichera']);
         },
         error => {
-          console.error('Erreur mise Ã  jour Alwarebytes:', error);
+          console.error('Erreur mise à jour Alwarebytes:', error);
         }
       );
     } else {

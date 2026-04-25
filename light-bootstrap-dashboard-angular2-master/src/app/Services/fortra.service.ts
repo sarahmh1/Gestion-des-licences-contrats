@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { Fortra } from 'app/Model/Fortra';
   providedIn: 'root'
 })
 export class FortraService {
-  private baseUrl = 'http://localhost:8089/Fortra';
+  private baseUrl = `${environment.apiUrl}/Fortra`;
 
   constructor(private http: HttpClient) {}
 
@@ -68,3 +69,4 @@ export class FortraService {
     return this.http.delete<Fortra>(`${this.baseUrl}/${fortraId}/delete-file`);
   }
 }
+

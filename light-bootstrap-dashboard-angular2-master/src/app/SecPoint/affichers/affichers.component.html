@@ -2,7 +2,7 @@
   <div class="header-row">
     <h2>Licences SecPoint</h2>
     <div class="action-group">
-      <button (click)="goToAddSecPoint()" class="btn btn-sm action-button"><i class="fa fa-plus"></i></button>
+      <button (click)="goToAddSecPoint()" class="btn btn-sm action-button" *ngIf="permissionService.canAddProduct('secpoint')"><i class="fa fa-plus"></i></button>
       <div class="input-group search-box">
         <input type="text" class="form-control" placeholder="Rechercher..." [(ngModel)]="searchTerm" (input)="onSearch()" />
       </div>
@@ -22,9 +22,9 @@
           </div>
           <div class="md-item-actions" (click)="$event.stopPropagation()">
             <button class="md-btn-icon md-btn-view" (click)="selectSecPoint(x)" title="Voir details"><i class="fas fa-eye"></i></button>
-            <button class="md-btn-icon md-btn-edit" (click)="updateSecPoint(x)"><i class="fas fa-pen"></i></button>
-            <button class="md-btn-icon md-btn-delete" (click)="deleteSecPoint(x.secPointId)"><i class="fas fa-trash"></i></button>
-            <button class="md-btn-icon md-btn-approve" (click)="approveSecPoint(x.secPointId)"><i class="fas fa-check"></i></button>
+            <button class="md-btn-icon md-btn-edit" (click)="updateSecPoint(x)" *ngIf="permissionService.canEditProduct('secpoint')"><i class="fas fa-pen"></i></button>
+            <button class="md-btn-icon md-btn-delete" (click)="deleteSecPoint(x.secPointId)" *ngIf="permissionService.canDeleteProduct('secpoint')"><i class="fas fa-trash"></i></button>
+            <button class="md-btn-icon md-btn-approve" (click)="approveSecPoint(x.secPointId)" *ngIf="permissionService.canEditProduct('secpoint')"><i class="fas fa-check"></i></button>
           </div>
         </div>
         <div *ngIf="pagedSecPoints.length === 0" class="md-empty"><i class="fas fa-folder-open"></i><p>Aucun SecPoint trouvé.</p></div>
@@ -62,9 +62,9 @@
           </div>
           <div class="md-detail-divider"></div>
           <div class="md-detail-actions">
-            <button (click)="updateSecPoint(selectedSecPoint)" class="btn btn-sm btn-primary"><i class="fas fa-pen"></i> Modifier</button>
-            <button (click)="deleteSecPoint(selectedSecPoint.secPointId)" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Supprimer</button>
-            <button (click)="approveSecPoint(selectedSecPoint.secPointId)" class="btn btn-sm btn-success"><i class="fas fa-check"></i> Approuver</button>
+            <button (click)="updateSecPoint(selectedSecPoint)" class="btn btn-sm btn-primary" *ngIf="permissionService.canEditProduct('secpoint')"><i class="fas fa-pen"></i> Modifier</button>
+            <button (click)="deleteSecPoint(selectedSecPoint.secPointId)" class="btn btn-sm btn-danger" *ngIf="permissionService.canDeleteProduct('secpoint')"><i class="fas fa-trash"></i> Supprimer</button>
+            <button (click)="approveSecPoint(selectedSecPoint.secPointId)" class="btn btn-sm btn-success" *ngIf="permissionService.canEditProduct('secpoint')"><i class="fas fa-check"></i> Approuver</button>
           </div>
         </div>
       </div>

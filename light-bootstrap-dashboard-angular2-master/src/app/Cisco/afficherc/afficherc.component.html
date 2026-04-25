@@ -2,7 +2,7 @@
   <div class="header-row">
     <h2>Licences Cisco</h2>
     <div class="action-group">
-      <button (click)="goToAddCisco()" class="btn btn-sm action-button"><i class="fa fa-plus"></i></button>
+      <button (click)="goToAddCisco()" class="btn btn-sm action-button" *ngIf="permissionService.canAddProduct('cisco')"><i class="fa fa-plus"></i></button>
       <div class="input-group search-box">
         <input type="text" class="form-control" placeholder="Rechercher..." [(ngModel)]="searchTerm" (input)="onSearch()" />
       </div>

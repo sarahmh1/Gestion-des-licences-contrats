@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { F5 } from 'app/Model/F5';
@@ -148,27 +148,27 @@ export class AjouterfComponent implements OnInit {
     
           this.f5Service.addF5(newF5).subscribe(
             (response: F5) => {
-              // Upload du fichier si sÃ©lectionnÃ©
+              // Upload du fichier si sélectionné
               if (this.selectedFile && response.f5Id) {
                 this.f5Service.uploadFile(response.f5Id, this.selectedFile).subscribe(
                   () => {
-                    window.alert('F5 ajoutÃ© avec succÃ¨s');
+                    window.alert('F5 ajouté avec succès');
                     this.router.navigate(['/Afficherf']);
                   },
                   (error) => {
                     console.error('Erreur upload fichier:', error);
-                    window.alert('F5 ajoutÃ© mais erreur lors de l\'upload du fichier');
+                    window.alert('F5 ajouté mais erreur lors de l\'upload du fichier');
                     this.router.navigate(['/Afficherf']);
                   }
                 );
               } else {
-                window.alert('F5 ajoutÃ© avec succÃ¨s');
+                window.alert('F5 ajouté avec succès');
                 this.router.navigate(['/Afficherf']);
               }
             },
             error => {
               console.error('Erreur lors de l\'ajout du f5', error);
-              window.alert('Ã‰chec de l\'ajout');
+              window.alert('Échec de l\'ajout');
             }
           );
         } else {

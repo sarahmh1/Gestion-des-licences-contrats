@@ -361,7 +361,18 @@ public class UserRestController {
 
     @PostMapping
     public User createUser(@RequestBody User user) {
-        return userService.createUser(user);
+        System.out.println("\n" + "=".repeat(80));
+        System.out.println("🔧 POST /Users - CREATE USER");
+        System.out.println("  Email: " + user.getEmail());
+        System.out.println("  Role: " + user.getRole());
+        System.out.println("  Password length: " + (user.getPassword() != null ? user.getPassword().length() : "NULL"));
+        System.out.println("=".repeat(80));
+        
+        User createdUser = userService.createUser(user);
+        
+        System.out.println("✅ User created with ID: " + createdUser.getId());
+        System.out.println("=".repeat(80) + "\n");
+        return createdUser;
     }
 
     @PutMapping("/{id}")

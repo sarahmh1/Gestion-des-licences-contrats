@@ -3,7 +3,7 @@
   <div class="header-row">
     <h2>Licences ESET</h2>
     <div class="action-group">
-      <button (click)="openAddEsetModal()" class="btn btn-sm btn-primary action-button" title="Ajouter une nouvelle ESET" *ngIf="permissionService.canAdd('licenses')">
+      <button (click)="openAddEsetModal()" class="btn btn-sm btn-primary action-button" title="Ajouter une nouvelle ESET" *ngIf="permissionService.canAddProduct('eset')">
         <i class="fa fa-plus"></i>
       </button>
       <button (click)="openAddProductModal()" class="btn btn-sm btn-success action-button" title="Ajouter un nouveau produit" *ngIf="permissionService.canAdd('products')">

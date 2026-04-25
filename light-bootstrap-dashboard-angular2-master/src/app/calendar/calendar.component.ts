@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../auth/AuthService';
@@ -57,7 +58,7 @@ export class CalendarComponent implements OnInit {
         const token = this.authService.getToken();
         if (!token) return;
         const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-        this.http.get<any>('http://localhost:8089/Users/me', { headers }).subscribe(
+        this.http.get<any>(`${environment.apiUrl}/Users/me`, { headers }).subscribe(
             (user) => {
                 this.currentUserId = user.id;
                 this.loadEvents();
@@ -70,7 +71,7 @@ export class CalendarComponent implements OnInit {
         const token = this.authService.getToken();
         const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
         this.http.get<CalendarEvent[]>(
-            `http://localhost:8089/InterventionPreventive/calendar/${this.currentUserId}`,
+            `${environment.apiUrl}/InterventionPreventive/calendar/${this.currentUserId}`,
             { headers }
         ).subscribe(
             (events) => {
@@ -193,3 +194,4 @@ export class CalendarComponent implements OnInit {
         return done ? 'Terminée' : 'En attente';
     }
 }
+

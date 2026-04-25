@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UserService } from 'app/Services/user.service';
+import { PermissionService } from 'app/Services/permission.service';
 import { User } from 'app/Model/User';
 
 @Component({
@@ -8,7 +9,7 @@ import { User } from 'app/Model/User';
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss']
 })
-export class UserrComponent implements OnInit {
+export class UserComponent implements OnInit {
   users: any[] = [];
   filteredUsers: any[] = [];
   pagedUsers: any[] = [];
@@ -24,7 +25,7 @@ export class UserrComponent implements OnInit {
   totalPages: number = 0;
   pageNumbers: number[] = [];
 
-  constructor(private userService: UserService, private fb: FormBuilder) {
+  constructor(private userService: UserService, public permissionService: PermissionService, private fb: FormBuilder) {
     this.userForm = this.fb.group({
       firstname: ['', Validators.required],
       lastname: ['', Validators.required],

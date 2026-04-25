@@ -83,6 +83,15 @@ public class Contrat {
     @Column(name = "nom_produit", length = 100)
     private String nomProduit;
 
+    @Column(name = "criticite", length = 50)
+    private String criticite;
+
+    @Column(name = "delai_max_intervention")
+    private Integer delaiMaxIntervention;
+
+    @Column(name = "delai_max_resolution")
+    private Integer delaiMaxResolution;
+
     @OneToMany(mappedBy = "contrat", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<DateAvenant> datesAvenants = new ArrayList<>();

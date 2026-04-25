@@ -96,7 +96,7 @@
         <button type="button" (click)="downloadFile()" class="btn btn-sm btn-outline-primary me-2">
           <i class="fa fa-download"></i> {{ currentFileOriginalName }}
         </button>
-        <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteFile()">
+        <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteFile()" *ngIf="permissionService.canDeleteProduct('infoblox')">
           <i class="fa fa-trash"></i> Supprimer
         </button>
       </div>

@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { Rapid7 } from 'app/Model/Rapid7';
   providedIn: 'root'
 })
 export class Rapid7Service {
-  private baseUrl = 'http://localhost:8089/Rapid7';
+  private baseUrl = `${environment.apiUrl}/Rapid7`;
 
   constructor(private http: HttpClient) {}
 
@@ -67,3 +68,4 @@ export class Rapid7Service {
     return `${this.baseUrl}/${rapid7Id}/download`;
   }
 }
+

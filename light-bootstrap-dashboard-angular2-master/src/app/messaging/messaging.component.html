@@ -49,7 +49,7 @@
                         {{ formatTime(conversation.lastMessageTime) }}
                       </div>
                       <button class="btn-delete-conv" (click)="deleteConversation(conversation, $event)"
-                        title="Supprimer la conversation">
+                        title="Supprimer la conversation" *ngIf="permissionService.canDeleteProduct('messaging')">
                         <i class="pe-7s-trash"></i>
                       </button>
                     </div>

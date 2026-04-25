@@ -3,6 +3,7 @@ package com.example.projet2024.entite;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDateTime;
 
@@ -24,6 +25,7 @@ public class Notification {
     private User user;
 
     @Column(name = "is_read")
+    @JsonProperty("isRead")
     private boolean isRead = false;
 
     @Column(name = "created_at")
@@ -31,4 +33,7 @@ public class Notification {
 
     @Column(name = "intervention_preventive_id")
     private Long interventionPreventiveId;
+
+    @Column(name = "intervention_curative_id")
+    private Long interventionCurativeId;
 }

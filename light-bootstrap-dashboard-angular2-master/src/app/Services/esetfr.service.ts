@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Injectable } from '@angular/core';
 import { EsetFR } from 'app/Model/EsetFR';
 import { HttpClient } from '@angular/common/http';
@@ -6,7 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class EsetfrService {
- private baseUrl = 'http://localhost:8089/Eset'; // ✅ Bon chemin
+ private baseUrl = `${environment.apiUrl}/Eset`; // ✅ Bon chemin
 
 
   constructor(private http: HttpClient) { }

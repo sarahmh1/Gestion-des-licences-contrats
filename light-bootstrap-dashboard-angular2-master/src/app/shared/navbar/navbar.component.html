@@ -22,7 +22,7 @@
           <!-- Notification Dropdown Panel -->
           <div class="notif-panel" *ngIf="showNotifPanel">
             <div class="notif-panel-header">
-              <span class="notif-panel-title">Notifications</span>
+              <span class="notif-panel-title">Notifications ({{notifications.length}}/{{unreadNotifCount}})</span>
               <button class="notif-mark-all" (click)="markAllNotifsRead()" *ngIf="unreadNotifCount > 0">
                 Tout marquer lu
               </button>
@@ -31,13 +31,14 @@
               <div *ngIf="notifications.length === 0" class="notif-empty">
                 Aucune notification
               </div>
-              <div *ngFor="let notif of notifications" class="notif-item" [class.notif-unread]="!notif.read"
+              <div *ngFor="let notif of notifications; trackBy: trackByNotificationId; let i = index" class="notif-item" [class.notif-unread]="!notif.isRead"
                 (click)="markNotifRead(notif)">
+                <div class="notif-status" [class.notif-status-unread]="!notif.isRead"></div>
                 <div class="notif-content">
-                  <div class="notif-message">{{ notif.message }}</div>
+                  <div class="notif-message">[{{i+1}}] {{notif.message}}</div>
                   <div class="notif-time">{{ getTimeAgo(notif.createdAt) }}</div>
                 </div>
-                <button class="notif-delete-btn" (click)="deleteNotification(notif, $event)" title="Supprimer">
+                <button class="notif-delete-btn" (click)="deleteNotification(notif, $event)" title="Supprimer" *ngIf="permissionService.canDelete('notification')">
                   <i class="fas fa-trash-alt"></i>
                 </button>
               </div>
@@ -177,7 +178,7 @@
             <span class="msg-convo-last">{{ conv.lastMessage || 'Aucun message' }}</span>
           </div>
         </div>
-        <button class="msg-delete-btn" (click)="deleteConversation(conv); $event.stopPropagation()" title="Supprimer">
+        <button class="msg-delete-btn" (click)="deleteConversation(conv); $event.stopPropagation()" title="Supprimer" *ngIf="permissionService.canDelete('message')">
           <i class="fas fa-trash-alt"></i>
         </button>
       </div>
@@ -287,7 +288,7 @@
     <div class="msg-delete-dialog-backdrop" *ngIf="deleteMenuMsg" (click)="cancelDelete()"></div>
     <div class="msg-delete-dialog" *ngIf="deleteMenuMsg">
       <div class="msg-delete-dialog-title">Supprimer le message ?</div>
-      <button class="msg-delete-option" (click)="deleteForMe()">
+      <button class="msg-delete-option" (click)="deleteForMe()" *ngIf="permissionService.canDelete('message')">
         <i class="fas fa-user"></i> Supprimer pour moi
       </button>
       <button class="msg-delete-option msg-delete-everyone" *ngIf="deleteMenuMsg.senderId === currentUserId"

@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -148,33 +148,33 @@ export class AjouteriComponent implements OnInit {
     
           this.infobloxService.addInfoblox(newInfoblox).subscribe(
             (response: any) => {
-              console.log('RÃ©ponse serveur Infoblox:', response);
+              console.log('Réponse serveur Infoblox:', response);
               const infobloxId = response.infobloxId || response.id;
               
-              // Si un fichier est sÃ©lectionnÃ©, l'uploader aprÃ¨s crÃ©ation
+              // Si un fichier est sélectionné, l'uploader après création
               if (this.selectedFile && infobloxId) {
                 this.infobloxService.uploadFile(infobloxId, this.selectedFile).subscribe(
                   (uploadResponse) => {
-                    console.log('Upload rÃ©ussi:', uploadResponse);
-                    window.alert('Infoblox et fichier ajoutÃ©s avec succÃ¨s');
+                    console.log('Upload réussi:', uploadResponse);
+                    window.alert('Infoblox et fichier ajoutés avec succès');
                     this.router.navigate(['/Afficheri']);
                   },
                   error => {
                     console.error('Erreur lors de l\'upload du fichier:', error);
                     console.error('Status:', error.status);
                     console.error('Error body:', error.error);
-                    window.alert('Infoblox ajoutÃ© mais erreur lors de l\'upload du fichier');
+                    window.alert('Infoblox ajouté mais erreur lors de l\'upload du fichier');
                     this.router.navigate(['/Afficheri']);
                   }
                 );
               } else {
-                window.alert('Infoblox ajoutÃ© avec succÃ¨s');
+                window.alert('Infoblox ajouté avec succès');
                 this.router.navigate(['/Afficheri']);
               }
             },
             error => {
               console.error('Erreur lors de l\'ajout du Infoblox:', error);
-              window.alert('Ã‰chec de l\'ajout');
+              window.alert('Échec de l\'ajout');
             }
           );
         } else {

@@ -160,6 +160,43 @@
         </div>
       </div>
 
+      <!-- Problème -->
+      <div class="form-group mb-3">
+        <label for="probleme" class="form-label">Problème</label>
+        <textarea id="probleme" class="form-control" formControlName="probleme"
+          placeholder="Description du problème signalé" rows="3"></textarea>
+      </div>
+
+      <!-- Délai de Résolution (auto-rempli depuis contrat) -->
+      <div class="form-group mb-3">
+        <label for="delaiResolution" class="form-label">
+          Délai de Résolution (en heures)
+          <span *ngIf="interventionForm.get('delaiResolution')?.value"
+                class="badge-auto">✓ Auto</span>
+        </label>
+        <input type="text" id="delaiResolution" class="form-control" formControlName="delaiResolution"
+          placeholder="Rempli automatiquement depuis le contrat" readonly />
+        <small class="text-muted" *ngIf="interventionForm.get('delaiResolution')?.value">
+          <i class="fas fa-info-circle"></i> Récupéré automatiquement du contrat.
+        </small>
+      </div>
+
+      <!-- Résumé -->
+      <div class="form-group mb-3">
+        <label for="resume" class="form-label">Résumé</label>
+        <textarea id="resume" class="form-control" formControlName="resume"
+          placeholder="Résumé de l'intervention" rows="3"></textarea>
+      </div>
+
+      <!-- Utilisateurs Assignés -->
+      <div class="form-group mb-3">
+        <label for="assignedUsers" class="form-label">Utilisateurs Assignés</label>
+        <select id="assignedUsers" class="form-control" formControlName="assignedUsers" multiple>
+          <option *ngFor="let user of users" [ngValue]="user">{{ user.nom }} ({{ user.email }})</option>
+        </select>
+        <small class="text-muted">Maintenez Ctrl/Cmd pour sélectionner plusieurs utilisateurs</small>
+      </div>
+
       <!-- Intervenants avec bouton + -->
       <div class="form-group mb-3">
         <label class="form-label">Intervenant(s)</label>
@@ -262,7 +299,7 @@
             class="btn btn-sm btn-outline-primary ms-2">
             <i class="fa fa-download"></i>
           </a>
-          <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="deleteExistingFile()">
+          <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="deleteExistingFile()" *ngIf="permissionService.canDeleteProduct('interventioncurative')">
             <i class="fa fa-trash"></i>
           </button>
         </div>

@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Fortra } from 'app/Model/Fortra';
@@ -149,27 +149,27 @@ export class AjouterfortraComponent implements OnInit {
     
           this.fortraService.addFortra(newFortra).subscribe(
             (response: Fortra) => {
-              // Upload du fichier si sÃ©lectionnÃ©
+              // Upload du fichier si sélectionné
               if (this.selectedFile && response.fortraId) {
                 this.fortraService.uploadFile(response.fortraId, this.selectedFile).subscribe(
                   () => {
-                    window.alert('Fortra ajoutÃ© avec succÃ¨s');
+                    window.alert('Fortra ajouté avec succès');
                     this.router.navigate(['/Afficherfortra']);
                   },
                   (error) => {
                     console.error('Erreur upload fichier:', error);
-                    window.alert('Fortra ajoutÃ© mais erreur lors de l\'upload du fichier');
+                    window.alert('Fortra ajouté mais erreur lors de l\'upload du fichier');
                     this.router.navigate(['/Afficherfortra']);
                   }
                 );
               } else {
-                window.alert('Fortra ajoutÃ© avec succÃ¨s');
+                window.alert('Fortra ajouté avec succès');
                 this.router.navigate(['/Afficherfortra']);
               }
             },
             error => {
               console.error('Erreur lors de l\'ajout du Fortra', error);
-              window.alert('Ã‰chec de l\'ajout');
+              window.alert('Échec de l\'ajout');
             }
           );
         } else {

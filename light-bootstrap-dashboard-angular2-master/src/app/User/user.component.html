@@ -3,7 +3,7 @@
   <div class="header-row">
     <h2>Liste des utilisateurs</h2>
     <div class="action-group">
-      <button (click)="openAddModal()" class="btn btn-sm action-button">
+      <button (click)="openAddModal()" class="btn btn-sm action-button" *ngIf="permissionService.canAddProduct('user')">
         <i class="fa fa-plus"></i>
       </button>
       <div class="input-group search-box">
@@ -47,7 +47,7 @@
               <button (click)="openEditModal(user)" class="btn btn-sm btn-primary">
                 <i class="fas fa-pen"></i>
               </button>
-              <button (click)="deleteUser(user.id)" class="btn btn-sm btn-danger">
+              <button (click)="deleteUser(user.id)" class="btn btn-sm btn-danger" *ngIf="permissionService.canDeleteProduct('user')">
                 <i class="fas fa-trash"></i>
               </button>
               <button *ngIf="!user.verified" (click)="activateUser(user.id)" class="btn btn-sm btn-success">
@@ -131,7 +131,7 @@
             <div class="col-md-6">
               <div class="form-group">
                 <label>Numéro de téléphone</label>
-                <input type="text" class="form-control" formControlName="phoneNumber" placeholder="+212 6 00 00 00 00">
+                <input type="text" class="form-control" formControlName="phoneNumber" placeholder="22222222">
               </div>
             </div>
             <div class="col-md-6">
@@ -148,7 +148,6 @@
                 <label>Rôle</label>
                 <select class="form-control" formControlName="role">
                   <option value="">Sélectionner un rôle</option>
-                  <option value="ROLE_ADMINISTRATEUR">Administrateur (Super Admin)</option>
                   <option value="ROLE_SUPER_ADMIN">Super Admin</option>
                   <option value="ROLE_ADMIN_COMMERCIAL">Admin Commercial</option>
                   <option value="ROLE_ADMIN_TECHNIQUE">Admin Technique</option>

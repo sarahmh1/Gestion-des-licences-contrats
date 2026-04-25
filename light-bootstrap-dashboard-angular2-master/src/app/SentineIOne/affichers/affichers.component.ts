@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { SentineIOneService } from 'app/Services/sentineIOne.service';
 import { SentineIOne } from 'app/Model/SentineIOne';
 import { Router } from '@angular/router';
+import { PermissionService } from 'app/Services/permission.service';
 @Component({
   selector: 'app-affichers',
   templateUrl: './affichers.component.html',
@@ -19,7 +20,7 @@ export class AfficherssComponent implements OnInit {
      totalPages: number = 0;
      pagedSentineIOnes:SentineIOne[] = [];
  
-   constructor(private sentineIOneService: SentineIOneService, private router: Router) {}
+   constructor(private sentineIOneService: SentineIOneService, private router: Router, public permissionService: PermissionService) {}
  
   ngOnInit(): void {
       this.getAllSentineIOnes();

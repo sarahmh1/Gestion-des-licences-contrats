@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { VMware } from 'app/Model/VMware';
   providedIn: 'root'
 })
 export class VMwareService {
-  private baseUrl = 'http://localhost:8089/VMware';
+  private baseUrl = `${environment.apiUrl}/VMware`;
 
   constructor(private http: HttpClient) {}
 
@@ -70,3 +71,4 @@ export class VMwareService {
     return this.http.delete<VMware>(`${this.baseUrl}/${id}/delete-file`);
   }
 }
+

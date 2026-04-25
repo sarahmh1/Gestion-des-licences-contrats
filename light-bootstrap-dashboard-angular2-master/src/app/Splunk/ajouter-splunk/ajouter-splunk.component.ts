@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -149,27 +149,27 @@ export class AjouterSplunkComponent implements OnInit {
      
            this.splunkService.addSplunk(newSplunk).subscribe(
              (response: Splunk) => {
-               // Upload du fichier si sÃ©lectionnÃ©
+               // Upload du fichier si sélectionné
                if (this.selectedFile && response.splunkid) {
                  this.splunkService.uploadFile(response.splunkid, this.selectedFile).subscribe(
                    () => {
-                     window.alert('Splunk ajoutÃ© avec succÃ¨s avec le fichier');
+                     window.alert('Splunk ajouté avec succès avec le fichier');
                      this.router.navigate(['/Affichersplunk']);
                    },
                    (error) => {
                      console.error('Erreur upload fichier:', error);
-                     window.alert('Splunk ajoutÃ© mais erreur lors de l\'upload du fichier');
+                     window.alert('Splunk ajouté mais erreur lors de l\'upload du fichier');
                      this.router.navigate(['/Affichersplunk']);
                    }
                  );
                } else {
-                 window.alert('Splunk ajoutÃ© avec succÃ¨s');
+                 window.alert('Splunk ajouté avec succès');
                  this.router.navigate(['/Affichersplunk']);
                }
              },
              error => {
                console.error('Erreur lors de l\'ajout du splunk', error);
-               window.alert('Ã‰chec de l\'ajout');
+               window.alert('Échec de l\'ajout');
              }
            );
          } else {

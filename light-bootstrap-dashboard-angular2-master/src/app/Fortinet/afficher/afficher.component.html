@@ -2,7 +2,7 @@
   <div class="header-row">
     <h2>Licences Fortinet</h2>
     <div class="action-group">
-      <button (click)="goToAddFortinet()" class="btn btn-sm action-button">
+      <button (click)="goToAddFortinet()" class="btn btn-sm action-button" *ngIf="permissionService.canAddProduct('fortinet')">
         <i class="fa fa-plus"></i>
       </button>
       <div class="input-group search-box">

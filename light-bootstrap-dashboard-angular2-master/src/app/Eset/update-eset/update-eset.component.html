@@ -233,7 +233,7 @@
             <button type="button" class="btn btn-sm btn-success me-2" (click)="downloadFile()">
               <i class="fa fa-download"></i> Télécharger
             </button>
-            <button type="button" class="btn btn-sm btn-danger" (click)="deleteFile()">
+            <button type="button" class="btn btn-sm btn-danger" (click)="deleteFile()" *ngIf="permissionService.canDeleteProduct('eset')">
               <i class="fa fa-trash"></i> Supprimer
             </button>
           </div>

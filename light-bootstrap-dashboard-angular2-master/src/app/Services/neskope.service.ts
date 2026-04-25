@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { Netskope } from 'app/Model/Netskope';
   providedIn: 'root'
 })
 export class NetskopeService {
-  private baseUrl = 'http://localhost:8089/Netskope';
+  private baseUrl = `${environment.apiUrl}/Netskope`;
 
   constructor(private http: HttpClient) {}
 
@@ -70,3 +71,4 @@ export class NetskopeService {
     return this.http.delete<Netskope>(`${this.baseUrl}/${id}/delete-file`);
   }
 }
+

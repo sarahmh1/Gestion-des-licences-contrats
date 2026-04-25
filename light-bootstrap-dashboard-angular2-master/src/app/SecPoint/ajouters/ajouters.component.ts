@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -148,27 +148,27 @@ export class AjoutersComponent implements OnInit {
     
           this.secPointService.addSecPoint(newSecPoint).subscribe(
             (response: SecPoint) => {
-              // Upload du fichier si sÃ©lectionnÃ©
+              // Upload du fichier si sélectionné
               if (this.selectedFile && response.secPointId) {
                 this.secPointService.uploadFile(response.secPointId, this.selectedFile).subscribe(
                   () => {
-                    window.alert('SecPoint ajoutÃ© avec succÃ¨s');
+                    window.alert('SecPoint ajouté avec succès');
                     this.router.navigate(['/Affichers']);
                   },
                   (error) => {
                     console.error('Erreur upload fichier:', error);
-                    window.alert('SecPoint ajoutÃ© mais erreur lors de l\'upload du fichier');
+                    window.alert('SecPoint ajouté mais erreur lors de l\'upload du fichier');
                     this.router.navigate(['/Affichers']);
                   }
                 );
               } else {
-                window.alert('SecPoint ajoutÃ© avec succÃ¨s');
+                window.alert('SecPoint ajouté avec succès');
                 this.router.navigate(['/Affichers']);
               }
             },
             error => {
               console.error('Erreur lors de l\'ajout du secPoint', error);
-              window.alert('Ã‰chec de l\'ajout');
+              window.alert('Échec de l\'ajout');
             }
           );
         } else {

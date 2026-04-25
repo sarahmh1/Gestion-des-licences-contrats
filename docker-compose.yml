@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # 1. Database Service
+  db:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: geranceee
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  # 2. Backend Service
+  backend:
+    image: sarahmhadhbi/gestion-licences-backend:v7
+    container_name: spring-backend
+    restart: always
+    ports:
+      - "8089:8089"
+    environment:
+      # Override the DB URL to point to the docker container named "db"
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/geranceee?createDatabaseIfNotExist=true&useUnicode=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    volumes:
+      # Map your local uploads folder so uploaded files persist between container restarts
+      - ./projet2024/uploads:/app/uploads
+    depends_on:
+      - db
+
+  # 3. Frontend Service
+  frontend:
+    image: sarahmhadhbi/gestion-licences-frontend:v10
+    container_name: angular-frontend
+    restart: always
+    ports:
+      - "4200:80"   # Access the app at http://localhost:4200
+    depends_on:
+      - backend
+
+volumes:
+  db_data:

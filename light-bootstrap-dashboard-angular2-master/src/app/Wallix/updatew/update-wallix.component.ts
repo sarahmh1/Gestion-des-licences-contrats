@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -44,7 +44,7 @@ export class UpdateWallixComponent implements OnInit {
         numero: [''],
         remarque: [''],
         sousContrat: [false],
-        licences: this.fb.array([])  // ðŸ‘ˆ Ajout des licences dynamiques ici
+        licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
       });
   
       this.wallixId = Number(this.route.snapshot.paramMap.get('id'));
@@ -60,7 +60,7 @@ export class UpdateWallixComponent implements OnInit {
     }
   // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -73,7 +73,7 @@ export class UpdateWallixComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+        return CommandePasserPar.GI_TN; // Valeur par défaut
     }
   }
     createLicenceGroup(): FormGroup {
@@ -134,7 +134,7 @@ export class UpdateWallixComponent implements OnInit {
           }
         },
         error => {
-          console.error('Erreur rÃ©cupÃ©ration Wallix:', error);
+          console.error('Erreur récupération Wallix:', error);
         }
       );
     }
@@ -155,11 +155,11 @@ export class UpdateWallixComponent implements OnInit {
   
         this.wallixService.updateWallix(updatedWallix).subscribe(
           () => {
-            console.log('wallix mis Ã  jour avec succÃ¨s');
+            console.log('wallix mis à jour avec succès');
             this.router.navigate(['/Afficherwallix']);
           },
           error => {
-            console.error('Erreur mise Ã  jour wallix:', error);
+            console.error('Erreur mise à jour wallix:', error);
           }
         );
       } else {
@@ -176,11 +176,11 @@ export class UpdateWallixComponent implements OnInit {
             this.wallix.fichier = response.fichier;
             this.wallix.fichierOriginalName = response.fichierOriginalName;
             this.cdr.detectChanges();
-            window.alert('Fichier uploadÃ© avec succÃ¨s');
+            window.alert('Fichier uploadé avec succès');
           },
           (error) => {
             console.error('Erreur upload fichier', error);
-            window.alert('Ã‰chec de l\'upload du fichier');
+            window.alert('Échec de l\'upload du fichier');
           }
         );
       }
@@ -197,11 +197,11 @@ export class UpdateWallixComponent implements OnInit {
             this.wallix.fichier = undefined;
             this.wallix.fichierOriginalName = undefined;
             this.cdr.detectChanges();
-            window.alert('Fichier supprimÃ©');
+            window.alert('Fichier supprimé');
           },
           (error) => {
             console.error('Erreur suppression fichier', error);
-            window.alert('Ã‰chec de la suppression');
+            window.alert('Échec de la suppression');
           }
         );
       }

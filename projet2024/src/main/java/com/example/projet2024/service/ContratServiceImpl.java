@@ -70,7 +70,11 @@ public class ContratServiceImpl implements IContratService {
         existingContrat.setRemarque(contrat.getRemarque());
         existingContrat.setEmailCommercial(contrat.getEmailCommercial());
         existingContrat.setCcMail(contrat.getCcMail());
-        
+        existingContrat.setNomProduit(contrat.getNomProduit());
+        existingContrat.setCriticite(contrat.getCriticite());
+        existingContrat.setDelaiMaxIntervention(contrat.getDelaiMaxIntervention());
+        existingContrat.setDelaiMaxResolution(contrat.getDelaiMaxResolution());
+
         // Mettre à jour les dates avenants
         existingContrat.getDatesAvenants().clear();
         if (contrat.getDatesAvenants() != null) {

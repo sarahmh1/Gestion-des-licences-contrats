@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { Splunk } from 'app/Model/Splunk';
   providedIn: 'root'
 })
 export class SplunkService {
-  private baseUrl = 'http://localhost:8089/Splunk';
+  private baseUrl = `${environment.apiUrl}/Splunk`;
 
   constructor(private http: HttpClient) {}
 
@@ -70,3 +71,4 @@ export class SplunkService {
     return this.http.delete<Splunk>(`${this.baseUrl}/${id}/delete-file`);
   }
 }
+

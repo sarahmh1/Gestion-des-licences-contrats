@@ -32,8 +32,7 @@
                 }}</span>
               <span class="md-field"><strong>Date Debut :</strong> {{ contrat.dateDebut | date: 'dd/MM/yyyy' }}</span>
               <span class="md-field"><strong>Date Fin :</strong> {{ contrat.dateFin | date: 'dd/MM/yyyy' }}</span>
-              <span class="md-field" *ngIf="contrat.nomProduit"><strong>Produit :</strong> {{ contrat.nomProduit |
-                replace:'_':' ' }}</span>
+              <span class="md-field" *ngIf="contrat.nomProduit"><strong>Produit :</strong> {{ contrat.nomProduit.replace('_', ' ') }}</span>
               <span [class]="contrat.renouvelable ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">
                 {{ contrat.renouvelable ? 'Renouvelable' : 'Non renouvelable' }}
               </span>
@@ -101,6 +100,28 @@
           </div>
 
           <div class="md-detail-divider" *ngIf="selectedContrat.nomProduit"></div>
+
+          <!-- Criticité, Délai Intervention, Délai Résolution -->
+          <div class="md-detail-row" *ngIf="selectedContrat.criticite">
+            <span class="md-label">Criticité</span>
+            <span class="md-value">
+              <span class="md-badge" [ngClass]="selectedContrat.criticite === 'C1' ? 'md-badge-red' : (selectedContrat.criticite === 'C2' ? 'md-badge-orange' : 'md-badge-yellow')">
+                {{ selectedContrat.criticite }}
+              </span>
+            </span>
+          </div>
+
+          <div class="md-detail-row" *ngIf="selectedContrat.delaiMaxIntervention">
+            <span class="md-label">Délai Max d'Intervention</span>
+            <span class="md-value">{{ selectedContrat.delaiMaxIntervention }}</span>
+          </div>
+
+          <div class="md-detail-row" *ngIf="selectedContrat.delaiMaxResolution">
+            <span class="md-label">Délai Max de Résolution</span>
+            <span class="md-value">{{ selectedContrat.delaiMaxResolution }}</span>
+          </div>
+
+          <div class="md-detail-divider"></div>
 
           <!-- Email -->
           <div class="md-detail-section-title">Contact</div>
@@ -181,6 +202,33 @@
             <option value="">-- Sélectionner un produit --</option>
             <option *ngFor="let p of nomProduitOptions" [value]="p">{{ p.replace('_', ' ') }}</option>
           </select>
+        </div>
+
+        <!-- Criticite + Délais (sur la même ligne) -->
+        <div class="row">
+          <div class="col-md-4">
+            <div class="form-group mb-3">
+              <label for="criticite" class="form-label">Criticité</label>
+              <select id="criticite" class="form-control" formControlName="criticite">
+                <option value="">-- Sélectionner --</option>
+                <option value="C1">C1</option>
+                <option value="C2">C2</option>
+                <option value="C3">C3</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-group mb-3">
+              <label for="delaiMaxIntervention" class="form-label">Délai Max d'Intervention</label>
+              <input type="number" id="delaiMaxIntervention" class="form-control" formControlName="delaiMaxIntervention" placeholder="Ex: 4, 8" />
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-group mb-3">
+              <label for="delaiMaxResolution" class="form-label">Délai Max de Résolution</label>
+              <input type="number" id="delaiMaxResolution" class="form-control" formControlName="delaiMaxResolution" placeholder="Ex: 24, 48" />
+            </div>
+          </div>
         </div>
 
         <div class="row">
@@ -303,7 +351,7 @@
             <a [href]="getFileDownloadUrl(editingContratId)" target="_blank" class="btn btn-sm btn-info ms-2">
               <i class="fas fa-download"></i> Télécharger
             </a>
-            <button type="button" class="btn btn-sm btn-danger ms-2" (click)="deleteExistingFile()">
+            <button type="button" class="btn btn-sm btn-danger ms-2" (click)="deleteExistingFile()" *ngIf="permissionService.canDeleteProduct('contrat')">
               <i class="fas fa-trash"></i> Supprimer
             </button>
           </div>

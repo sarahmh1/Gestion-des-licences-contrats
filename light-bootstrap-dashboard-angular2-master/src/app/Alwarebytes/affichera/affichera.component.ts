@@ -1,7 +1,8 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AlwarebytesService } from 'app/Services/alwarebytes.service';
 import { Alwarebytes } from 'app/Model/Alwarebytes';
 import { Router } from '@angular/router';
+import { PermissionService } from 'app/Services/permission.service';
 @Component({
   selector: 'app-affichera',
   templateUrl: './affichera.component.html',
@@ -20,7 +21,7 @@ export class AfficheraComponent implements OnInit {
   totalPages: number = 0;
   pagedAlwarebytess: Alwarebytes[] = [];
 
-  constructor(private alwarebytesService: AlwarebytesService, private router: Router) { }
+  constructor(private alwarebytesService: AlwarebytesService, private router: Router, public permissionService: PermissionService) { }
 
   ngOnInit(): void {
     this.getAllAlwarebytess();
@@ -41,7 +42,7 @@ export class AfficheraComponent implements OnInit {
         this.changePage(0);
       },
       (error) => {
-        console.error('Erreur récupération Alwarebytess', error);
+        console.error('Erreur r�cup�ration Alwarebytess', error);
       }
     );
   }
@@ -83,7 +84,7 @@ export class AfficheraComponent implements OnInit {
       this.filteredAlwarebytess = this.filteredAlwarebytess.filter(alwarebytes => alwarebytes.alwarebytesId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuv� et retir� de la liste');
     });
   }
 
@@ -92,11 +93,11 @@ export class AfficheraComponent implements OnInit {
       this.alwarebytesService.deleteAlwarebytes(id).subscribe(
         () => {
           this.getAllAlwarebytess();
-          alert('Alwarebytes supprimé avec succès');
+          alert('Alwarebytes supprim� avec succ�s');
         },
         error => {
           console.error('Erreur suppression Alwarebytes', error);
-          alert('Échec suppression');
+          alert('�chec suppression');
         }
       );
     }

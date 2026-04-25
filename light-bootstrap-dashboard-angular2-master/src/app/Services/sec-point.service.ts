@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { SecPoint } from 'app/Model/SecPoint';
   providedIn: 'root'
 })
 export class SecPointService {
-  private baseUrl = 'http://localhost:8089/SecPoint';
+  private baseUrl = `${environment.apiUrl}/SecPoint`;
 
   constructor(private http: HttpClient) {}
 
@@ -64,3 +65,4 @@ export class SecPointService {
     return this.http.delete<SecPoint>(`${this.baseUrl}/${id}/delete-file`);
   }
 }
+

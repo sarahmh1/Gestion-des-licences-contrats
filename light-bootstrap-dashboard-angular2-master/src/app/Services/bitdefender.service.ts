@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { Bitdefender } from 'app/Model/Bitdefender';
   providedIn: 'root'
 })
 export class BitdefenderService {
-  private baseUrl = 'http://localhost:8089/Bitdefender';
+  private baseUrl = `${environment.apiUrl}/Bitdefender`;
 
   constructor(private http: HttpClient) {}
 
@@ -69,3 +70,4 @@ export class BitdefenderService {
     return this.http.delete<Bitdefender>(`${this.baseUrl}/${id}/delete-file`);
   }
 }
+

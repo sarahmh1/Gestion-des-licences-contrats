@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -141,33 +141,33 @@ export class AjouterimComponent implements OnInit {
     
           this.impervaService.addImperva(newImperva).subscribe(
             (response: any) => {
-              console.log('RÃ©ponse serveur Imperva:', response);
+              console.log('Réponse serveur Imperva:', response);
               const impervaId = response.impervaId || response.id;
               
               // Upload file if selected
               if (this.selectedFile && impervaId) {
                 this.impervaService.uploadFile(impervaId, this.selectedFile).subscribe(
                   (uploadResponse) => {
-                    console.log('Upload rÃ©ussi:', uploadResponse);
-                    window.alert('Imperva et fichier ajoutÃ©s avec succÃ¨s');
+                    console.log('Upload réussi:', uploadResponse);
+                    window.alert('Imperva et fichier ajoutés avec succès');
                     this.router.navigate(['/Afficherim']);
                   },
                   error => {
                     console.error('Erreur lors de l\'upload du fichier:', error);
                     console.error('Status:', error.status);
                     console.error('Error body:', error.error);
-                    window.alert('Imperva ajoutÃ© mais erreur lors de l\'upload du fichier');
+                    window.alert('Imperva ajouté mais erreur lors de l\'upload du fichier');
                     this.router.navigate(['/Afficherim']);
                   }
                 );
               } else {
-                window.alert('Imperva ajoutÃ© avec succÃ¨s');
+                window.alert('Imperva ajouté avec succès');
                 this.router.navigate(['/Afficherim']);
               }
             },
             error => {
               console.error('Erreur lors de l\'ajout du Imperva:', error);
-              window.alert('Ã‰chec de l\'ajout');
+              window.alert('Échec de l\'ajout');
             }
           );
         } else {

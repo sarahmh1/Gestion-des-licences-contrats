@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Bitdefender } from 'app/Model/Bitdefender';
@@ -148,27 +148,27 @@ export class AjouterbComponent implements OnInit {
     
           this.bitdefenderService.addBitdefender(newBitdefender).subscribe(
             (response: Bitdefender) => {
-              // Upload du fichier si sÃ©lectionnÃ©
+              // Upload du fichier si sélectionné
               if (this.selectedFile && response.bitdefenderId) {
                 this.bitdefenderService.uploadFile(response.bitdefenderId, this.selectedFile).subscribe(
                   () => {
-                    window.alert('Bitdefender ajoutÃ© avec succÃ¨s');
+                    window.alert('Bitdefender ajouté avec succès');
                     this.router.navigate(['/Afficherb']);
                   },
                   (error) => {
                     console.error('Erreur upload fichier:', error);
-                    window.alert('Bitdefender ajoutÃ© mais erreur lors de l\'upload du fichier');
+                    window.alert('Bitdefender ajouté mais erreur lors de l\'upload du fichier');
                     this.router.navigate(['/Afficherb']);
                   }
                 );
               } else {
-                window.alert('Bitdefender ajoutÃ© avec succÃ¨s');
+                window.alert('Bitdefender ajouté avec succès');
                 this.router.navigate(['/Afficherb']);
               }
             },
             error => {
               console.error('Erreur lors de l\'ajout du Bitdefender', error);
-              window.alert('Ã‰chec de l\'ajout');
+              window.alert('Échec de l\'ajout');
             }
           );
         } else {

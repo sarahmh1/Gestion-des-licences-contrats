@@ -113,7 +113,7 @@
           <a [href]="getFileDownloadUrl()" target="_blank" class="btn btn-sm btn-info me-2">
             <i class="fa fa-download"></i> {{ alwarebytes.fichierOriginalName }}
           </a>
-          <button type="button" class="btn btn-sm btn-danger" (click)="deleteFile()">
+          <button type="button" class="btn btn-sm btn-danger" (click)="deleteFile()" *ngIf="permissionService.canDeleteProduct('alwarebytes')">
             <i class="fa fa-trash"></i> Supprimer
           </button>
         </div>

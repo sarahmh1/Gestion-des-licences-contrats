@@ -1,7 +1,8 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { F5Service } from 'app/Services/f5.service';
 import { F5 } from 'app/Model/F5';
 import { Router } from '@angular/router';
+import { PermissionService } from 'app/Services/permission.service';
 @Component({
   selector: 'app-afficherf',
   templateUrl: './afficherf.component.html',
@@ -20,7 +21,7 @@ export class AfficherfComponent implements OnInit {
      pagedF5s:F5[] = [];
      unapprovedF5s:F5[] = [];
  
-   constructor(private f5Service: F5Service, private router: Router) {}
+   constructor(private f5Service: F5Service, private router: Router, public permissionService: PermissionService) {}
 
   getFileDownloadUrl(id: number): string {
     return this.f5Service.getFileDownloadUrl(id);
@@ -45,7 +46,7 @@ export class AfficherfComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération F5s', error);
+          console.error('Erreur r�cup�ration F5s', error);
         }
       );
     }
@@ -87,7 +88,7 @@ export class AfficherfComponent implements OnInit {
       this.filteredF5s= this.filteredF5s.filter(f5 => f5.f5Id !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuv� et retir� de la liste');
     });
   }
   
@@ -96,11 +97,11 @@ export class AfficherfComponent implements OnInit {
         this.f5Service.deleteF5(id).subscribe(
           () => {
             this.getAllF5s();
-            alert('F5 supprimé avec succès');
+            alert('F5 supprim� avec succ�s');
           },
           error => {
             console.error('Erreur suppression F5', error);
-            alert('Échec suppression');
+            alert('�chec suppression');
           }
         );
       }

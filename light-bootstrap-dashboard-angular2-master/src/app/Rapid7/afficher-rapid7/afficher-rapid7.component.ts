@@ -1,7 +1,8 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Rapid7Service } from 'app/Services/rapid7.service';
 import { Rapid7 } from 'app/Model/Rapid7';
 import { Router } from '@angular/router';
+import { PermissionService } from 'app/Services/permission.service';
 
 @Component({
   selector: 'app-afficher-rapid7',
@@ -20,7 +21,7 @@ export class AfficherRapid7Component implements OnInit {
       totalPages: number = 0;
       pagedRapid7s: Rapid7[] = [];
   
-    constructor(private rapid7Service: Rapid7Service, private router: Router) {}
+    constructor(private rapid7Service: Rapid7Service, private router: Router, public permissionService: PermissionService) {}
   
    ngOnInit(): void {
        this.getAllRapid7s();
@@ -41,7 +42,7 @@ export class AfficherRapid7Component implements OnInit {
            this.changePage(0);
          },
          (error) => {
-           console.error('Erreur récupération Rapid7s', error);
+           console.error('Erreur r�cup�ration Rapid7s', error);
          }
        );
      }
@@ -84,7 +85,7 @@ export class AfficherRapid7Component implements OnInit {
       this.filteredRapid7s = this.filteredRapid7s.filter(rapid7 => rapid7.rapid7Id !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuv� et retir� de la liste');
     });
   }
    
@@ -93,11 +94,11 @@ export class AfficherRapid7Component implements OnInit {
          this.rapid7Service.deleteRapid7(id).subscribe(
            () => {
              this.getAllRapid7s();
-             alert('rapid7 supprimé avec succès');
+             alert('rapid7 supprim� avec succ�s');
            },
            error => {
              console.error('Erreur suppression rapid7', error);
-             alert('Échec suppression');
+             alert('�chec suppression');
            }
          );
        }

@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -45,7 +45,7 @@ export class UpdateImpervaComponent implements OnInit {
         numero: [''],
         remarque: [''],
         sousContrat: [false],
-        licences: this.fb.array([])  // ðŸ‘ˆ Ajout des licences dynamiques ici
+        licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
       });
   
       this.impervaId = Number(this.route.snapshot.paramMap.get('id'));
@@ -61,7 +61,7 @@ export class UpdateImpervaComponent implements OnInit {
     }
     // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -74,7 +74,7 @@ export class UpdateImpervaComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+        return CommandePasserPar.GI_TN; // Valeur par défaut
     }
   }
     createLicenceGroup(): FormGroup {
@@ -137,7 +137,7 @@ export class UpdateImpervaComponent implements OnInit {
           }
         },
         error => {
-          console.error('Erreur rÃ©cupÃ©ration imperva:', error);
+          console.error('Erreur récupération imperva:', error);
         }
       );
     }
@@ -158,11 +158,11 @@ export class UpdateImpervaComponent implements OnInit {
   
         this.impervaService.updateImperva(updatedImperva).subscribe(
           () => {
-            console.log('Imperva mis Ã  jour avec succÃ¨s');
+            console.log('Imperva mis à jour avec succès');
             this.router.navigate(['/Afficherim']);
           },
           error => {
-            console.error('Erreur mise Ã  jour Imperva:', error);
+            console.error('Erreur mise à jour Imperva:', error);
           }
         );
       } else {
@@ -186,7 +186,7 @@ export class UpdateImpervaComponent implements OnInit {
           (updatedImperva) => {
             this.currentFileName = updatedImperva.fichier || null;
             this.currentFileOriginalName = updatedImperva.fichierOriginalName || null;
-            window.alert('Fichier uploadÃ© avec succÃ¨s');
+            window.alert('Fichier uploadé avec succès');
           },
           error => {
             console.error('Erreur upload fichier:', error);
@@ -206,7 +206,7 @@ export class UpdateImpervaComponent implements OnInit {
           () => {
             this.currentFileName = null;
             this.currentFileOriginalName = null;
-            window.alert('Fichier supprimÃ© avec succÃ¨s');
+            window.alert('Fichier supprimé avec succès');
           },
           error => {
             console.error('Erreur suppression fichier:', error);

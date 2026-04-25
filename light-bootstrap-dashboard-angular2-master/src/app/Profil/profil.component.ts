@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from 'app/Services/api.service';
+import { PermissionService } from 'app/Services/permission.service';
+import { environment } from 'environments/environment';
 import { HttpEventType } from '@angular/common/http';
 
 @Component({
@@ -27,7 +29,8 @@ export class ProfileComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private apiService: ApiService,
-    private router: Router
+    private router: Router,
+    public permissionService: PermissionService
   ) {
     this.profileForm = this.fb.group({
       firstname: ['', [Validators.required, Validators.minLength(2)]],
@@ -123,11 +126,11 @@ export class ProfileComponent implements OnInit {
       if (!imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
         // Si c'est juste un nom de fichier (ex: "user_1652_abc123.jpg")
         if (!imageUrl.includes('/')) {
-          imageUrl = 'http://localhost:8089/Users/serve-img/' + imageUrl;
+          imageUrl = environment.apiUrl + '/Users/serve-img/' + imageUrl;
         } 
         // Si c'est un chemin complet (ex: "/uploads/profiles/user_1652_abc123.jpg")
         else {
-          imageUrl = 'http://localhost:8089' + imageUrl;
+          imageUrl = environment.apiUrl + imageUrl;
         }
       }
       
@@ -406,7 +409,7 @@ export class ProfileComponent implements OnInit {
   // ✅ NOUVELLE méthode pour tester l'accès aux images
   testImageAccess() {
     if (this.currentUser?.profilePicture) {
-      const testUrl = 'http://localhost:8089/Users/serve-img/' + this.currentUser.profilePicture;
+      const testUrl = environment.apiUrl + '/Users/serve-img/' + this.currentUser.profilePicture;
       console.log('🧪 Test URL:', testUrl);
       window.open(testUrl, '_blank');
     }

@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EsetService } from 'app/Services/eset.service';
@@ -33,7 +33,7 @@ export class UpdateEsetComponent implements OnInit {
   currentFileName: string | null = null;
   currentFileOriginalName: string | null = null;
 
-  // Variables pour le modal de succÃ¨s
+  // Variables pour le modal de succès
   showSuccessModal: boolean = false;
   successMessage: string = '';
   successTitle: string = '';
@@ -55,7 +55,7 @@ export class UpdateEsetComponent implements OnInit {
     this.clientService.getAllClients().subscribe(data => this.clients = data);
     this.initializeForm();
     
-    // Si l'ESET est passÃ© en Input (mode modal), l'utiliser
+    // Si l'ESET est passé en Input (mode modal), l'utiliser
     if (this.esetToEdit) {
       this.eset = this.esetToEdit;
       this.esetid = this.esetToEdit.esetid!;
@@ -97,7 +97,7 @@ export class UpdateEsetComponent implements OnInit {
     this.esetService.getEsetById(this.esetid).subscribe(
       (data: Eset) => {
         this.eset = data;
-        console.log('Eset reÃ§u:', this.eset);
+        console.log('Eset reçu:', this.eset);
         this.populateForm(data);
         // Charger le nom du fichier existant
         if (data.fichier) {
@@ -106,13 +106,13 @@ export class UpdateEsetComponent implements OnInit {
         }
       },
       (error) => {
-        console.error('Erreur lors de la rÃ©cupÃ©ration d\'ESET:', error);
+        console.error('Erreur lors de la récupération d\'ESET:', error);
       }
     );
   }
 
   populateForm(data: Eset): void {
-    // PrÃ©parer la date au format yyyy-MM-dd pour input date
+    // Préparer la date au format yyyy-MM-dd pour input date
     let dateExStr = '';
     if (data.dateEx) {
       const date = new Date(data.dateEx);
@@ -191,23 +191,23 @@ export class UpdateEsetComponent implements OnInit {
         approuve: this.eset.approuve // Conserver le statut d'approbation
       };
 
-      console.log('DonnÃ©es envoyÃ©es au serveur:', updatedEset);
+      console.log('Données envoyées au serveur:', updatedEset);
 
       this.esetService.updateEset(updatedEset).subscribe(
         () => {
-          console.log('Eset mis Ã  jour avec succÃ¨s');
-          this.successTitle = 'SuccÃ¨s';
-          this.successMessage = 'ESET mise Ã  jour avec succÃ¨s!';
+          console.log('Eset mis à jour avec succès');
+          this.successTitle = 'Succès';
+          this.successMessage = 'ESET mise à jour avec succès!';
           this.showSuccessModal = true;
           
-          // Ã‰mettre l'Ã©vÃ©nement au lieu de naviguer
+          // Émettre l'événement au lieu de naviguer
           setTimeout(() => {
             this.updated.emit();
           }, 1500);
         },
         (error) => {
-          console.error('Erreur mise Ã  jour ESET:', error);
-          alert('Erreur lors de la mise Ã  jour: ' + (error.error?.message || error.message));
+          console.error('Erreur mise à jour ESET:', error);
+          alert('Erreur lors de la mise à jour: ' + (error.error?.message || error.message));
         }
       );
     } else {
@@ -254,7 +254,7 @@ export class UpdateEsetComponent implements OnInit {
 
   uploadFile(): void {
     if (!this.selectedFile) {
-      this.uploadMessage = 'Veuillez sÃ©lectionner un fichier';
+      this.uploadMessage = 'Veuillez sélectionner un fichier';
       this.uploadSuccess = false;
       return;
     }
@@ -271,7 +271,7 @@ export class UpdateEsetComponent implements OnInit {
           this.uploading = false;
           if (event.body.success) {
             this.uploadSuccess = true;
-            this.uploadMessage = 'Fichier uploadÃ© avec succÃ¨s!';
+            this.uploadMessage = 'Fichier uploadé avec succès!';
             this.currentFileName = event.body.fichier;
             this.currentFileOriginalName = event.body.originalName || this.selectedFile?.name;
             this.selectedFile = null;
@@ -298,12 +298,12 @@ export class UpdateEsetComponent implements OnInit {
   }
 
   deleteFile(): void {
-    if (confirm('ÃŠtes-vous sÃ»r de vouloir supprimer ce fichier?')) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce fichier?')) {
       this.esetService.deleteFile(this.esetid).subscribe({
         next: (response: any) => {
           if (response.success) {
             this.currentFileName = null;
-            this.uploadMessage = 'Fichier supprimÃ© avec succÃ¨s';
+            this.uploadMessage = 'Fichier supprimé avec succès';
             this.uploadSuccess = true;
           } else {
             this.uploadMessage = response.message || 'Erreur lors de la suppression';
@@ -328,7 +328,7 @@ export class UpdateEsetComponent implements OnInit {
   }
 
   onCancel(): void {
-    // Ã‰mettre l'Ã©vÃ©nement d'annulation si des observateurs Ã©coutent (mode modal)
+    // Émettre l'événement d'annulation si des observateurs écoutent (mode modal)
     if (this.cancelled.observers.length) {
       this.cancelled.emit();
     } else {

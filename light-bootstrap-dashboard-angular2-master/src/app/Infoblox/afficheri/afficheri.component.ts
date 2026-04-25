@@ -1,7 +1,8 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { InfobloxService } from 'app/Services/infoblox.service';
 import { Infoblox } from 'app/Model/Infoblox';
 import { Router } from '@angular/router';
+import { PermissionService } from 'app/Services/permission.service';
 @Component({
   selector: 'app-afficheri',
   templateUrl: './afficheri.component.html',
@@ -20,7 +21,7 @@ export class AfficheriComponent implements OnInit {
      pagedInfobloxs:Infoblox[] = [];
     unapprovedInfobloxs:Infoblox[] = [];
  
-   constructor(private infobloxService: InfobloxService, private router: Router) {}
+   constructor(private infobloxService: InfobloxService, private router: Router, public permissionService: PermissionService) {}
  
   ngOnInit(): void {
       this.getAllInfobloxs();
@@ -52,7 +53,7 @@ export class AfficheriComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération Infobloxs', error);
+          console.error('Erreur r�cup�ration Infobloxs', error);
         }
       );
     }
@@ -94,7 +95,7 @@ export class AfficheriComponent implements OnInit {
       this.filteredInfobloxs = this.filteredInfobloxs.filter(infoblox => infoblox.infobloxId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuv� et retir� de la liste');
     });
   }
   
@@ -103,11 +104,11 @@ export class AfficheriComponent implements OnInit {
         this.infobloxService.deleteInfoblox(id).subscribe(
           () => {
             this.getAllInfobloxs();
-            alert('Infoblox supprimé avec succès');
+            alert('Infoblox supprim� avec succ�s');
           },
           error => {
             console.error('Erreur suppression Infoblox', error);
-            alert('Échec suppression');
+            alert('�chec suppression');
           }
         );
       }

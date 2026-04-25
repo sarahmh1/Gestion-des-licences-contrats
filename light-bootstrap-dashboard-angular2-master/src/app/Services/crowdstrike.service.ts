@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { Crowdstrike } from 'app/Model/Crowdstrike';
   providedIn: 'root'
 })
 export class CrowdstrikeService {
-  private baseUrl = 'http://localhost:8089/Crowdstrike'; // Adaptez l'URL selon votre API
+  private baseUrl = `${environment.apiUrl}/Crowdstrike`; // Adaptez l'URL selon votre API
 
   constructor(private http: HttpClient) {}
 

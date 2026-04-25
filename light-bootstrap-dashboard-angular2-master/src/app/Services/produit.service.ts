@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
@@ -16,7 +17,7 @@ export interface Produit {
   providedIn: 'root'
 })
 export class ProduitService {
-  private baseUrl = 'http://localhost:8089/api/produits';
+  private baseUrl = `${environment.apiUrl}/api/produits`;
   
   // Cache pour les produits activés
   private produitsCache = new BehaviorSubject<Produit[]>([]);
@@ -106,3 +107,4 @@ export class ProduitService {
     this.loadProduitsActifs();
   }
 }
+

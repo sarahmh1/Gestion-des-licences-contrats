@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { Veeam } from 'app/Model/Veeam';
   providedIn: 'root'
 })
 export class VeeamService {
-  private baseUrl = 'http://localhost:8089/Veeam';
+  private baseUrl = `${environment.apiUrl}/Veeam`;
 
   constructor(private http: HttpClient) {}
 
@@ -75,3 +76,4 @@ export class VeeamService {
     return `${this.baseUrl}/${veeamId}/download`;
   }
 }
+

@@ -6,7 +6,9 @@ import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { MessageService, ConversationDTO, MessageDTO } from '../../Services/message.service';
 import { UserService } from '../../Services/user.service';
+import { PermissionService } from '../../Services/permission.service';
 import { WebsocketService } from '../../Services/websocket.service';
+import { environment } from 'environments/environment';
 import { NotificationAppService } from '../../Services/notification.service';
 import { AppNotification } from '../../Model/Notification';
 import { Subscription } from 'rxjs';
@@ -90,6 +92,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         private http: HttpClient,
         private messageService: MessageService,
         private userService: UserService,
+        public permissionService: PermissionService,
         private websocketService: WebsocketService,
         private notificationAppService: NotificationAppService
     ) {
@@ -120,7 +123,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         if (!token) return;
 
         const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-        this.http.get<any>('http://localhost:8089/Users/me', { headers }).subscribe(
+        this.http.get<any>(`${environment.apiUrl}/Users/me`, { headers }).subscribe(
             (user) => {
                 const first = user.firstname || '';
                 const last = user.lastname || '';
@@ -129,7 +132,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
                 this.loadNotifUnreadCount();
 
                 if (user.profilePicture) {
-                    this.userProfilePic = 'http://localhost:8089' + user.profilePicture;
+                    this.userProfilePic = environment.apiUrl + user.profilePicture;
                 }
             },
             (err) => {
@@ -174,8 +177,18 @@ export class NavbarComponent implements OnInit, OnDestroy {
             // S'abonner aux notifications en temps réel
             this.notifSubscription = this.websocketService.getNotifications().subscribe(notif => {
                 if (notif) {
-                    this.notifications.unshift(notif);
+                    console.log('📨 WebSocket notification received:', notif.id, notif.message);
+                    // Vérifier que la notif n'existe pas déjà (déduplication)
+                    const notifExists = this.notifications.some(n => n.id === notif.id);
+                    console.log('   Already exists?', notifExists);
+                    if (!notifExists) {
+                        this.notifications.unshift(notif);
+                        console.log('   ✅ Added to notifications array. New length:', this.notifications.length);
+                    } else {
+                        console.log('   ⚠️ Skipped (duplicate)');
+                    }
                     this.unreadNotifCount++;
+                    console.log('   unreadNotifCount incremented to:', this.unreadNotifCount);
                 }
             });
         }
@@ -292,7 +305,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         if (profilePicture.startsWith('http://') || profilePicture.startsWith('https://')) {
             return profilePicture;
         }
-        return 'http://localhost:8089' + (profilePicture.startsWith('/') ? '' : '/') + profilePicture;
+        return environment.apiUrl + (profilePicture.startsWith('/') ? '' : '/') + profilePicture;
     }
 
     selectUser(user: UserDTO) {
@@ -630,7 +643,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     loadNotifUnreadCount(): void {
         if (!this.currentUserId) return;
         this.notificationAppService.getUnreadCount(this.currentUserId).subscribe(
-            (res) => { this.unreadNotifCount = res.count; },
+            (res) => {
+                console.log('📢 Unread count from API:', res.count);
+                this.unreadNotifCount = res.count;
+            },
             (err) => { console.error('Error loading unread count:', err); }
         );
     }
@@ -638,33 +654,74 @@ export class NavbarComponent implements OnInit, OnDestroy {
     loadNotifications(): void {
         if (!this.currentUserId) return;
         this.notificationAppService.getNotificationsForUser(this.currentUserId).subscribe(
-            (notifs) => { this.notifications = notifs; },
+            (notifs) => {
+                console.log('📊 API returned', notifs.length, 'notifications:', notifs);
+                notifs.forEach((n, i) => {
+                    console.log(`   [${i}] ID: ${n.id}, Message: "${n.message.substring(0, 30)}...", isRead: ${n.isRead}`);
+                });
+                // Déduplicater les notifications par ID pour éviter les doublons
+                // quand les notifs arrivent à la fois via WebSocket et API
+                const idsInNotifs = new Set(notifs.map(n => n.id));
+                const wsOnlyNotifs = this.notifications.filter(n => !idsInNotifs.has(n.id));
+                
+                console.log('🔄 WS-only notifications:', wsOnlyNotifs.length);
+                console.log('📦 Final notifications array length:', notifs.length + wsOnlyNotifs.length);
+                
+                // Merger: API notifs + WebSocket notifs non présentes dans l'API
+                this.notifications = [...notifs, ...wsOnlyNotifs];
+                console.log('✅ notifications set to:', this.notifications.length, this.notifications);
+            },
             (err) => { console.error('Error loading notifications:', err); }
         );
     }
 
     toggleNotifPanel(): void {
+        console.log('🔔 toggleNotifPanel called, current showNotifPanel:', this.showNotifPanel);
         this.showNotifPanel = !this.showNotifPanel;
         if (this.showNotifPanel) {
+            console.log('📂 Panel opening, calling loadNotifications()');
             this.loadNotifications();
         }
     }
 
     markNotifRead(notif: AppNotification): void {
-        if (!notif.read) {
-            this.notificationAppService.markAsRead(notif.id).subscribe(() => {
-                notif.read = true;
-                this.loadNotifUnreadCount();
-            });
+        if (!notif.isRead) {
+            // Marquer localement immédiatement pour l'expérience utilisateur
+            notif.isRead = true;
+            console.log('🟢 Notification', notif.id, 'marked as read locally');
+            
+            // Envoyer au backend en arrière-plan (sans recharger)
+            this.notificationAppService.markAsRead(notif.id).subscribe(
+                () => {
+                    console.log('✅ Notification', notif.id, 'confirmed read on server');
+                    this.loadNotifUnreadCount();
+                },
+                (err) => {
+                    console.error('❌ Error marking notification as read:', err);
+                    // En cas d'erreur, revenir à non-lu
+                    notif.isRead = false;
+                }
+            );
         }
     }
 
     markAllNotifsRead(): void {
         if (!this.currentUserId) return;
-        this.notificationAppService.markAllAsRead(this.currentUserId).subscribe(() => {
-            this.notifications.forEach(n => n.read = true);
-            this.unreadNotifCount = 0;
-        });
+        // Marquer tous localement immédiatement
+        this.notifications.forEach(n => n.isRead = true);
+        console.log('🟢 All notifications marked as read locally');
+        
+        // Envoyer au backend en arrière-plan
+        this.notificationAppService.markAllAsRead(this.currentUserId).subscribe(
+            () => {
+                console.log('✅ All notifications confirmed read on server');
+                this.unreadNotifCount = 0;
+            },
+            (err) => {
+                console.error('❌ Error marking all notifications as read:', err);
+                // En cas d'erreur, les notifications seront resynchronisées au prochain intervalle
+            }
+        );
     }
 
     deleteNotification(notif: AppNotification, event: Event): void {
@@ -704,7 +761,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         if (!token) return;
         const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
         this.http.get<any[]>(
-            `http://localhost:8089/InterventionPreventive/calendar/${this.currentUserId}`,
+            `${environment.apiUrl}/InterventionPreventive/calendar/${this.currentUserId}`,
             { headers }
         ).subscribe(
             (events) => { this.calendarEvents = events; this.buildCalGrid(); },
@@ -803,5 +860,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
     goToIntervention(ev: any): void {
         this.showCalendarModal = false;
         this.router.navigate(['/interventions-preventives']);
+    }
+
+    trackByNotificationId(index: number, notif: AppNotification): any {
+        return notif.id;
     }
 }

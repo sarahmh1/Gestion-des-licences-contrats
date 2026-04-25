@@ -1,7 +1,8 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { OneIdentityService } from 'app/Services/oneIdentity.service';
 import { Router } from '@angular/router';
 import { OneIdentity } from 'app/Model/OneIdentity';
+import { PermissionService } from 'app/Services/permission.service';
 @Component({
   selector: 'app-affichero',
   templateUrl: './affichero.component.html',
@@ -20,7 +21,7 @@ export class AfficheroComponent implements OnInit {
      totalPages: number = 0;
      pagedOneIdentitys:OneIdentity[] = [];
  
-   constructor(private oneIdentityService: OneIdentityService, private router: Router) {}
+   constructor(private oneIdentityService: OneIdentityService, private router: Router, public permissionService: PermissionService) {}
  
   ngOnInit(): void {
       this.getAllOneIdentitys();
@@ -41,7 +42,7 @@ export class AfficheroComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération OneIdentitys', error);
+          console.error('Erreur r�cup�ration OneIdentitys', error);
         }
       );
     }
@@ -83,7 +84,7 @@ export class AfficheroComponent implements OnInit {
       this.filteredOneIdentitys = this.filteredOneIdentitys.filter(oneIdentity => oneIdentity.oneIdentityId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuv� et retir� de la liste');
     });
   }
   
@@ -92,11 +93,11 @@ export class AfficheroComponent implements OnInit {
         this.oneIdentityService.deleteOneIdentity(id).subscribe(
           () => {
             this.getAllOneIdentitys();
-            alert('OneIdentity supprimé avec succès');
+            alert('OneIdentity supprim� avec succ�s');
           },
           error => {
             console.error('Erreur suppression OneIdentity', error);
-            alert('Échec suppression');
+            alert('�chec suppression');
           }
         );
       }

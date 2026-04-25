@@ -68,11 +68,39 @@ public class UserService implements IUserService {
     }
 
     public void saveUser(User user) {
+        System.out.println("💾 [UserService] saveUser() called for email: " + user.getEmail());
+        
+        // Vérifier si le mot de passe est déjà crypté
+        // Si c'est appelé depuis le register endpoint, le mot de passe est déjà crypté
+        // Si c'est appelé depuis elsewhere, on doit crypter
+        if (user.getPassword() != null && !user.getPassword().startsWith("$2")) {
+            // Ne semble pas être crypté (BCrypt commence par $2)
+            String encodedPassword = passwordEncoder.encode(user.getPassword());
+            user.setPassword(encodedPassword);
+            System.out.println("✅ [UserService] Password was NOT crypted, crypting now with BCrypt");
+        } else if (user.getPassword() != null && user.getPassword().startsWith("$2")) {
+            System.out.println("✅ [UserService] Password already crypted with BCrypt");
+        }
+        
         userRepository.save(user);
+        System.out.println("✅ [UserService] User saved: " + user.getId());
     }
 
     public User createUser(User user) {
-        return userRepository.save(user);
+        System.out.println("🔐 [UserService] createUser() called for email: " + user.getEmail());
+        
+        // Crypter le mot de passe avec BCrypt
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            String encodedPassword = passwordEncoder.encode(user.getPassword());
+            user.setPassword(encodedPassword);
+            System.out.println("✅ [UserService] Password crypted successfully with BCrypt");
+        } else {
+            System.out.println("⚠️  [UserService] WARNING: Password is null or empty for user: " + user.getEmail());
+        }
+        
+        User savedUser = userRepository.save(user);
+        System.out.println("✅ [UserService] User saved to database: " + savedUser.getId() + " - " + savedUser.getEmail());
+        return savedUser;
     }
 
     public User updateUserProfileById(Long id, UserUpdateRequest updateRequest) {
@@ -145,8 +173,15 @@ public class UserService implements IUserService {
         try {
             System.out.println("🗑️  Hard deleting user with ID: " + id);
             
-            // Step 1: Remove all FK references from intervention_preventive_assigned_users using native query
-            System.out.println("Step 1: Cleaning foreign key references...");
+            // Step 1: Remove all notifications for this user
+            System.out.println("Step 1: Deleting notifications...");
+            int deletedNotifications = entityManager.createNativeQuery(
+                "DELETE FROM notification WHERE user_id = ?1"
+            ).setParameter(1, id).executeUpdate();
+            System.out.println("✅ Deleted " + deletedNotifications + " notifications");
+            
+            // Step 2: Remove all FK references from intervention_preventive_assigned_users using native query
+            System.out.println("Step 2: Cleaning intervention assignments...");
             int deletedAssignments = entityManager.createNativeQuery(
                 "DELETE FROM intervention_preventive_assigned_users WHERE user_id = ?1"
             ).setParameter(1, id).executeUpdate();
@@ -155,8 +190,8 @@ public class UserService implements IUserService {
             // Flush to ensure FK cleanup is committed
             entityManager.flush();
             
-            // Step 2: Hard delete user from database
-            System.out.println("Step 2: Deleting user from database...");
+            // Step 3: Hard delete user from database
+            System.out.println("Step 3: Deleting user from database...");
             User userToDelete = userRepository.findById(id).orElse(null);
             if (userToDelete != null) {
                 userRepository.delete(userToDelete);

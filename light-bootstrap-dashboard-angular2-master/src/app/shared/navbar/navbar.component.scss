@@ -428,6 +428,22 @@
         }
       }
 
+      .notif-status {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4CAF50;
+        margin-right: 10px;
+        margin-top: 2px;
+        flex-shrink: 0;
+        transition: background 0.2s;
+
+        &.notif-status-unread {
+          background: #FF9800;
+          box-shadow: 0 0 6px rgba(255, 152, 0, 0.5);
+        }
+      }
+
       .notif-content {
         flex: 1;
         min-width: 0;

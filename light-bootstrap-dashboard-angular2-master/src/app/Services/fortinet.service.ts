@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpEvent, HttpRequest } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { Fortinet } from 'app/Model/Fortinet';
   providedIn: 'root'
 })
 export class FortinetService {
-  private baseUrl = 'http://localhost:8089/Fortinet'; // ✅ Bon chemin
+  private baseUrl = `${environment.apiUrl}/Fortinet`; // ✅ Bon chemin
   constructor(private http: HttpClient) {}
 
  
@@ -70,3 +71,4 @@ export class FortinetService {
     return `${this.baseUrl}/${fortinetId}/download`;
   }
 }
+

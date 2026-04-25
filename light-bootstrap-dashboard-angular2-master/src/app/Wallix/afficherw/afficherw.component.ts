@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { WallixService } from 'app/Services/wallix.service';
 import { Wallix } from 'app/Model/Wallix';
 import { Router } from '@angular/router';
+import { PermissionService } from 'app/Services/permission.service';
 
 @Component({
   selector: 'app-afficherw',
@@ -20,7 +21,7 @@ export class AfficherwComponent implements OnInit {
      totalPages: number = 0;
      pagedWallix: Wallix[] = [];
  
-   constructor(private wallixService: WallixService, private router: Router) {}
+   constructor(private wallixService: WallixService, private router: Router, public permissionService: PermissionService) {}
  
   ngOnInit(): void {
       this.getAllWallixs();

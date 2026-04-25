@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { OneIdentity } from 'app/Model/OneIdentity';
   providedIn: 'root'
 })
 export class OneIdentityService {
-  private baseUrl = 'http://localhost:8089/OneIdentity';
+  private baseUrl = `${environment.apiUrl}/OneIdentity`;
 
   constructor(private http: HttpClient) {}
 
@@ -70,3 +71,4 @@ export class OneIdentityService {
     return this.http.delete<OneIdentity>(`${this.baseUrl}/${id}/delete-file`);
   }
 }
+

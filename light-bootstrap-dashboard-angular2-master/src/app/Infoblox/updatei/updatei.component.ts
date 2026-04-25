@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -46,7 +46,7 @@ export class UpdateInfobloxComponent implements OnInit {
         numero: [''],
         remarque: [''],
         sousContrat: [false],
-        licences: this.fb.array([])  // ðŸ‘ˆ Ajout des licences dynamiques ici
+        licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
       });
   
       this.infobloxId = Number(this.route.snapshot.paramMap.get('id'));
@@ -62,7 +62,7 @@ export class UpdateInfobloxComponent implements OnInit {
     }
      // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -75,7 +75,7 @@ export class UpdateInfobloxComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+        return CommandePasserPar.GI_TN; // Valeur par défaut
     }
   }
   
@@ -143,7 +143,7 @@ export class UpdateInfobloxComponent implements OnInit {
           }
         },
         error => {
-          console.error('Erreur rÃ©cupÃ©ration infoblox:', error);
+          console.error('Erreur récupération infoblox:', error);
         }
       );
     }
@@ -158,18 +158,18 @@ export class UpdateInfobloxComponent implements OnInit {
         const updatedInfoblox: Infoblox = {
           infobloxId: this.infobloxId,
           ...this.updateForm.value,
-          // PrÃ©server les champs fichier
+          // Préserver les champs fichier
           fichier: this.infoblox?.fichier,
           fichierOriginalName: this.infoblox?.fichierOriginalName
         };
   
         this.infobloxService.updateInfoblox(updatedInfoblox).subscribe(
           () => {
-            // Si un nouveau fichier est sÃ©lectionnÃ©, l'uploader
+            // Si un nouveau fichier est sélectionné, l'uploader
             if (this.selectedFile) {
               this.infobloxService.uploadFile(this.infobloxId, this.selectedFile).subscribe(
                 () => {
-                  console.log('Infoblox et fichier mis Ã  jour avec succÃ¨s');
+                  console.log('Infoblox et fichier mis à jour avec succès');
                   this.router.navigate(['/Afficheri']);
                 },
                 error => {
@@ -178,12 +178,12 @@ export class UpdateInfobloxComponent implements OnInit {
                 }
               );
             } else {
-              console.log('Infoblox mis Ã  jour avec succÃ¨s');
+              console.log('Infoblox mis à jour avec succès');
               this.router.navigate(['/Afficheri']);
             }
           },
           error => {
-            console.error('Erreur mise Ã  jour infoblox:', error);
+            console.error('Erreur mise à jour infoblox:', error);
           }
         );
       } else {
@@ -206,7 +206,7 @@ export class UpdateInfobloxComponent implements OnInit {
             this.currentFileOriginalName = null;
             this.infoblox.fichier = undefined;
             this.infoblox.fichierOriginalName = undefined;
-            alert('Fichier supprimÃ© avec succÃ¨s');
+            alert('Fichier supprimé avec succès');
           },
           error => {
             console.error('Erreur suppression fichier:', error);

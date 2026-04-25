@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { InterventionCurative } from 'app/Model/InterventionCurative';
   providedIn: 'root'
 })
 export class InterventionCurativeService {
-  private baseUrl = 'http://localhost:8089/InterventionCurative';
+  private baseUrl = `${environment.apiUrl}/InterventionCurative`;
   
   constructor(private http: HttpClient) {}
 
@@ -58,3 +59,4 @@ export class InterventionCurativeService {
     return this.http.delete<any>(`${this.baseUrl}/${id}/delete-file`);
   }
 }
+

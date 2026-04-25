@@ -123,8 +123,15 @@ public class UserServiceImp implements IUserService {
         try {
             System.out.println("🗑️  Hard deleting user with ID: " + id);
             
-            // Step 1: Remove all FK references from intervention_preventive_assigned_users using native query
-            System.out.println("Step 1: Cleaning foreign key references...");
+            // Step 1: Remove all notifications for this user
+            System.out.println("Step 1: Deleting notifications...");
+            int deletedNotifications = entityManager.createNativeQuery(
+                "DELETE FROM notification WHERE user_id = ?1"
+            ).setParameter(1, id).executeUpdate();
+            System.out.println("✅ Deleted " + deletedNotifications + " notifications");
+            
+            // Step 2: Remove all FK references from intervention_preventive_assigned_users using native query
+            System.out.println("Step 2: Cleaning intervention assignments...");
             int deletedAssignments = entityManager.createNativeQuery(
                 "DELETE FROM intervention_preventive_assigned_users WHERE user_id = ?1"
             ).setParameter(1, id).executeUpdate();
@@ -133,8 +140,8 @@ public class UserServiceImp implements IUserService {
             // Flush to ensure FK cleanup is committed
             entityManager.flush();
             
-            // Step 2: Hard delete user from database
-            System.out.println("Step 2: Deleting user from database...");
+            // Step 3: Hard delete user from database
+            System.out.println("Step 3: Deleting user from database...");
             User userToDelete = userRepository.findById(id).orElse(null);
             if (userToDelete != null) {
                 userRepository.delete(userToDelete);

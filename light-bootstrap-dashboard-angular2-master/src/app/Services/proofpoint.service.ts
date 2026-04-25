@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { Proofpoint } from 'app/Model/Proofpoint';
   providedIn: 'root'
 })
 export class ProofpointService {
-  private baseUrl = 'http://localhost:8089/Proofpoint';
+  private baseUrl = `${environment.apiUrl}/Proofpoint`;
 
   constructor(private http: HttpClient) {}
 
@@ -70,3 +71,4 @@ export class ProofpointService {
     return `${this.baseUrl}/${proofpointId}/download`;
   }
 }
+

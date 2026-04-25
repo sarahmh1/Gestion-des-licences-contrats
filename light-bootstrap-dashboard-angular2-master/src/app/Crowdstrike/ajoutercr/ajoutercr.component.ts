@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
@@ -150,27 +150,27 @@ export class AjouterCrowdstrikeComponent implements OnInit {
 
       this.crowdstrikeService.addCrowdstrike(newCrowdstrike).subscribe(
         (response: Crowdstrike) => {
-          // Si un fichier a Ã©tÃ© sÃ©lectionnÃ©, l'uploader aprÃ¨s la crÃ©ation
+          // Si un fichier a été sélectionné, l'uploader après la création
           if (this.selectedFile && response.crowdstrikeid) {
             this.crowdstrikeService.uploadFile(response.crowdstrikeid, this.selectedFile).subscribe(
               () => {
-                window.alert('CrowdStrike ajoutÃ© avec fichier');
+                window.alert('CrowdStrike ajouté avec fichier');
                 this.router.navigate(['/AfficherCrowsdstrike']);
               },
               (fileError) => {
                 console.error('Erreur upload fichier', fileError);
-                window.alert('CrowdStrike ajoutÃ© mais Ã©chec upload fichier');
+                window.alert('CrowdStrike ajouté mais échec upload fichier');
                 this.router.navigate(['/AfficherCrowsdstrike']);
               }
             );
           } else {
-            window.alert('CrowdStrike ajoutÃ© avec succÃ¨s');
+            window.alert('CrowdStrike ajouté avec succès');
             this.router.navigate(['/AfficherCrowsdstrike']);
           }
         },
         error => {
           console.error('Erreur lors de l\'ajout du CrowdStrike', error);
-          window.alert('Ã‰chec de l\'ajout');
+          window.alert('Échec de l\'ajout');
         }
       );
     } else {

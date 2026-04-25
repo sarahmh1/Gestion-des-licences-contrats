@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { Wallix } from 'app/Model/Wallix';
   providedIn: 'root'
 })
 export class WallixService {
-  private baseUrl = 'http://localhost:8089/Wallix';
+  private baseUrl = `${environment.apiUrl}/Wallix`;
 
   constructor(private http: HttpClient) {}
 
@@ -75,3 +76,4 @@ export class WallixService {
     return `${this.baseUrl}/${wallixId}/download`;
   }
 }
+

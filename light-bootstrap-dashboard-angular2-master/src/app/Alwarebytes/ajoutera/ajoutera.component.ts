@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Alwarebytes } from 'app/Model/Alwarebytes';
@@ -147,32 +147,32 @@ export class AjouteraComponent implements OnInit {
 
       this.alwarebytesService.addAlwarebytes(newAlwarebytes).subscribe(
         (response: any) => {
-          console.log('RÃ©ponse serveur Alwarebytes:', response);
+          console.log('Réponse serveur Alwarebytes:', response);
           const alwarebytesId = response.alwarebytesId || response.id;
 
           if (this.selectedFile && alwarebytesId) {
             this.alwarebytesService.uploadFile(alwarebytesId, this.selectedFile).subscribe(
               (uploadResponse) => {
-                console.log('Upload rÃ©ussi:', uploadResponse);
-                window.alert('Alwarebytes et fichier ajoutÃ©s avec succÃ¨s');
+                console.log('Upload réussi:', uploadResponse);
+                window.alert('Alwarebytes et fichier ajoutés avec succès');
                 this.router.navigate(['/Affichera']);
               },
               error => {
                 console.error('Erreur lors de l\'upload du fichier:', error);
                 console.error('Status:', error.status);
                 console.error('Error body:', error.error);
-                window.alert('Alwarebytes ajoutÃ©, mais erreur lors de l\'upload du fichier');
+                window.alert('Alwarebytes ajouté, mais erreur lors de l\'upload du fichier');
                 this.router.navigate(['/Affichera']);
               }
             );
           } else {
-            window.alert('Alwarebytes ajoutÃ© avec succÃ¨s');
+            window.alert('Alwarebytes ajouté avec succès');
             this.router.navigate(['/Affichera']);
           }
         },
         error => {
           console.error('Erreur lors de l\'ajout du Alwarebytes:', error);
-          window.alert('Ã‰chec de l\'ajout');
+          window.alert('Échec de l\'ajout');
         }
       );
     } else {

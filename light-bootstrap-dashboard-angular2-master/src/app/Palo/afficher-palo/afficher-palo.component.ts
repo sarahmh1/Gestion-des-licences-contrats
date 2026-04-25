@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { PaloService } from 'app/Services/palo.service';
 import { Palo } from 'app/Model/Palo';
 import { Router } from '@angular/router';
@@ -50,7 +50,7 @@ export class AfficherPaloComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur rÃ©cupÃ©ration Fortinets', error);
+          console.error('Erreur récupération Fortinets', error);
         }
       );
     }
@@ -90,12 +90,12 @@ export class AfficherPaloComponent implements OnInit {
   
     approvePalo(id: number): void {
       this.paloService.activate(id).subscribe(() => {
-      // Retirer l'ESET approuvÃ© de la liste des non approuvÃ©s
+      // Retirer l'ESET approuvé de la liste des non approuvés
       this.unapprovedPalos = this.unapprovedPalos.filter(palo => palo.paloId !== id);
       this.filteredPalos = this.filteredPalos.filter(palo => palo.paloId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvÃ© et retirÃ© de la liste');
+      console.log('Article approuvé et retiré de la liste');
     });
   }
   
@@ -104,11 +104,11 @@ export class AfficherPaloComponent implements OnInit {
         this.paloService.deletePalo(id).subscribe(
           () => {
             this.getAllPalos();
-            alert('Palo supprimÃ© avec succÃ¨s');
+            alert('Palo supprimé avec succès');
           },
           error => {
             console.error('Erreur suppression Palo', error);
-            alert('Ã‰chec suppression');
+            alert('Échec suppression');
           }
         );
       }

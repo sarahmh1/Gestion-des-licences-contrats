@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PaloService } from 'app/Services/palo.service';
@@ -56,7 +56,7 @@ export class UpdatePaloComponent implements OnInit {
         numero: [''],
         remarque: [''],
         sousContrat: [false],
-        licences: this.fb.array([])  // ðŸ‘ˆ Ajout des licences dynamiques ici
+        licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
       });
   
       this.paloId = Number(this.route.snapshot.paramMap.get('id'));
@@ -72,7 +72,7 @@ export class UpdatePaloComponent implements OnInit {
     }
    // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -85,7 +85,7 @@ export class UpdatePaloComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
+        return CommandePasserPar.GI_TN; // Valeur par défaut
     }
   }
     createLicenceGroup(): FormGroup {
@@ -154,7 +154,7 @@ export class UpdatePaloComponent implements OnInit {
           }
         },
         error => {
-          console.error('Erreur rÃ©cupÃ©ration Palo:', error);
+          console.error('Erreur récupération Palo:', error);
         }
       );
     }
@@ -169,18 +169,18 @@ export class UpdatePaloComponent implements OnInit {
         const updatedPalo: Palo = {
           paloId: this.paloId,
           ...this.updateForm.value,
-          // Inclure les champs fichier pour ne pas les Ã©craser
+          // Inclure les champs fichier pour ne pas les écraser
           fichier: this.currentFileName || undefined,
           fichierOriginalName: this.currentFileOriginalName || undefined
         };
   
         this.paloService.updatePalo(updatedPalo).subscribe(
           () => {
-            console.log('Palo mis Ã  jour avec succÃ¨s');
+            console.log('Palo mis à jour avec succès');
             this.router.navigate(['/Afficherpalo']);
           },
           error => {
-            console.error('Erreur mise Ã  jour Palo:', error);
+            console.error('Erreur mise à jour Palo:', error);
           }
         );
       } else {
@@ -215,7 +215,7 @@ export class UpdatePaloComponent implements OnInit {
 
     uploadFile(): void {
       if (!this.selectedFile) {
-        this.uploadMessage = 'Veuillez sÃ©lectionner un fichier';
+        this.uploadMessage = 'Veuillez sélectionner un fichier';
         this.uploadSuccess = false;
         return;
       }
@@ -232,16 +232,16 @@ export class UpdatePaloComponent implements OnInit {
             this.uploading = false;
             if (event.body.success) {
               this.uploadSuccess = true;
-              this.uploadMessage = 'Fichier uploadÃ© avec succÃ¨s!';
+              this.uploadMessage = 'Fichier uploadé avec succès!';
               this.currentFileName = event.body.fichier;
               this.currentFileOriginalName = event.body.originalName || this.selectedFile?.name;
               this.selectedFile = null;
-              // RÃ©initialiser l'input file
+              // Réinitialiser l'input file
               const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
               if (fileInput) {
                 fileInput.value = '';
               }
-              // Forcer la dÃ©tection de changement
+              // Forcer la détection de changement
               this.cdr.detectChanges();
             } else {
               this.uploadSuccess = false;
@@ -266,15 +266,15 @@ export class UpdatePaloComponent implements OnInit {
     }
 
     deleteFile(): void {
-      if (confirm('ÃŠtes-vous sÃ»r de vouloir supprimer ce fichier?')) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer ce fichier?')) {
         this.paloService.deleteFile(this.paloId).subscribe({
           next: (response: any) => {
             if (response.success) {
               this.currentFileName = null;
               this.currentFileOriginalName = null;
-              this.uploadMessage = 'Fichier supprimÃ© avec succÃ¨s';
+              this.uploadMessage = 'Fichier supprimé avec succès';
               this.uploadSuccess = true;
-              // Forcer la dÃ©tection de changement
+              // Forcer la détection de changement
               this.cdr.detectChanges();
             } else {
               this.uploadMessage = response.message || 'Erreur lors de la suppression';

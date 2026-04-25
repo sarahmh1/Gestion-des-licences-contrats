@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { ClientStats } from 'app/Model/ClientStats';
   providedIn: 'root'
 })
 export class ClientStatsService {
-  private baseUrl = 'http://localhost:8089/ClientStats';
+  private baseUrl = `${environment.apiUrl}/ClientStats`;
 
   constructor(private http: HttpClient) {}
 
@@ -21,3 +22,4 @@ export class ClientStatsService {
     });
   }
 }
+

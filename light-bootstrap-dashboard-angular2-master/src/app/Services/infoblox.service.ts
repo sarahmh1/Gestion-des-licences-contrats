@@ -1,3 +1,4 @@
+import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { Infoblox } from 'app/Model/Infoblox';
   providedIn: 'root'
 })
 export class InfobloxService {
-  private baseUrl = 'http://localhost:8089/Infoblox';
+  private baseUrl = `${environment.apiUrl}/Infoblox`;
 
   constructor(private http: HttpClient) {}
 
@@ -67,3 +68,4 @@ export class InfobloxService {
     return this.http.delete<void>(`${this.baseUrl}/${id}/delete-file`);
   }
 }
+
