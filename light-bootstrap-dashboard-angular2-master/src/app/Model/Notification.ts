@@ -4,4 +4,5 @@ export interface AppNotification {
     isRead: boolean;
     createdAt: string;
     interventionPreventiveId?: number;
+    interventionCurativeId?: number;
 }

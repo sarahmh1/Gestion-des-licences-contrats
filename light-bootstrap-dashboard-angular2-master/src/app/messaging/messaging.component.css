@@ -54,7 +54,8 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  object-fit: cover;
+  object-fit: contain;
+  background: #eef1f6;
 }
 
 .unread-badge {
@@ -142,7 +143,8 @@
   height: 40px;
   border-radius: 50%;
   margin-right: 12px;
-  object-fit: cover;
+  object-fit: contain;
+  background: #eef1f6;
 }
 
 .chat-user-name {
@@ -266,6 +268,15 @@
 
 .btn-send i {
   font-size: 18px;
+}
+
+.voice-http-hint.messaging-hint {
+  padding: 8px 20px 14px;
+  margin: 0;
+  border-top: 1px solid #eef0f3;
+  background: #f9fafb;
+  color: #555;
+  line-height: 1.45;
 }
 
 /* Scrollbar personnalisée */
@@ -440,7 +451,8 @@
   width: 45px;
   height: 45px;
   border-radius: 50%;
-  object-fit: cover;
+  object-fit: contain;
+  background: #eef1f6;
 }
 
 .user-info {
@@ -481,22 +493,27 @@
 }
 
 .btn-delete-conv {
-  background: none;
-  border: none;
-  color: #ccc;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 50%;
+  color: #8a94a6;
   cursor: pointer;
-  padding: 4px;
-  font-size: 14px;
-  opacity: 0;
-  transition: all 0.2s;
-}
-
-.conversation-item:hover .btn-delete-conv {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   opacity: 1;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .btn-delete-conv:hover {
-  color: #dc3545;
+  color: #fff;
+  background: #dc3545;
+  border-color: #dc3545;
 }
 
 /* Message footer with delete button */
@@ -796,4 +813,104 @@
 
 .message-sent .message-audio i {
   color: #fff;
+}
+
+/* ============== Lightbox pour image agrandie ============== */
+.image-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: lightboxFade 0.2s ease-out;
+  cursor: zoom-out;
+  padding: 40px;
+}
+
+@keyframes lightboxFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.lightbox-content {
+  position: relative;
+  max-width: 95vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: default;
+  animation: lightboxZoom 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes lightboxZoom {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.lightbox-content img {
+  max-width: 95vw;
+  max-height: 85vh;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  background: #fff;
+  object-fit: contain;
+}
+
+.lightbox-caption {
+  margin-top: 14px;
+  color: #fff;
+  font-size: 14px;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 6px 14px;
+  border-radius: 18px;
+  max-width: 80vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lightbox-close,
+.lightbox-download {
+  position: fixed;
+  top: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+  text-decoration: none;
+  z-index: 2001;
+}
+
+.lightbox-close {
+  right: 20px;
+}
+
+.lightbox-download {
+  right: 76px;
+}
+
+.lightbox-close:hover,
+.lightbox-download:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: scale(1.08);
+  color: #fff;
+}
+
+.lightbox-close i,
+.lightbox-download i {
+  line-height: 1;
 }

@@ -256,8 +256,13 @@
             class="form-control"
             [(ngModel)]="newProductName"
             placeholder="Ex: ESET PROTECT Entry"
+            (ngModelChange)="onNewProductNameInput()"
             (keyup.enter)="submitNewProduct()"
           />
+          <small class="text-muted" *ngIf="newProductName?.trim() && !productNameStartsWithEset(newProductName)"
+            style="margin-top: 0.35rem; display: block;">
+            Le nom du produit doit commencer par ESET (ex. ESET PROTECT Entry).
+          </small>
           <small class="text-danger" *ngIf="newProductError" style="margin-top: 0.3rem; display: block;">
             {{ newProductError }}
           </small>
@@ -275,7 +280,7 @@
             type="button" 
             class="btn btn-success"
             (click)="submitNewProduct()"
-            [disabled]="!newProductName || newProductName.trim().length < 3"
+            [disabled]="!newProductNameValidForSubmit()"
           >
             <i class="fas fa-check"></i> Ajouter
           </button>
@@ -297,7 +302,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    /* Au-dessus de la navbar (1030) et des menus / overlays du header (≈10k+) */
+    z-index: 10200;
     animation: fadeIn 0.2s ease-out;
   }
 

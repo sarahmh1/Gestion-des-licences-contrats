@@ -95,4 +95,8 @@ public class Contrat {
     @OneToMany(mappedBy = "contrat", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<DateAvenant> datesAvenants = new ArrayList<>();
+
+    @OneToMany(mappedBy = "contrat", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonManagedReference("contrat-sla")
+    private List<ContratSla> slaList = new ArrayList<>();
 }

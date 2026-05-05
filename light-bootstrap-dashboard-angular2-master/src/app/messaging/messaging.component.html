@@ -48,8 +48,8 @@
                       <div class="conversation-time">
                         {{ formatTime(conversation.lastMessageTime) }}
                       </div>
-                      <button class="btn-delete-conv" (click)="deleteConversation(conversation, $event)"
-                        title="Supprimer la conversation" *ngIf="permissionService.canDeleteProduct('messaging')">
+                      <button type="button" class="btn-delete-conv" (click)="deleteConversation(conversation, $event)"
+                        title="Masquer cette conversation">
                         <i class="pe-7s-trash"></i>
                       </button>
                     </div>
@@ -94,7 +94,9 @@
                         <div *ngIf="message.fileName" class="message-attachment">
                           <!-- Image -->
                           <div *ngIf="isImage(message.fileType)" class="message-image">
-                            <img [src]="getFileDownloadUrl(message.filePath)" [alt]="message.originalFileName">
+                            <img [src]="getFileDownloadUrl(message.filePath)" [alt]="message.originalFileName"
+                              (click)="openImageLightbox(message.filePath, message.originalFileName)"
+                              title="Cliquez pour agrandir">
                           </div>
                           <!-- Audio / Voice message -->
                           <div *ngIf="isAudio(message.fileType)" class="message-audio">
@@ -149,13 +151,15 @@
                   <!-- Zone de saisie -->
                   <div class="chat-input" *ngIf="!isRecording">
                     <input type="file" id="fileInput" (change)="onFileSelected($event)" style="display: none;">
+                    <input type="file" id="voiceFallbackFileInput" accept="audio/*,.webm,.mp3,.wav,.ogg,.m4a,.aac"
+                      (change)="onVoiceFallbackFileSelected($event)" style="display: none;">
                     <button class="btn btn-outline-secondary btn-attach" (click)="triggerFileInput()"
                       title="Joindre un fichier">
                       <i class="pe-7s-paperclip"></i>
                     </button>
-                    <button class="btn btn-outline-secondary btn-voice" (click)="startRecording()"
-                      title="Message vocal">
-                      <i class="pe-7s-micro"></i>
+                    <button class="btn btn-outline-secondary btn-voice" (click)="onVoiceMessagingClick()"
+                      [title]="voiceMessagingButtonTitle">
+                      <i [class]="liveMicAllowedForMessaging ? 'pe-7s-micro' : 'pe-7s-upload'"></i>
                     </button>
                     <input type="text" class="form-control" [(ngModel)]="newMessage"
                       (keyup.enter)="selectedFile ? sendFile() : sendMessage()" (input)="onTyping()"
@@ -164,6 +168,13 @@
                       <i class="pe-7s-paper-plane"></i>
                     </button>
                   </div>
+                  <p class="voice-http-hint messaging-hint" *ngIf="selectedConversation && !liveMicAllowedForMessaging">
+                    <small>
+                      <strong>Mode http :</strong> le micro direct n’est pas disponible. Utilisez le bouton « fichier audio »
+                      pour envoyer un vocal déjà enregistré (.m4a, .mp3, .webm…). Avec le site en
+                      <strong>https://</strong>, l’enregistrement au micro en un clic sera de nouveau possible.
+                    </small>
+                  </p>
 
                 </div>
               </div>
@@ -202,5 +213,20 @@
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Lightbox pour image agrandie -->
+<div *ngIf="lightboxImageUrl" class="image-lightbox" (click)="closeImageLightbox()">
+  <button type="button" class="lightbox-close" (click)="closeImageLightbox()" title="Fermer (Echap)">
+    <i class="pe-7s-close"></i>
+  </button>
+  <a [href]="lightboxImageUrl" [download]="lightboxImageName" class="lightbox-download"
+    (click)="$event.stopPropagation()" title="Télécharger">
+    <i class="pe-7s-download"></i>
+  </a>
+  <div class="lightbox-content" (click)="$event.stopPropagation()">
+    <img [src]="lightboxImageUrl" [alt]="lightboxImageName" />
+    <div class="lightbox-caption" *ngIf="lightboxImageName">{{ lightboxImageName }}</div>
   </div>
 </div>

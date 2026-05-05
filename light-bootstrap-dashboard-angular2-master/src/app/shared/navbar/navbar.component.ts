@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, HostListener } from '@angular/core';
 import { ROUTES } from '../../sidebar/sidebar.component';
 import { Location } from '@angular/common';
 import { AuthService } from '../../auth/AuthService';
@@ -52,6 +52,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     typingTimeout: any;
     selectedFile: File | null = null;
     deleteMenuMsg: MessageDTO | null = null;
+
+    // Lightbox image
+    lightboxImageUrl: string | null = null;
+    lightboxImageName: string = '';
 
     // Voice recording
     isRecording: boolean = false;
@@ -335,13 +339,22 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.messages = [];
     }
 
-    deleteConversation(conv: any) {
-        if (!confirm('Supprimer cette conversation ?')) return;
+    deleteConversation(conv: ConversationDTO, event?: MouseEvent) {
+        event?.stopPropagation();
+        if (!confirm('Masquer cette conversation ? Elle disparaît de votre liste ; l\'autre utilisateur la voit toujours.')) {
+            return;
+        }
         this.messageService.deleteConversation(conv.id, this.currentUserId).subscribe(
             () => {
                 this.conversations = this.conversations.filter(c => c.id !== conv.id);
+                if (this.selectedChatUser?.id === conv.otherUserId) {
+                    this.backToConversations();
+                }
             },
-            error => { console.error('Error deleting conversation:', error); }
+            err => {
+                console.error('Error deleting conversation:', err);
+                alert('Erreur lors de la suppression de la conversation');
+            }
         );
     }
 
@@ -397,12 +410,27 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
         this.messageService.sendMessage(message).subscribe(
             savedMessage => {
-                // Le message arrivera via WebSocket, pas besoin de l'ajouter ici
+                // Toujours afficher dès la réponse HTTP (en prod le WebSocket SockJS peut échouer)
+                this.appendHttpMessageToOpenChat(savedMessage);
+                this.loadConversations();
             },
             error => {
                 console.error('Error sending message:', error);
             }
         );
+    }
+
+    /** Ajoute un message renvoyé par l’API si la conversation concernée est ouverte (évite doublon avec WebSocket). */
+    private appendHttpMessageToOpenChat(msg: MessageDTO): void {
+        if (!this.selectedChatUser) return;
+        const otherId = this.selectedChatUser.id;
+        const isThisChat =
+            (msg.senderId === otherId && msg.receiverId === this.currentUserId) ||
+            (msg.receiverId === otherId && msg.senderId === this.currentUserId);
+        if (!isThisChat) return;
+        if (msg.id != null && this.messages.some(m => m.id === msg.id)) return;
+        this.messages.push(msg);
+        setTimeout(() => this.scrollToBottom(), 100);
     }
 
     onTyping() {
@@ -460,11 +488,76 @@ export class NavbarComponent implements OnInit, OnDestroy {
         return fileType?.startsWith('audio/') || false;
     }
 
+    openImageLightbox(filePath: string | undefined, originalName: string | undefined, event?: Event): void {
+        if (event) {
+            event.stopPropagation();
+        }
+        if (!filePath) return;
+        this.lightboxImageUrl = this.getFileDownloadUrl(filePath);
+        this.lightboxImageName = originalName || 'image';
+    }
+
+    closeImageLightbox(): void {
+        this.lightboxImageUrl = null;
+        this.lightboxImageName = '';
+    }
+
+    @HostListener('document:keydown.escape')
+    onLightboxEscapeKey(): void {
+        if (this.lightboxImageUrl) {
+            this.closeImageLightbox();
+        }
+    }
+
     triggerFileInput() {
         const fileInput = document.getElementById('msgFileInput') as HTMLInputElement;
         if (fileInput) {
             fileInput.click();
         }
+    }
+
+    /** HTTPS ou localhost uniquement pour getUserMedia (Chrome bloque micro sur http://IP). */
+    get liveMicAllowed(): boolean {
+        if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+        return !!navigator.mediaDevices?.getUserMedia && window.isSecureContext;
+    }
+
+    get voiceButtonTitle(): string {
+        return this.liveMicAllowed
+            ? 'Enregistrer un message vocal'
+            : 'Choisir un fichier audio (enregistrement au micro désactivé sans HTTPS)';
+    }
+
+    onVoiceButtonClick(): void {
+        if (this.liveMicAllowed) {
+            this.startRecording();
+        } else {
+            const el = document.getElementById('msgVoiceFileInput') as HTMLInputElement;
+            if (el) {
+                el.value = '';
+                el.click();
+            }
+        }
+    }
+
+    onVoiceFilePicked(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        input.value = '';
+        if (!file || !this.selectedChatUser) return;
+
+        this.messageService.sendMessageWithFile(
+            this.currentUserId,
+            this.selectedChatUser.id,
+            '',
+            file
+        ).subscribe(
+            message => {
+                this.appendHttpMessageToOpenChat(message);
+                this.loadConversations();
+            },
+            error => console.error('Error sending audio file:', error)
+        );
     }
 
     onFileSelected(event: any) {
@@ -492,11 +585,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
             this.selectedFile
         ).subscribe(
             message => {
-                // Le message arrivera via WebSocket
+                this.appendHttpMessageToOpenChat(message);
                 this.newMessage = '';
                 this.selectedFile = null;
                 const fileInput = document.getElementById('msgFileInput') as HTMLInputElement;
                 if (fileInput) { fileInput.value = ''; }
+                this.loadConversations();
             },
             error => {
                 console.error('Error sending file:', error);
@@ -508,6 +602,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
     async startRecording(): Promise<void> {
         if (!this.selectedChatUser) return;
+        if (!this.liveMicAllowed) {
+            this.onVoiceButtonClick();
+            return;
+        }
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             this.mediaRecorder = new MediaRecorder(stream);
@@ -529,8 +627,21 @@ export class NavbarComponent implements OnInit, OnDestroy {
             this.recordingInterval = setInterval(() => { this.recordingTime++; }, 1000);
         } catch (error) {
             console.error('Erreur accès microphone:', error);
-            alert('Impossible d\'accéder au microphone. Veuillez autoriser l\'accès.');
+            const hint = this.microphoneAccessHint();
+            alert('Impossible d\'accéder au microphone. Veuillez autoriser l\'accès dans le navigateur.' + hint);
         }
+    }
+
+    private microphoneAccessHint(): string {
+        if (typeof window === 'undefined') return '';
+        const h = window.location.hostname;
+        if (window.isSecureContext) {
+            return ' Vérifiez les permissions du site (icône cadenas / paramètres du site).';
+        }
+        if (h !== 'localhost' && h !== '127.0.0.1') {
+            return '\n\nAstuce : en accès http:// vers une IP ou un nom de domaine, beaucoup de navigateurs bloquent le micro sauf en HTTPS ou sur localhost.';
+        }
+        return '';
     }
 
     stopRecording(): void {
@@ -566,7 +677,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
             '',
             audioFile
         ).subscribe(
-            () => { this.recordingTime = 0; },
+            message => {
+                this.appendHttpMessageToOpenChat(message);
+                this.recordingTime = 0;
+                this.loadConversations();
+            },
             error => { console.error('Erreur envoi message vocal:', error); }
         );
     }
@@ -702,6 +817,26 @@ export class NavbarComponent implements OnInit, OnDestroy {
                     notif.isRead = false;
                 }
             );
+        }
+    }
+
+    openNotification(notif: AppNotification): void {
+        // 1) Marquer comme lu (si besoin)
+        this.markNotifRead(notif);
+        // 2) Rediriger selon le type d'intervention
+        if (notif.interventionCurativeId != null) {
+            this.showNotifPanel = false;
+            this.router.navigate(['/interventions-curatives'], {
+                queryParams: { openCurativeId: notif.interventionCurativeId }
+            });
+            return;
+        }
+        if (notif.interventionPreventiveId != null) {
+            this.showNotifPanel = false;
+            this.router.navigate(['/interventions-preventives'], {
+                queryParams: { openPreventiveId: notif.interventionPreventiveId }
+            });
+            return;
         }
     }
 

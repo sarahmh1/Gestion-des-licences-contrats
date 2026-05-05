@@ -70,12 +70,20 @@ public class ProduitController {
     @PreAuthorize("hasAnyAuthority('ROLE_ADMINISTRATEUR', 'ROLE_SUPER_ADMIN')")
     public ResponseEntity<?> addProduit(@RequestBody Produit produit) {
         try {
+            if (produit.getLabel() != null && !produit.getLabel().trim().isEmpty()) {
+                String label = produit.getLabel().trim();
+                if (!label.toLowerCase().startsWith("eset")) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("message",
+                                    "Le nom du produit doit commencer par ESET (ex. ESET PROTECT Entry)."));
+                }
+            }
             // Vérifier si le code existe déjà
             if (produit.getCode() != null) {
                 Optional<Produit> existing = produitService.getProduitByCode(produit.getCode());
                 if (existing.isPresent()) {
                     return ResponseEntity.status(HttpStatus.CONFLICT)
-                            .body(Map.of("message", "Un produit avec ce code existe déjà"));
+                            .body(Map.of("message", "Produit déjà existant"));
                 }
             }
 

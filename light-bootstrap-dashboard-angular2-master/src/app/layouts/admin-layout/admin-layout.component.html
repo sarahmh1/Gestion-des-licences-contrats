@@ -6,7 +6,9 @@
 
   <div class="main-panel">
       <navbar-cmp></navbar-cmp>
-      <router-outlet></router-outlet>
+      <div class="main-inner">
+        <router-outlet></router-outlet>
+      </div>
       <div *ngIf="isMap('maps')">
           <footer-cmp></footer-cmp>
       </div>

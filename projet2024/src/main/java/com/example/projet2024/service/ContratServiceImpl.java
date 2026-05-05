@@ -1,6 +1,7 @@
 package com.example.projet2024.service;
 
 import com.example.projet2024.entite.Contrat;
+import com.example.projet2024.entite.ContratSla;
 import com.example.projet2024.entite.DateAvenant;
 import com.example.projet2024.repository.ContratRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,13 @@ public class ContratServiceImpl implements IContratService {
                 da.setContrat(contrat);
             }
         }
+
+        // Associer les SLA (criticité + délais) au contrat
+        if (contrat.getSlaList() != null) {
+            for (ContratSla sla : contrat.getSlaList()) {
+                sla.setContrat(contrat);
+            }
+        }
         return contratRepository.save(contrat);
     }
 
@@ -83,7 +91,16 @@ public class ContratServiceImpl implements IContratService {
                 existingContrat.getDatesAvenants().add(da);
             }
         }
-        
+
+        // Mettre à jour les SLA (criticité + délais en heures)
+        existingContrat.getSlaList().clear();
+        if (contrat.getSlaList() != null) {
+            for (ContratSla sla : contrat.getSlaList()) {
+                sla.setContrat(existingContrat);
+                existingContrat.getSlaList().add(sla);
+            }
+        }
+
         return contratRepository.save(existingContrat);
     }
 

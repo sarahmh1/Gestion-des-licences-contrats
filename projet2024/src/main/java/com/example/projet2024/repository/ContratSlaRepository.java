@@ -1,10 +1,9 @@
 package com.example.projet2024.repository;
 
-import com.example.projet2024.entite.ESET;
-import com.example.projet2024.entite.ESETNFR;
+import com.example.projet2024.entite.ContratSla;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface EsetNFRRepo extends JpaRepository<ESETNFR,Long> {
+public interface ContratSlaRepository extends JpaRepository<ContratSla, Long> {
 }

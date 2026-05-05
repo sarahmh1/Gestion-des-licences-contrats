@@ -39,6 +39,10 @@ public class InterventionCurative {
     @JsonManagedReference
     private List<Intervenant> intervenants = new ArrayList<>();
 
+    @OneToMany(mappedBy = "interventionCurative", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonManagedReference("session-intervention")
+    private List<SessionIntervention> sessions = new ArrayList<>();
+
     @Basic
     @Column(name = "Date_Heure_Demande")
     private LocalDateTime dateHeureDemande;
@@ -94,6 +98,10 @@ public class InterventionCurative {
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private List<User> assignedUsers = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "resolu_by_user_id")
+    private User resoluByUser;
 
     @ManyToOne
     @JoinColumn(name = "ContratId")

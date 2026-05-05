@@ -246,15 +246,44 @@ export class AffichageComponent implements OnInit {
     this.newProductError = '';
   }
 
+  /** Règle métier : le libellé doit commencer par « ESET » (casse ignorée). */
+  productNameStartsWithEset(name: string): boolean {
+    const t = (name || '').trim();
+    if (!t) {
+      return false;
+    }
+    return t.toLowerCase().startsWith('eset');
+  }
+
+  newProductNameValidForSubmit(): boolean {
+    const t = (this.newProductName || '').trim();
+    return t.length >= 3 && this.productNameStartsWithEset(t);
+  }
+
+  onNewProductNameInput(): void {
+    this.newProductError = '';
+  }
+
   submitNewProduct(): void {
-    if (!this.newProductName || this.newProductName.trim().length < 3) {
+    const t = (this.newProductName || '').trim();
+    this.newProductError = '';
+
+    if (!t) {
+      this.newProductError = 'Le nom du produit est obligatoire';
+      return;
+    }
+    if (!this.productNameStartsWithEset(t)) {
+      this.newProductError = 'Le nom du produit doit commencer par ESET (ex. ESET PROTECT Entry).';
+      return;
+    }
+    if (t.length < 3) {
       this.newProductError = 'Le nom du produit doit contenir au moins 3 caractères';
       return;
     }
 
     const newProduct = {
-      code: this.newProductName.toLowerCase().replace(/\s+/g, '_'),
-      label: this.newProductName
+      code: t.toLowerCase().replace(/\s+/g, '_'),
+      label: t
     };
 
     this.produitService.addProduit(newProduct).subscribe(
@@ -266,7 +295,18 @@ export class AffichageComponent implements OnInit {
       },
       (error) => {
         console.error('Erreur lors de l\'ajout du produit', error);
-        this.newProductError = 'Erreur lors de l\'ajout du produit';
+        const status = error?.status;
+        const msg = (error?.error?.message || error?.message || '') as string;
+        if (
+          status === 409 ||
+          /existe déjà|déjà existant|deja exist|already exists|conflict/i.test(msg)
+        ) {
+          this.newProductError = 'Produit déjà existant';
+        } else if (msg && typeof msg === 'string') {
+          this.newProductError = msg;
+        } else {
+          this.newProductError = 'Erreur lors de l\'ajout du produit';
+        }
       }
     );
   }

@@ -1,6 +1,6 @@
 import {
-  Component, Input, forwardRef, HostListener,
-  ElementRef, OnChanges, SimpleChanges
+  Component, Input, forwardRef,
+  ElementRef, OnChanges, SimpleChanges, OnInit, OnDestroy
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Client } from '../../Services/client.service';
@@ -15,7 +15,7 @@ import { Client } from '../../Services/client.service';
     multi: true
   }]
 })
-export class SearchableClientSelectComponent implements ControlValueAccessor, OnChanges {
+export class SearchableClientSelectComponent implements ControlValueAccessor, OnChanges, OnInit, OnDestroy {
 
   @Input() clients: Client[] = [];
   @Input() placeholder = 'Rechercher un client...';
@@ -28,6 +28,22 @@ export class SearchableClientSelectComponent implements ControlValueAccessor, On
   private onTouched: () => void = () => {};
 
   constructor(private el: ElementRef) {}
+
+  /** capture: true requis : le modal parent appelle stopPropagation() sur le clic en bulle. */
+  private readonly documentClickCapture = (evt: Event) => {
+    if (!this.isOpen) return;
+    if (!this.el.nativeElement.contains(evt.target as Node)) {
+      this.closeDropdown();
+    }
+  };
+
+  ngOnInit(): void {
+    document.addEventListener('click', this.documentClickCapture, true);
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('click', this.documentClickCapture, true);
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     // Si les clients arrivent apres un writeValue, resoudre le nom affiche
@@ -90,14 +106,6 @@ export class SearchableClientSelectComponent implements ControlValueAccessor, On
     this.isOpen        = false;
     this.onChange('');
     this.onTouched();
-  }
-
-  /* ── Fermer si clic exterieur ── */
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(evt: Event): void {
-    if (!this.el.nativeElement.contains(evt.target)) {
-      this.closeDropdown();
-    }
   }
 
   closeDropdown(): void {

@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "messages")
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id", scope = Message.class)
 public class Message implements Serializable {
 
     @Id

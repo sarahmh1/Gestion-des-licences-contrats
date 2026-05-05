@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { MessageService, ConversationDTO, MessageDTO } from '../Services/message.service';
 import { WebsocketService } from '../Services/websocket.service';
 import { UserService } from '../Services/user.service';
@@ -36,6 +36,10 @@ export class MessagingComponent implements OnInit, OnDestroy {
     audioChunks: Blob[] = [];
     recordingTime: number = 0;
     recordingInterval: any = null;
+
+    // Lightbox pour image agrandie
+    lightboxImageUrl: string | null = null;
+    lightboxImageName: string = '';
 
     // Nouvelle conversation
     showNewConversationModal: boolean = false;
@@ -213,16 +217,71 @@ export class MessagingComponent implements OnInit, OnDestroy {
     }
 
     handleNewMessage(message: MessageDTO): void {
-        // Ajouter le message à la liste si c'est la conversation active
+        // Ajouter le message à la liste si c'est la conversation active (évite doublon si déjà ajouté via HTTP)
         if (this.selectedConversation &&
             (message.senderId === this.selectedConversation.otherUserId ||
                 message.receiverId === this.selectedConversation.otherUserId)) {
+            if (message.id != null && this.messages.some(m => m.id === message.id)) {
+                return;
+            }
             this.messages.push(message);
             setTimeout(() => this.scrollToBottom(), 100);
         }
 
         // Recharger les conversations pour mettre à jour les aperçus
         this.loadConversations();
+    }
+
+    /**
+     * Sur http://IP les navigateurs bloquent le micro ; on propose l’envoi d’un fichier audio.
+     */
+    get liveMicAllowedForMessaging(): boolean {
+        if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+        return !!navigator.mediaDevices?.getUserMedia && window.isSecureContext;
+    }
+
+    get voiceMessagingButtonTitle(): string {
+        return this.liveMicAllowedForMessaging
+            ? 'Enregistrer un message vocal'
+            : 'Choisir un fichier audio (micro en direct : HTTPS ou localhost)';
+    }
+
+    onVoiceMessagingClick(): void {
+        if (this.liveMicAllowedForMessaging) {
+            this.startRecording();
+        } else {
+            const el = document.getElementById('voiceFallbackFileInput') as HTMLInputElement;
+            if (el) {
+                el.value = '';
+                el.click();
+            }
+        }
+    }
+
+    onVoiceFallbackFileSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        input.value = '';
+        if (!file || !this.selectedConversation) return;
+
+        this.messageService.sendMessageWithFile(
+            this.currentUserId,
+            this.selectedConversation.otherUserId,
+            '',
+            file
+        ).subscribe(
+            message => {
+                if (message.id == null || !this.messages.some(m => m.id === message.id)) {
+                    this.messages.push(message);
+                }
+                this.scrollToBottom();
+                this.loadConversations();
+            },
+            error => {
+                console.error('Erreur envoi fichier audio:', error);
+                alert('Erreur lors de l\'envoi du fichier audio.');
+            }
+        );
     }
 
     scrollToBottom(): void {
@@ -468,7 +527,9 @@ export class MessagingComponent implements OnInit, OnDestroy {
             this.selectedFile
         ).subscribe(
             message => {
-                this.messages.push(message);
+                if (message.id == null || !this.messages.some(m => m.id === message.id)) {
+                    this.messages.push(message);
+                }
                 this.newMessage = '';
                 this.selectedFile = null;
                 const fileInput = document.getElementById('fileInput') as HTMLInputElement;
@@ -506,12 +567,35 @@ export class MessagingComponent implements OnInit, OnDestroy {
         return this.messageService.getFileDownloadUrl(filePath);
     }
 
+    openImageLightbox(filePath: string | undefined, originalName: string | undefined): void {
+        if (!filePath) return;
+        this.lightboxImageUrl = this.getFileDownloadUrl(filePath);
+        this.lightboxImageName = originalName || 'image';
+    }
+
+    closeImageLightbox(): void {
+        this.lightboxImageUrl = null;
+        this.lightboxImageName = '';
+    }
+
+    @HostListener('document:keydown.escape')
+    onEscapeKey(): void {
+        if (this.lightboxImageUrl) {
+            this.closeImageLightbox();
+        }
+    }
+
     /**
      * Démarre l'enregistrement vocal
      */
     async startRecording(): Promise<void> {
         if (!this.selectedConversation) {
             alert('Veuillez sélectionner une conversation');
+            return;
+        }
+
+        if (!this.liveMicAllowedForMessaging) {
+            this.onVoiceMessagingClick();
             return;
         }
 
@@ -543,8 +627,21 @@ export class MessagingComponent implements OnInit, OnDestroy {
 
         } catch (error) {
             console.error('Erreur accès microphone:', error);
-            alert('Impossible d\'accéder au microphone. Veuillez autoriser l\'accès.');
+            const hint = MessagingComponent.microphoneDeniedHint();
+            alert('Impossible d\'accéder au microphone. Veuillez autoriser l\'accès dans le navigateur.' + hint);
         }
+    }
+
+    private static microphoneDeniedHint(): string {
+        if (typeof window === 'undefined') return '';
+        const h = window.location.hostname;
+        if (window.isSecureContext) {
+            return ' Vérifiez les permissions du site (cadenas / paramètres du site).';
+        }
+        if (h !== 'localhost' && h !== '127.0.0.1') {
+            return '\n\nEn production, le micro nécessite souvent HTTPS (ou localhost). Utilisez https:// pour ce site.';
+        }
+        return '';
     }
 
     /**
@@ -596,7 +693,9 @@ export class MessagingComponent implements OnInit, OnDestroy {
             audioFile
         ).subscribe(
             message => {
-                this.messages.push(message);
+                if (message.id == null || !this.messages.some(m => m.id === message.id)) {
+                    this.messages.push(message);
+                }
                 this.scrollToBottom();
                 this.recordingTime = 0;
             },

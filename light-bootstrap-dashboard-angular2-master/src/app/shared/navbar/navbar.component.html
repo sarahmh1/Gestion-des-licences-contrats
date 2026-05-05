@@ -1,17 +1,19 @@
-<nav class="navbar navbar-default" style="background-color: #1a204c; color: white;">
-  <div class="container-fluid">
+<nav class="navbar navbar-default navbar-app-shell" role="navigation" aria-label="Barre principale">
+  <div class="container-fluid navbar-app-shell-fluid">
     <div class="navbar-header">
-      <button type="button" class="navbar-toggle" data-toggle="collapse" (click)="sidebarToggle()">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar" style="background-color: white;"></span>
-        <span class="icon-bar" style="background-color: white;"></span>
-        <span class="icon-bar" style="background-color: white;"></span>
+      <button type="button" class="navbar-toggle navbar-toggle-shell" data-toggle="collapse" (click)="sidebarToggle()" aria-expanded="false" aria-controls="navbar-main">
+        <span class="sr-only">Menu</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
       </button>
-      <span class="navbar-brand" href="#" style="color: #f36e24;">{{ getTitle() }}</span>
+      <div class="navbar-title-block">
+        <span class="navbar-brand navbar-brand-shell">{{ getTitle() }}</span>
+      </div>
     </div>
 
-    <div class="collapse navbar-collapse">
-      <ul class="nav navbar-nav navbar-right">
+    <div class="collapse navbar-collapse navbar-collapse-shell" id="navbar-main">
+      <ul class="nav navbar-nav navbar-right navbar-shell-actions">
         <!-- Notification Icon -->
         <li class="nav-icon-item notif-icon-wrapper">
           <a (click)="toggleNotifPanel(); $event.preventDefault()" title="Notifications" href="#">
@@ -32,7 +34,7 @@
                 Aucune notification
               </div>
               <div *ngFor="let notif of notifications; trackBy: trackByNotificationId; let i = index" class="notif-item" [class.notif-unread]="!notif.isRead"
-                (click)="markNotifRead(notif)">
+                (click)="openNotification(notif)">
                 <div class="notif-status" [class.notif-status-unread]="!notif.isRead"></div>
                 <div class="notif-content">
                   <div class="notif-message">[{{i+1}}] {{notif.message}}</div>
@@ -178,7 +180,8 @@
             <span class="msg-convo-last">{{ conv.lastMessage || 'Aucun message' }}</span>
           </div>
         </div>
-        <button class="msg-delete-btn" (click)="deleteConversation(conv); $event.stopPropagation()" title="Supprimer" *ngIf="permissionService.canDelete('message')">
+        <button type="button" class="msg-delete-btn" title="Masquer cette conversation"
+          (click)="deleteConversation(conv, $event)">
           <i class="fas fa-trash-alt"></i>
         </button>
       </div>
@@ -252,7 +255,9 @@
           <ng-container *ngIf="!msg.deletedForEveryone">
             <!-- Image attachment -->
             <div *ngIf="msg.fileName && isImage(msg.fileType)" class="msg-attachment-img">
-              <img [src]="getFileDownloadUrl(msg.filePath)" [alt]="msg.originalFileName" />
+              <img [src]="getFileDownloadUrl(msg.filePath)" [alt]="msg.originalFileName"
+                (click)="openImageLightbox(msg.filePath, msg.originalFileName, $event)"
+                title="Cliquez pour agrandir" style="cursor: pointer;" />
             </div>
             <!-- Audio attachment -->
             <div *ngIf="msg.fileName && isAudio(msg.fileType)" class="msg-attachment-audio">
@@ -328,11 +333,13 @@
     <!-- Input (hidden during recording) -->
     <div class="msg-chat-input" *ngIf="!isRecording">
       <input type="file" id="msgFileInput" (change)="onFileSelected($event)" style="display: none;" />
+      <input type="file" id="msgVoiceFileInput" accept="audio/*,.webm,.mp3,.wav,.ogg,.m4a,.aac"
+        (change)="onVoiceFilePicked($event)" style="display: none;" />
       <button class="msg-attach-btn" (click)="triggerFileInput()" title="Joindre un fichier">
         <i class="fas fa-paperclip"></i>
       </button>
-      <button class="msg-voice-btn" (click)="startRecording()" title="Message vocal">
-        <i class="fas fa-microphone"></i>
+      <button class="msg-voice-btn" (click)="onVoiceButtonClick()" [title]="voiceButtonTitle">
+        <i class="fas" [ngClass]="liveMicAllowed ? 'fa-microphone' : 'fa-file-audio'"></i>
       </button>
       <input type="text" [(ngModel)]="newMessage" (keyup.enter)="selectedFile ? sendFile() : sendMessage()"
         (input)="onTyping()" placeholder="Écrire un message..." class="msg-input" />
@@ -340,6 +347,27 @@
         <i class="fas fa-paper-plane"></i>
       </button>
     </div>
+    <p class="msg-voice-http-hint" *ngIf="!isRecording && selectedChatUser && !liveMicAllowed">
+      <i class="fas fa-info-circle"></i>
+      En <strong>http://</strong> sans HTTPS, le navigateur ne permet pas le micro dans la page. Enregistrez d’abord le
+      vocal avec le dictaphone du téléphone ou du PC, puis cliquez sur le <strong>bouton fichier audio</strong> (icône à
+      côté du trombone) pour choisir ce fichier et l’envoyer.
+    </p>
   </div>
 
+</div>
+
+<!-- Lightbox image agrandie -->
+<div *ngIf="lightboxImageUrl" class="navbar-image-lightbox" (click)="closeImageLightbox()">
+  <button type="button" class="navbar-lightbox-close" (click)="closeImageLightbox()" title="Fermer (Echap)">
+    <i class="fas fa-times"></i>
+  </button>
+  <a [href]="lightboxImageUrl" [download]="lightboxImageName" class="navbar-lightbox-download"
+    (click)="$event.stopPropagation()" title="Télécharger">
+    <i class="fas fa-download"></i>
+  </a>
+  <div class="navbar-lightbox-content" (click)="$event.stopPropagation()">
+    <img [src]="lightboxImageUrl" [alt]="lightboxImageName" />
+    <div class="navbar-lightbox-caption" *ngIf="lightboxImageName">{{ lightboxImageName }}</div>
+  </div>
 </div>

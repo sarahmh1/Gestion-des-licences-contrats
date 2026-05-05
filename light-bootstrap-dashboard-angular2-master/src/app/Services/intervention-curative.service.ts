@@ -58,5 +58,16 @@ export class InterventionCurativeService {
   deleteFile(id: number): Observable<any> {
     return this.http.delete<any>(`${this.baseUrl}/${id}/delete-file`);
   }
+
+  // ─── Sessions d'intervention (multi-blocs "En cours") ───
+  uploadSessionFile(sessionId: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.put<any>(`${this.baseUrl}/session/${sessionId}/upload-file`, formData);
+  }
+
+  getSessionFileDownloadUrl(sessionId: number): string {
+    return `${this.baseUrl}/session/${sessionId}/download`;
+  }
 }
 

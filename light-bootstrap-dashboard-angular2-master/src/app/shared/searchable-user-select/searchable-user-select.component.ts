@@ -1,6 +1,6 @@
 import {
   Component, Input, Output, EventEmitter,
-  HostListener, ElementRef, OnChanges, SimpleChanges
+  ElementRef, OnChanges, SimpleChanges, OnInit, OnDestroy
 } from '@angular/core';
 
 export interface SelectableUser {
@@ -15,7 +15,7 @@ export interface SelectableUser {
   templateUrl: './searchable-user-select.component.html',
   styleUrls: ['./searchable-user-select.component.scss']
 })
-export class SearchableUserSelectComponent implements OnChanges {
+export class SearchableUserSelectComponent implements OnChanges, OnInit, OnDestroy {
 
   @Input()  users: SelectableUser[] = [];
   @Input()  placeholder = 'Rechercher un utilisateur...';
@@ -25,6 +25,23 @@ export class SearchableUserSelectComponent implements OnChanges {
   isOpen = false;
 
   constructor(private el: ElementRef) {}
+
+  /** capture: true requis si le modal parent stopPropagation sur le clic (bulle). */
+  private readonly documentClickCapture = (evt: Event) => {
+    if (!this.isOpen) return;
+    if (!this.el.nativeElement.contains(evt.target as Node)) {
+      this.isOpen = false;
+      this.searchTerm = '';
+    }
+  };
+
+  ngOnInit(): void {
+    document.addEventListener('click', this.documentClickCapture, true);
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('click', this.documentClickCapture, true);
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     // La liste est re-filtree a chaque fois
@@ -62,11 +79,4 @@ export class SearchableUserSelectComponent implements OnChanges {
     this.isOpen = false;
   }
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(evt: Event): void {
-    if (!this.el.nativeElement.contains(evt.target)) {
-      this.isOpen = false;
-      this.searchTerm = '';
-    }
-  }
 }

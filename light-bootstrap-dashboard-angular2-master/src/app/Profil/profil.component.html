@@ -56,11 +56,12 @@
           </div>
           <div class="panel-body text-center">
             <label for="profilePicture" style="cursor: pointer;">
+              <div class="profil-photo-frame">
               <img [src]="profileImageUrl" 
-                   class="img-circle" 
-                   style="width: 200px; height: 200px; object-fit: cover; border: 4px solid #ddd;"
+                   class="profil-photo-img"
                    alt="Photo de profil"
                    (error)="profileImageUrl = 'assets/img/avatar.png'">
+              </div>
               <div class="text-muted" style="margin-top: 15px;">
                 <i class="glyphicon glyphicon-camera"></i> Cliquer pour changer la photo
               </div>

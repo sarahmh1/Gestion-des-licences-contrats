@@ -1,6 +1,8 @@
 package com.example.projet2024.controller;
 
 import com.example.projet2024.entite.InterventionCurative;
+import com.example.projet2024.entite.SessionIntervention;
+import com.example.projet2024.repository.SessionInterventionRepository;
 import com.example.projet2024.service.IInterventionCurativeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -29,6 +31,9 @@ public class InterventionCurativeController {
 
     @Autowired
     private IInterventionCurativeService interventionCurativeService;
+
+    @Autowired
+    private SessionInterventionRepository sessionInterventionRepository;
 
     // Répertoire de stockage des fichiers
     private final Path fileStorageLocation = Paths.get("uploads/intervention-curative-files").toAbsolutePath().normalize();
@@ -159,6 +164,94 @@ public class InterventionCurativeController {
                 String downloadFilename = intervention.getFichierOriginalName() != null ? 
                         intervention.getFichierOriginalName() : resource.getFilename();
                 
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + downloadFilename + "\"")
+                        .body(resource);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // ──────────────────── FICHIERS PAR SESSION ────────────────────
+
+    // Upload d'un fichier pour une session d'intervention
+    @PutMapping("/session/{sessionId}/upload-file")
+    public ResponseEntity<Map<String, Object>> uploadSessionFile(
+            @PathVariable("sessionId") Long sessionId,
+            @RequestParam("file") MultipartFile file) {
+
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (!Files.exists(fileStorageLocation)) {
+                Files.createDirectories(fileStorageLocation);
+            }
+
+            SessionIntervention session = sessionInterventionRepository.findById(sessionId).orElse(null);
+            if (session == null) {
+                response.put("success", false);
+                response.put("message", "Session non trouvée");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+
+            // Supprimer l'ancien fichier de la session s'il existe
+            if (session.getFichier() != null && !session.getFichier().isEmpty()) {
+                try {
+                    Files.deleteIfExists(fileStorageLocation.resolve(session.getFichier()));
+                } catch (IOException ignored) {}
+            }
+
+            String originalFilename = file.getOriginalFilename();
+            String fileExtension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String newFilename = "session_" + sessionId + "_" + UUID.randomUUID().toString().substring(0, 8) + fileExtension;
+
+            Path targetLocation = fileStorageLocation.resolve(newFilename);
+            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+
+            session.setFichier(newFilename);
+            session.setFichierOriginalName(originalFilename);
+            sessionInterventionRepository.save(session);
+
+            response.put("success", true);
+            response.put("message", "Fichier uploadé avec succès");
+            response.put("fichier", newFilename);
+            response.put("originalName", originalFilename);
+            return ResponseEntity.ok(response);
+
+        } catch (IOException e) {
+            response.put("success", false);
+            response.put("message", "Erreur lors de l'upload: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    // Téléchargement du fichier d'une session
+    @GetMapping("/session/{sessionId}/download")
+    public ResponseEntity<Resource> downloadSessionFile(@PathVariable("sessionId") Long sessionId) {
+        try {
+            SessionIntervention session = sessionInterventionRepository.findById(sessionId).orElse(null);
+            if (session == null || session.getFichier() == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Path filePath = fileStorageLocation.resolve(session.getFichier()).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                String contentType = Files.probeContentType(filePath);
+                if (contentType == null) {
+                    contentType = "application/octet-stream";
+                }
+                String downloadFilename = session.getFichierOriginalName() != null
+                        ? session.getFichierOriginalName()
+                        : resource.getFilename();
+
                 return ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType(contentType))
                         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + downloadFilename + "\"")

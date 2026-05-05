@@ -470,7 +470,7 @@ h2 {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 1100;
   animation: fadeIn 0.2s ease-out;
 }
 
@@ -663,6 +663,43 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
+/* Input délai avec suffixe "j" */
+.delai-input-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+
+  &:focus-within {
+    border-color: #f36e24;
+    box-shadow: 0 0 0 3px rgba(243,110,36,0.15);
+  }
+
+  .form-control {
+    border: none;
+    border-radius: 0;
+    flex: 1;
+    box-shadow: none !important;
+    &:focus { box-shadow: none; }
+  }
+
+  .delai-suffix {
+    background: #f0f0f0;
+    color: #555;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0 12px;
+    border-left: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    min-height: 42px;
+    letter-spacing: 0.5px;
+  }
+}
+
 /* Styles pour Date Début et Avenants */
 .date-debut-row,
 .date-avenant-row {
@@ -771,5 +808,215 @@ input[type="number"] {
     max-width: 100%;
     flex: 1 1 100%;
     margin-bottom: 5px;
+  }
+}
+
+/* ============== Section SLA par criticité (lignes dynamiques) ============== */
+.sla-section {
+  border: 1px solid #e3e6f0;
+  border-radius: 10px;
+  padding: 16px 18px;
+  background: #fafbfc;
+  margin-bottom: 1rem;
+}
+
+.sla-section-header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.sla-section-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.sla-section-hint {
+  color: #7a8294;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.sla-optional-tag {
+  color: #6c7a96;
+  font-weight: 500;
+  font-size: 0.78rem;
+  margin-left: 6px;
+  background: #eef0f5;
+  padding: 1px 8px;
+  border-radius: 8px;
+  vertical-align: middle;
+}
+
+.sla-empty {
+  color: #6c7a96;
+  font-size: 0.85rem;
+  background: #fff;
+  border: 1px dashed #ced3dd;
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  i { color: #667eea; font-size: 1rem; }
+}
+
+.sla-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sla-row {
+  display: grid;
+  grid-template-columns: 70px 1fr 1fr 40px;
+  gap: 12px;
+  align-items: end;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #ebeef4;
+  border-radius: 8px;
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+}
+
+.sla-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.sla-cell-label {
+  font-size: 0.78rem;
+  color: #6c7a96;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.sla-criticite-cell {
+  align-items: center;
+  justify-content: center;
+}
+
+.sla-criticite-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 38px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #fff;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+  &.sla-c1 { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+  &.sla-c2 { background: linear-gradient(135deg, #f39c12, #e67e22); }
+  &.sla-c3 { background: linear-gradient(135deg, #f1c40f, #d4ac0d); }
+  &.sla-c4 { background: linear-gradient(135deg, #27ae60, #1e8449); }
+}
+
+.sla-action-cell {
+  align-items: center;
+  justify-content: center;
+}
+
+.sla-remove-btn {
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #e74c3c;
+    color: #fff;
+    transform: scale(1.05);
+  }
+}
+
+.sla-add-btn {
+  margin-top: 12px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+    color: #fff;
+  }
+
+  i { font-size: 0.8rem; }
+}
+
+@media (max-width: 600px) {
+  .sla-row {
+    grid-template-columns: 60px 1fr 40px;
+    grid-template-areas:
+      "crit  intervention remove"
+      "crit  resolution   .";
+    gap: 8px;
+
+    .sla-criticite-cell { grid-area: crit; }
+    .sla-action-cell    { grid-area: remove; }
+  }
+}
+
+/* ============== Tableau SLA dans le panneau de détail ============== */
+.sla-detail-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.sla-detail-head {
+  display: grid;
+  grid-template-columns: 80px 1fr 1fr;
+  gap: 12px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #5a6378;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.sla-detail-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid #ebeef4;
+  border-radius: 6px;
+
+  > span:first-child {
+    justify-self: start;
   }
 }

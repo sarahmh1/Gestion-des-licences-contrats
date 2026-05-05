@@ -1,0 +1,103 @@
+
+
+
+changer la phrase de notification on ajoute produit x ...
+
+notifiation par mail , objet: intervention pre nom du client , nom du produit, periode recommande commence aujoudhui 
+
+La période recommandée de client x pour l'intervention commence AUJOURD'HUI.
+
+on ajoute le champ produit liste deroulante dans le form du intervention pre /cur/contrat
+
+
+on ajoute vocale dans messagerie
+
+modification dans page client filtre par nom du client et produit exp sarra eset 
+
+
+dans le form du contrat si on rempli le champ date fin , le champ renouvlable sera grisé 
+
+on ajoute contrat historique selon date debut avec 12 mois 
+
+*******
+modification de laffichage de liste de produits 
+exp : eset : client, identifiant, cle de licence nom du produit , date dexpiration
+******
+
+dans la page intervention preventive , laffichage sera par periode c.a.d le periode le plus prche sera affiche en haut 
+
+terminer changer par intervention terminé 
+modification de laffichage sera deux bloc :intervention preventive a planifier , intervention préventiveterminé 
+ le bloc 3 sera affiche si la date de periode fin est terminé et le technique ne rempli pas ces champs
+
+
+
+les details de lavenant
+
+
+
+
+mouhema (table client on ajoute : nom client , notre vis a vis client(+) , adresse mail(+) , num telephone(+) non obligatoire , adresse (+)
+
+ajouter liste des clients dans la page de client,
+
+dans la liste des client et des utilisateurs ajouter recherche ,
+
+dans la page ajout eset quand on ajoute le nom de client je veux les autre champ concerné par le client sont rempli automatique depuis la table client 
+et le champ contact client change par notre vis a vis client 
+n° cleint par n° tel client , changer approuver par expirer , quand on click sur le champ renouvlable dans la page suivi contrat le champ date fin sera en gris, modification du calendrier il faut regler lescouleurs)
+
+
+
+
+
+
+
+il faut ajouter une nouvelle page pour la liste des nom du produits
+
+
+dans le champ quantite on supprime (>>)
+
+
+
+la date dexpiration du contrat sera avant 6 mois , 3mois , seamine 
+
+
+le champ vis a vis client sera rempli automatique comme eset 
+
+lors de lajout dune intervention preventive le champ nombre dintervention par an sera rempli automatuqe dapre le contrat 
+
+
+
+corriger form de intervention prev lors de la mise a jour il faut notifier aussi
+
+
+utilisateurs technique peux juste modifier et non pas supprimer
+
+
+2 tache
+ rq: modfication ajout produit au lieu dans le form eset sera remplacer par + a cote de + de lajout eset
+technique peux ajouter et modifier dans curative et peux seulement consulter la liste des contrat
+
+1 tache
+(role : commercial consulter les licences et client c tout
+role : technique conulter les contrats et licences, peut modifier les interention prev et ajouter et modifer cur 
+admin_commercial : consulter tous sauf lutilisateur mais interdit dajouter ou de modifier ou supprimer (alaa)
+admin_technique : consulter les licences , consulter et modifier (contrat, prev, cur, client) (dhafer et mahdi)
+super_admin : peux faire tout ( sa@geranceinfo et eya.bc@..))
+
+
+
+ ubunto 22 oubien 24
+are our application ready to deploy ubunto server based on docker , make me a plan to dployed
+
+
+
+intervention cur ( champ resolu nhot depasse ki yfout dkika ml wakt ouala baad nhar )
+
+
+
+
+
+
+

@@ -2,14 +2,10 @@ package com.example.projet2024.entite;
 
 
 import com.example.projet2024.Enum.Role_Enum;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -17,7 +13,6 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

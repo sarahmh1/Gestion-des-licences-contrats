@@ -9,8 +9,11 @@
     z-index: 5;
     color: #fff;
     font-weight: 200;
-    background: linear-gradient(180deg, #1a204c 0%, #2a3060 100%);
+    /* Aligné navbar pro : même palette marine + accent orange à droite */
+    background: linear-gradient(180deg, #1b2148 0%, #151a38 100%);
     background-image: none;
+    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.22);
+    border-right: 3px solid #f36e24;
 
     .sidebar-wrapper{
         position: relative;
@@ -20,7 +23,7 @@
         overflow-x: hidden;
         width: 260px;
         z-index: 4;
-        background: linear-gradient(180deg, #1a204c 0%, #2a3060 100%);
+        background: transparent;
 
         padding-bottom: 75px;
 
@@ -35,7 +38,7 @@
 
     .logo{
         padding: $navbar-padding-a;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        border-bottom: none;
 
         p{
             float: left;
@@ -117,7 +120,7 @@
 
             &.separator{
                 margin: 15px 0;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 
                 & + li {
                     margin-top: 31px;
@@ -152,46 +155,6 @@
         }
     }
 
-    .logo{
-        padding: $navbar-padding-a;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-
-        p{
-            float: left;
-            font-size: 20px;
-            margin: 10px 10px;
-            color: $white-color;
-            line-height: 20px;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        }
-
-        .simple-text{
-            text-transform: uppercase;
-            padding: 5px 0px 5px 15px;
-            display: block;
-            font-size: $font-size-large;
-            color: $white-color;
-            text-align: left;
-            font-weight: $font-weight-normal;
-            line-height: 30px;
-        }
-    }
-
-    .logo-tim{
-        border-radius: 50%;
-        border: 1px solid #333;
-        display: block;
-        height: 61px;
-        width: 61px;
-        float: left;
-        overflow: hidden;
-
-        img{
-            width: 60px;
-            height: 60px;
-        }
-    }
-
     // DISABLE overlay pseudo-elements to let content show properly
     &:after,
     &:before{
@@ -203,7 +166,8 @@
 .main-panel{
     background: rgba(203,203,210,.15);
     position: relative;
-    z-index: 2;
+    /* Au-dessus de la sidebar (z-index: 5) pour que les modaux fixed à l’intérieur recouvrent la barre quand la fenêtre est étroite (ex. DevTools). Reste sous le menu mobile (sidebar z-index 1032). */
+    z-index: 8;
     float: right;
     width: $sidebar-width;
     min-height: 100vh;

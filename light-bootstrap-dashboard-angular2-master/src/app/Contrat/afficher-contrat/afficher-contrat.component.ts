@@ -66,10 +66,47 @@ export class AfficherContratComponent implements OnInit {
       ccMail: this.fb.array([]),
       datesAvenants: this.fb.array([]),
       nomProduit: [''],
-      criticite: [''],
-      delaiMaxIntervention: [''],
-      delaiMaxResolution: ['']
+      slaList: this.fb.array([])
     });
+  }
+
+  // Liste des criticités possibles pour les SLA (ordre fixe C1, C2, C3, C4)
+  readonly criticiteOrder: string[] = ['C1', 'C2', 'C3', 'C4'];
+
+  // Getter du FormArray des SLA
+  get slaListArray(): FormArray {
+    return this.contratForm.get('slaList') as FormArray;
+  }
+
+  // Création d'une ligne SLA. La criticité est attribuée automatiquement
+  // selon le rang dans la liste (1ère ligne = C1, 2ème = C2, etc.)
+  createSlaRow(criticite?: string, delaiMaxIntervention?: number, delaiMaxResolution?: number): FormGroup {
+    const idx = this.slaListArray ? this.slaListArray.length : 0;
+    const auto = this.criticiteOrder[idx] || `C${idx + 1}`;
+    return this.fb.group({
+      criticite: [criticite || auto],
+      delaiMaxIntervention: [delaiMaxIntervention ?? ''],
+      delaiMaxResolution: [delaiMaxResolution ?? '']
+    });
+  }
+
+  addSlaRow(): void {
+    if (this.slaListArray.length >= this.criticiteOrder.length) {
+      return; // Maximum atteint (C1, C2, C3)
+    }
+    this.slaListArray.push(this.createSlaRow());
+  }
+
+  removeSlaRow(index: number): void {
+    this.slaListArray.removeAt(index);
+    // Réordonner les criticités après suppression
+    this.slaListArray.controls.forEach((ctrl, i) => {
+      ctrl.get('criticite')?.setValue(this.criticiteOrder[i] || `C${i + 1}`);
+    });
+  }
+
+  canAddSla(): boolean {
+    return this.slaListArray.length < this.criticiteOrder.length;
   }
 
   watchDateFin(): void {
@@ -198,6 +235,10 @@ export class AfficherContratComponent implements OnInit {
     while (this.ccMailArray.length) {
       this.ccMailArray.removeAt(0);
     }
+    // Vider le FormArray des SLA
+    while (this.slaListArray.length) {
+      this.slaListArray.removeAt(0);
+    }
     this.contratForm.reset({
       client: '',
       objetContrat: '',
@@ -208,11 +249,11 @@ export class AfficherContratComponent implements OnInit {
       renouvelable: false,
       remarque: '',
       emailCommercial: '',
-      nomProduit: '',
-      criticite: '',
-      delaiMaxIntervention: '',
-      delaiMaxResolution: ''
+      nomProduit: ''
     });
+    // Ajouter la 1ère ligne SLA (C1) par défaut. Les 3 champs restent optionnels :
+    // si l'utilisateur ne remplit rien, la ligne sera ignorée à l'enregistrement.
+    this.slaListArray.push(this.createSlaRow());
     this.showModal = true;
   }
 
@@ -232,6 +273,10 @@ export class AfficherContratComponent implements OnInit {
     // Vider le FormArray des emails CC
     while (this.ccMailArray.length) {
       this.ccMailArray.removeAt(0);
+    }
+    // Vider le FormArray des SLA
+    while (this.slaListArray.length) {
+      this.slaListArray.removeAt(0);
     }
 
     // Remplir avec les dates avenants existantes
@@ -253,6 +298,29 @@ export class AfficherContratComponent implements OnInit {
       });
     }
 
+    // Remplir avec les SLA existants (ou migrer depuis les anciens champs)
+    if (contrat.slaList && contrat.slaList.length > 0) {
+      // Trier par criticité (C1 → C2 → C3) pour assurer l'ordre
+      const sorted = [...contrat.slaList].sort((a, b) => {
+        const ai = this.criticiteOrder.indexOf(a.criticite);
+        const bi = this.criticiteOrder.indexOf(b.criticite);
+        return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+      });
+      sorted.forEach((sla) => {
+        this.slaListArray.push(
+          this.createSlaRow(sla.criticite, sla.delaiMaxIntervention, sla.delaiMaxResolution)
+        );
+      });
+    } else if (contrat.criticite || contrat.delaiMaxIntervention || contrat.delaiMaxResolution) {
+      // Migration auto depuis les anciens champs (ancien jour → nouvelles heures)
+      const interHeures = contrat.delaiMaxIntervention ? contrat.delaiMaxIntervention * 24 : undefined;
+      const resHeures = contrat.delaiMaxResolution ? contrat.delaiMaxResolution * 24 : undefined;
+      this.slaListArray.push(this.createSlaRow(contrat.criticite || 'C1', interHeures, resHeures));
+    } else {
+      // Pas de SLA enregistré : afficher une 1ère ligne vide C1 (optionnelle)
+      this.slaListArray.push(this.createSlaRow());
+    }
+
     this.contratForm.patchValue({
       client: contrat.client,
       objetContrat: contrat.objetContrat,
@@ -263,10 +331,7 @@ export class AfficherContratComponent implements OnInit {
       renouvelable: contrat.renouvelable,
       remarque: contrat.remarque,
       emailCommercial: contrat.emailCommercial || '',
-      nomProduit: contrat.nomProduit || '',
-      criticite: contrat.criticite || '',
-      delaiMaxIntervention: contrat.delaiMaxIntervention || '',
-      delaiMaxResolution: contrat.delaiMaxResolution || ''
+      nomProduit: contrat.nomProduit || ''
     });
     this.showModal = true;
   }
@@ -281,15 +346,33 @@ export class AfficherContratComponent implements OnInit {
     while (this.ccMailArray.length) {
       this.ccMailArray.removeAt(0);
     }
+    // Vider le FormArray des SLA
+    while (this.slaListArray.length) {
+      this.slaListArray.removeAt(0);
+    }
     this.contratForm.reset();
   }
 
   saveContrat(): void {
     if (this.contratForm.valid) {
       const formValue = this.contratForm.value;
+      const cleanedSlaList = (formValue.slaList || [])
+        .map((s: any) => ({
+          criticite: s.criticite,
+          delaiMaxIntervention: s.delaiMaxIntervention !== '' && s.delaiMaxIntervention !== null
+            ? Number(s.delaiMaxIntervention)
+            : null,
+          delaiMaxResolution: s.delaiMaxResolution !== '' && s.delaiMaxResolution !== null
+            ? Number(s.delaiMaxResolution)
+            : null
+        }))
+        // On garde uniquement les lignes qui ont au moins un délai renseigné
+        .filter((s: any) => s.criticite && (s.delaiMaxIntervention != null || s.delaiMaxResolution != null));
+
       const contratData: Contrat = {
         ...formValue,
-        ccMail: formValue.ccMail.filter((email: string) => email && email.trim() !== '')
+        ccMail: formValue.ccMail.filter((email: string) => email && email.trim() !== ''),
+        slaList: cleanedSlaList
       };
 
       if (this.isEditMode && this.editingContratId) {

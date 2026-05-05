@@ -5,6 +5,30 @@
   width: 100%;
 }
 
+/* Zone sous la navbar : largeur lisible sur TV / ultra-wide ; min-width évite débordement en inspecteur mobile */
+.main-inner {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+@media (min-width: 1600px) {
+  .main-inner {
+    max-width: min(2600px, 100%);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: clamp(12px, 1.5vw, 32px);
+    padding-right: clamp(12px, 1.5vw, 32px);
+  }
+}
+
+@media (min-width: 2200px) {
+  html {
+    font-size: clamp(15px, 0.35vw + 13px, 20px);
+  }
+}
+
 /* Main Panel Responsive */
 .main-panel {
   transition: all 0.3s ease;

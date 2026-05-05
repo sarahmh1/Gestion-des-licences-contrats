@@ -2,8 +2,10 @@ package com.example.projet2024.service;
 
 import com.example.projet2024.entite.InterventionCurative;
 import com.example.projet2024.entite.Intervenant;
+import com.example.projet2024.entite.SessionIntervention;
 import com.example.projet2024.entite.User;
 import com.example.projet2024.repository.InterventionCurativeRepository;
+import com.example.projet2024.repository.SessionInterventionRepository;
 import com.example.projet2024.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,9 @@ public class InterventionCurativeServiceImpl implements IInterventionCurativeSer
 
     @Autowired
     private InterventionCurativeRepository interventionCurativeRepository;
+
+    @Autowired
+    private SessionInterventionRepository sessionInterventionRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -54,6 +59,17 @@ public class InterventionCurativeServiceImpl implements IInterventionCurativeSer
                 intervenant.setInterventionCurative(intervention);
             }
         }
+
+        // Associer les sessions à l'intervention + résoudre user assigné
+        if (intervention.getSessions() != null) {
+            for (SessionIntervention session : intervention.getSessions()) {
+                session.setInterventionCurative(intervention);
+                if (session.getUserAssigne() != null && session.getUserAssigne().getId() != null) {
+                    userRepository.findById(session.getUserAssigne().getId())
+                        .ifPresent(session::setUserAssigne);
+                }
+            }
+        }
         
         // Résoudre les utilisateurs assignés
         if (intervention.getAssignedUsers() != null && !intervention.getAssignedUsers().isEmpty()) {
@@ -63,8 +79,34 @@ public class InterventionCurativeServiceImpl implements IInterventionCurativeSer
             }
             intervention.setAssignedUsers(resolvedUsers);
         }
-        
-        return interventionCurativeRepository.save(intervention);
+
+        // Résoudre resoluByUser
+        if (intervention.getResoluByUser() != null && intervention.getResoluByUser().getId() != null) {
+            userRepository.findById(intervention.getResoluByUser().getId())
+                .ifPresent(intervention::setResoluByUser);
+        }
+
+        InterventionCurative saved = interventionCurativeRepository.save(intervention);
+
+        // Notifier les utilisateurs assignés lors de la création
+        if (saved.getAssignedUsers() != null && !saved.getAssignedUsers().isEmpty()) {
+            String nomClient = saved.getNomClient() != null ? saved.getNomClient() : "N/A";
+            String nomProduit = saved.getNomProduit() != null ? " (" + saved.getNomProduit() + ")" : "";
+
+            StringBuilder msgBuilder = new StringBuilder();
+            msgBuilder.append("👤 Nouvelle assignation - Intervention Curative\n");
+            msgBuilder.append("📦 Client: ").append(nomClient).append(nomProduit).append("\n");
+            if (saved.getProbleme() != null) {
+                msgBuilder.append("⚠️ Problème: ").append(saved.getProbleme()).append("\n");
+            }
+            if (saved.getCriticite() != null) {
+                msgBuilder.append("🔴 Criticité: ").append(saved.getCriticite()).append("\n");
+            }
+            String msg = msgBuilder.toString();
+            sendInAppNotificationToAssignedUsers(saved.getAssignedUsers(), msg, saved.getInterventionCurativeId());
+        }
+
+        return saved;
     }
 
     @Override
@@ -89,7 +131,10 @@ public class InterventionCurativeServiceImpl implements IInterventionCurativeSer
         existing.setEnCoursDeResolution(intervention.getEnCoursDeResolution());
         existing.setResolu(intervention.getResolu());
         existing.setTachesEffectuees(intervention.getTachesEffectuees());
-        existing.setContrat(intervention.getContrat());
+        // Ne pas écraser le contrat s'il n'est pas fourni dans la requête
+        if (intervention.getContrat() != null) {
+            existing.setContrat(intervention.getContrat());
+        }
         
         // ── Détection des utilisateurs nouvellement assignés ──
         List<Long> oldUserIds = new ArrayList<>();
@@ -141,6 +186,57 @@ public class InterventionCurativeServiceImpl implements IInterventionCurativeSer
                 intervenant.setInterventionCurative(existing);
                 existing.getIntervenants().add(intervenant);
             }
+        }
+
+        // Mettre à jour les sessions d'intervention.
+        // Conserver le fichier déjà uploadé pour chaque session existante (si la nouvelle
+        // payload ne contient pas de fichier), pour éviter de perdre l'upload précédent.
+        if (intervention.getSessions() != null) {
+            // Index des sessions existantes par id (avant clear)
+            java.util.Map<Long, SessionIntervention> existingById = new java.util.HashMap<>();
+            for (SessionIntervention old : existing.getSessions()) {
+                if (old.getSessionId() != null) {
+                    existingById.put(old.getSessionId(), old);
+                }
+            }
+
+            existing.getSessions().clear();
+            entityManager.flush();
+
+            for (SessionIntervention payload : intervention.getSessions()) {
+                SessionIntervention newSession = new SessionIntervention();
+                newSession.setResume(payload.getResume());
+                newSession.setDateHeureIntervention(payload.getDateHeureIntervention());
+                newSession.setDureeIntervention(payload.getDureeIntervention());
+
+                // Préserver le fichier déjà uploadé si présent et non remplacé
+                if (payload.getFichier() != null && !payload.getFichier().isEmpty()) {
+                    newSession.setFichier(payload.getFichier());
+                    newSession.setFichierOriginalName(payload.getFichierOriginalName());
+                } else if (payload.getSessionId() != null && existingById.containsKey(payload.getSessionId())) {
+                    SessionIntervention prev = existingById.get(payload.getSessionId());
+                    newSession.setFichier(prev.getFichier());
+                    newSession.setFichierOriginalName(prev.getFichierOriginalName());
+                }
+
+                // Conserver l'utilisateur assigné existant ou prendre celui du payload
+                if (payload.getUserAssigne() != null && payload.getUserAssigne().getId() != null) {
+                    userRepository.findById(payload.getUserAssigne().getId())
+                        .ifPresent(newSession::setUserAssigne);
+                } else if (payload.getSessionId() != null && existingById.containsKey(payload.getSessionId())) {
+                    SessionIntervention prev = existingById.get(payload.getSessionId());
+                    newSession.setUserAssigne(prev.getUserAssigne());
+                }
+
+                newSession.setInterventionCurative(existing);
+                existing.getSessions().add(newSession);
+            }
+        }
+
+        // Mettre à jour resoluByUser uniquement si fourni (sinon conserver l'existant)
+        if (intervention.getResoluByUser() != null && intervention.getResoluByUser().getId() != null) {
+            userRepository.findById(intervention.getResoluByUser().getId())
+                .ifPresent(existing::setResoluByUser);
         }
         
         return interventionCurativeRepository.save(existing);

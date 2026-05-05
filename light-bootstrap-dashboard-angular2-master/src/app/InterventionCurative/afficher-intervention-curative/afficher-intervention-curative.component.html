@@ -1,331 +1,777 @@
-<div class="container">
-  <!-- En-tête avec titre et boutons alignés -->
+<div class="master-detail-container">
+
+  <!-- En-tête -->
   <div class="header-row">
     <h2>Interventions Curatives</h2>
     <div class="action-group">
-      <button (click)="openAddModal()" class="btn btn-sm action-button" *ngIf="permissionService.canAdd('curative_interventions')">
+      <button (click)="openAddModal()" class="btn btn-sm action-button"
+        *ngIf="permissionService.canAdd('curative_interventions')">
         <i class="fa fa-plus"></i>
       </button>
       <div class="input-group search-box">
         <input type="text" class="form-control" placeholder="Rechercher..." [(ngModel)]="searchTerm"
           (input)="onSearch()" />
       </div>
+
+      <!-- Bouton Filtres -->
+      <div class="filter-wrapper">
+        <button type="button" class="btn btn-sm filter-button" (click)="toggleFiltersPanel()"
+          [class.active]="activeFiltersCount > 0">
+          <i class="fas fa-filter"></i> Filtres
+          <span *ngIf="activeFiltersCount > 0" class="filter-badge">{{ activeFiltersCount }}</span>
+        </button>
+
+        <!-- Backdrop pour fermer au clic extérieur -->
+        <div class="filter-backdrop" *ngIf="showFiltersPanel" (click)="toggleFiltersPanel()"></div>
+
+        <!-- Panneau de filtres -->
+        <div class="filter-panel" *ngIf="showFiltersPanel" (click)="$event.stopPropagation()">
+          <div class="filter-panel-header">
+            <h5><i class="fas fa-sliders-h"></i> Filtrer les interventions</h5>
+            <button type="button" class="filter-close" (click)="toggleFiltersPanel()">&times;</button>
+          </div>
+
+          <div class="filter-panel-body">
+            <!-- Statut -->
+            <div class="filter-group">
+              <label class="filter-label">Statut</label>
+              <select class="form-control filter-control" [(ngModel)]="filterStatut" (change)="applyFilters()">
+                <option value="">Tous</option>
+                <option value="resolu">Résolu</option>
+                <option value="enCours">En cours de résolution</option>
+                <option value="enAttente">En attente</option>
+              </select>
+            </div>
+
+            <!-- Client -->
+            <div class="filter-group">
+              <label class="filter-label">Client</label>
+              <select class="form-control filter-control" [(ngModel)]="filterClient" (change)="applyFilters()">
+                <option value="">Tous</option>
+                <option *ngFor="let c of uniqueClients" [value]="c">{{ c }}</option>
+              </select>
+            </div>
+
+            <!-- Utilisateur assigné -->
+            <div class="filter-group">
+              <label class="filter-label">Utilisateur assigné</label>
+              <select class="form-control filter-control" [(ngModel)]="filterUser" (change)="applyFilters()">
+                <option value="">Tous</option>
+                <option *ngFor="let u of uniqueAssignedUsers" [value]="u.id">{{ u.label }}</option>
+              </select>
+            </div>
+
+            <!-- Plage de dates (date demande) -->
+            <div class="filter-group">
+              <label class="filter-label">Date de demande</label>
+              <div class="filter-date-range">
+                <input type="date" class="form-control filter-control" [(ngModel)]="filterDateFrom"
+                  (change)="applyFilters()" placeholder="Du" />
+                <span class="filter-date-sep">→</span>
+                <input type="date" class="form-control filter-control" [(ngModel)]="filterDateTo"
+                  (change)="applyFilters()" placeholder="Au" />
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-panel-footer">
+            <button type="button" class="btn btn-sm btn-secondary" (click)="resetFilters()"
+              [disabled]="activeFiltersCount === 0">
+              <i class="fas fa-undo"></i> Réinitialiser
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Tableau responsive -->
-  <div class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Fiche</th>
-          <th>Client</th>
-          <th>Produit</th>
-          <th>Criticité</th>
-          <th>Intervenant</th>
-          <th>Demande</th>
-          <th>Intervention</th>
-          <th>Résolution</th>
-          <th>Durée</th>
-          <th>Mode</th>
-          <th>Vis-à-vis Client</th>
-          <th>Statut</th>
-          <th>Tâches</th>
-          <th>Fichier</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let intervention of pagedInterventions">
-          <td>{{ intervention.ficheIntervention }}</td>
-          <td>{{ intervention.nomClient }}</td>
-          <td>
-            <span *ngIf="intervention.nomProduit" class="badge badge-secondary"
-              style="font-size:0.75rem; white-space:normal; word-break:break-word;">
-              {{ intervention.nomProduit.replace('_', ' ') }}
-            </span>
-            <span *ngIf="!intervention.nomProduit" class="text-muted">—</span>
-          </td>
-          <td>
-            <span class="badge" [ngClass]="getCriticiteClass(intervention.criticite)">
-              {{ intervention.criticite }}
-            </span>
-          </td>
-          <td>{{ formatIntervenants(intervention) }}</td>
-          <td>{{ intervention.dateHeureDemande | date: 'dd/MM/yyyy HH:mm' }}</td>
-          <td>{{ intervention.dateHeureIntervention | date: 'dd/MM/yyyy HH:mm' }}</td>
-          <td>{{ intervention.dateHeureResolution | date: 'dd/MM/yyyy HH:mm' }}</td>
-          <td>{{ intervention.dureeIntervention }}</td>
-          <td>
-            <span [class]="intervention.modeIntervention === 'Sur site' ? 'badge badge-primary' : 'badge badge-info'">
-              {{ intervention.modeIntervention }}
-            </span>
-          </td>
-          <td>{{ intervention.visAVisClient }}</td>
-          <td>
-            <div class="status-badges">
-              <span *ngIf="intervention.enCoursDeResolution" class="badge badge-warning">En cours</span>
-              <span *ngIf="intervention.resolu" class="badge badge-success">Résolu</span>
-              <span *ngIf="!intervention.enCoursDeResolution && !intervention.resolu"
-                class="badge badge-secondary">-</span>
-            </div>
-          </td>
-          <td class="taches-cell">{{ intervention.tachesEffectuees }}</td>
-          <td>
-            <a *ngIf="intervention.fichier" [href]="getFileDownloadUrl(intervention.interventionCurativeId)"
-              target="_blank" class="btn btn-sm btn-outline-primary">
-              <i class="fa fa-download"></i> {{ intervention.fichierOriginalName || 'Télécharger' }}
-            </a>
-            <span *ngIf="!intervention.fichier" class="text-muted">-</span>
-          </td>
-          <td>
-            <div class="d-flex flex-row gap-1">
-              <button (click)="openEditModal(intervention)" class="btn btn-sm btn-primary" *ngIf="permissionService.canEdit('curative_interventions')">
-                <i class="fas fa-pen"></i>
-              </button>
-              <button (click)="deleteIntervention(intervention.interventionCurativeId)" class="btn btn-sm btn-danger" *ngIf="permissionService.canDelete('curative_interventions')">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="filteredInterventions.length === 0">
-          <td colspan="14" class="text-center">Aucune intervention trouvée.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <!-- Layout Master / Detail -->
+  <div class="md-layout" [class.detail-open]="selectedIntervention">
 
-  <!-- Pagination -->
-  <div class="text-center mt-3">
-    <ng-container *ngIf="totalPages > 1">
-      <button *ngFor="let page of pageNumbers; let i = index" class="btn btn-sm mx-1"
-        [class.btn-primary]="currentPage === i" [class.btn-outline-primary]="currentPage !== i" (click)="changePage(i)">
-        {{ i + 1 }}
-      </button>
-    </ng-container>
+    <!-- ── MASTER : liste de mini-cartes ── -->
+    <div class="md-master">
+      <div class="md-list">
+
+        <ng-container *ngFor="let intervention of pagedInterventions">
+        <ng-container *ngIf="getConformite(intervention) as sla">
+        <div class="md-item"
+          [class.md-item-active]="selectedIntervention?.interventionCurativeId === intervention.interventionCurativeId"
+          [class.sla-border-conforme]="sla.status === 'conforme' || sla.status === 'en_cours_ok'"
+          [class.sla-border-depasse]="sla.status === 'depasse'"
+          [class.sla-border-en-cours-depasse]="sla.status === 'en_cours_depasse'"
+          (click)="selectIntervention(intervention)">
+
+          <!-- Infos principales -->
+          <div class="md-item-info">
+            <div class="md-item-client">
+              <span class="md-item-id" *ngIf="intervention.interventionCurativeId">#{{ intervention.interventionCurativeId }}</span>
+              {{ intervention.nomClient || '—' }}
+            </div>
+            <div class="md-item-fields">
+              <span class="md-field" *ngIf="intervention.nomProduit">
+                <strong>Produit :</strong> {{ intervention.nomProduit.replace('_', ' ') }}
+              </span>
+              <span class="md-field" *ngIf="intervention.criticite">
+                <strong>Criticité :</strong>
+                <span class="md-badge"
+                  [ngClass]="{
+                    'md-badge-red':    intervention.criticite === 'C1',
+                    'md-badge-orange': intervention.criticite === 'C2',
+                    'md-badge-yellow': intervention.criticite === 'C3',
+                    'md-badge-green':  intervention.criticite === 'C4'
+                  }">
+                  {{ intervention.criticite }}
+                </span>
+              </span>
+              <span class="md-field">
+                <strong>Demande :</strong> {{ intervention.dateHeureDemande | date: 'dd/MM/yyyy HH:mm' }}
+              </span>
+              <span class="md-field" *ngIf="intervention.visAVisClient">
+                <strong>Vis-à-vis :</strong> {{ intervention.visAVisClient }}
+              </span>
+              <!-- Statut -->
+              <span *ngIf="intervention.resolu" class="md-badge md-badge-green">Résolu</span>
+              <span *ngIf="intervention.enCoursDeResolution && !intervention.resolu"
+                class="md-badge md-badge-orange">En cours</span>
+              <span *ngIf="!intervention.enCoursDeResolution && !intervention.resolu"
+                class="md-badge md-badge-gray">En attente</span>
+
+              <!-- Conformité SLA -->
+              <ng-container *ngIf="getConformite(intervention) as sla">
+                <span *ngIf="sla.status !== 'unknown'"
+                  class="sla-badge"
+                  [ngClass]="{
+                    'sla-conforme':         sla.status === 'conforme',
+                    'sla-depasse':          sla.status === 'depasse',
+                    'sla-en-cours-ok':      sla.status === 'en_cours_ok',
+                    'sla-en-cours-depasse': sla.status === 'en_cours_depasse'
+                  }">
+                  <i class="fas"
+                    [ngClass]="{
+                      'fa-check-circle':  sla.status === 'conforme' || sla.status === 'en_cours_ok',
+                      'fa-times-circle':  sla.status === 'depasse' || sla.status === 'en_cours_depasse'
+                    }">
+                  </i>
+                  {{ sla.label }}
+                </span>
+              </ng-container>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="md-item-actions" (click)="$event.stopPropagation()">
+            <button class="md-btn-icon md-btn-view" (click)="selectIntervention(intervention)" title="Voir détails">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button class="md-btn-icon md-btn-edit" type="button" (click)="openEditModal(intervention)"
+              title="Modifier la fiche (client, criticité… ; Compléter l’intervention si vous êtes assigné)"
+              *ngIf="permissionService.canEdit('curative_interventions')">
+              <i class="fas fa-pen"></i>
+            </button>
+            <button class="md-btn-icon md-btn-delete"
+              (click)="deleteIntervention(intervention.interventionCurativeId)" title="Supprimer"
+              *ngIf="permissionService.canDelete('curative_interventions')">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        </ng-container>
+        </ng-container>
+
+        <div *ngIf="filteredInterventions.length === 0" class="md-empty">
+          <i class="fas fa-folder-open"></i>
+          <p>Aucune intervention trouvée.</p>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="md-pagination" *ngIf="totalPages > 1">
+        <button *ngFor="let page of pageNumbers; let i = index" (click)="changePage(i)"
+          [class.active]="i === currentPage" class="btn btn-sm btn-outline-primary mx-1">
+          {{ i + 1 }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ── DETAIL : panneau à droite ── -->
+    <div class="md-detail" *ngIf="selectedIntervention">
+      <div class="md-detail-card">
+
+        <!-- Header -->
+        <div class="md-detail-header">
+          <h4>
+            <span class="md-detail-id" *ngIf="selectedIntervention.interventionCurativeId">#{{ selectedIntervention.interventionCurativeId }}</span>
+            {{ selectedIntervention.nomClient || 'Intervention' }}
+          </h4>
+          <button class="md-detail-close" (click)="closeDetail()">&times;</button>
+        </div>
+
+        <!-- Body -->
+        <div class="md-detail-body">
+
+          <!-- ── Statut + Conformité SLA ── -->
+          <div class="md-detail-section-title">Statut &amp; Conformité SLA</div>
+
+          <div class="md-detail-row">
+            <span class="md-label">Statut</span>
+            <span class="md-value">
+              <span *ngIf="selectedIntervention.resolu" class="md-badge md-badge-green">Résolu</span>
+              <span *ngIf="selectedIntervention.enCoursDeResolution && !selectedIntervention.resolu"
+                class="md-badge md-badge-orange">En cours de résolution</span>
+              <span *ngIf="!selectedIntervention.enCoursDeResolution && !selectedIntervention.resolu"
+                class="md-badge md-badge-gray">En attente</span>
+            </span>
+          </div>
+
+          <!-- Bloc SLA -->
+          <ng-container *ngIf="getConformite(selectedIntervention) as sla">
+            <div *ngIf="sla.status !== 'unknown'" class="sla-detail-block"
+              [ngClass]="{
+                'sla-block-conforme':         sla.status === 'conforme',
+                'sla-block-depasse':          sla.status === 'depasse',
+                'sla-block-en-cours-ok':      sla.status === 'en_cours_ok',
+                'sla-block-en-cours-depasse': sla.status === 'en_cours_depasse'
+              }">
+              <div class="sla-block-top">
+                <i class="fas fa-lg"
+                  [ngClass]="{
+                    'fa-check-circle':  sla.status === 'conforme' || sla.status === 'en_cours_ok',
+                    'fa-times-circle':  sla.status === 'depasse' || sla.status === 'en_cours_depasse'
+                  }">
+                </i>
+                <span class="sla-block-label">{{ sla.label }}</span>
+                <span class="sla-block-diff">{{ sla.diffStr }}</span>
+              </div>
+              <div class="sla-block-deadline">
+                <i class="fas fa-flag-checkered"></i>
+                Date limite de résolution : <strong>{{ sla.deadlineStr }}</strong>
+              </div>
+            </div>
+          </ng-container>
+
+          <div class="md-detail-divider"></div>
+
+          <!-- ── Informations générales ── -->
+          <div class="md-detail-section-title">Informations générales</div>
+
+          <div class="md-detail-row" *ngIf="selectedIntervention.nomProduit">
+            <span class="md-label">Produit</span>
+            <span class="md-value">
+              <span class="md-badge md-badge-green">{{ selectedIntervention.nomProduit.replace('_', ' ') }}</span>
+            </span>
+          </div>
+
+          <div class="md-detail-row" *ngIf="selectedIntervention.criticite">
+            <span class="md-label">Criticité</span>
+            <span class="md-value">
+              <span class="md-badge"
+                [ngClass]="{
+                  'md-badge-red':    selectedIntervention.criticite === 'C1',
+                  'md-badge-orange': selectedIntervention.criticite === 'C2',
+                  'md-badge-yellow': selectedIntervention.criticite === 'C3',
+                  'md-badge-green':  selectedIntervention.criticite === 'C4'
+                }">
+                {{ selectedIntervention.criticite }}
+              </span>
+            </span>
+          </div>
+
+          <div class="md-detail-row">
+            <span class="md-label">Vis-à-vis Client</span>
+            <span class="md-value">{{ selectedIntervention.visAVisClient || '—' }}</span>
+          </div>
+
+          <div class="md-detail-row" *ngIf="selectedIntervention.delaiResolution">
+            <span class="md-label">Délai de résolution</span>
+            <span class="md-value"><strong>{{ selectedIntervention.delaiResolution }}h</strong></span>
+          </div>
+
+          <div class="md-detail-row">
+            <span class="md-label">Date de demande</span>
+            <span class="md-value">{{ selectedIntervention.dateHeureDemande | date: 'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+
+          <div class="md-detail-row" *ngIf="selectedIntervention.probleme">
+            <span class="md-label">Problème</span>
+            <span class="md-value md-value-wrap">{{ selectedIntervention.probleme }}</span>
+          </div>
+
+          <div class="md-detail-divider"></div>
+
+          <!-- Intervention principale : date & durée racine (toujours si renseignées, même avec des sessions) -->
+          <ng-container *ngIf="selectedIntervention.dateHeureIntervention || selectedIntervention.dureeIntervention">
+            <div class="md-detail-section-title">Intervention principale</div>
+
+            <div class="md-detail-row" *ngIf="selectedIntervention.dateHeureIntervention">
+              <span class="md-label">Date d'intervention</span>
+              <span class="md-value">{{ selectedIntervention.dateHeureIntervention | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+
+            <div class="md-detail-row" *ngIf="selectedIntervention.dureeIntervention">
+              <span class="md-label">Durée</span>
+              <span class="md-value">{{ selectedIntervention.dureeIntervention }}</span>
+            </div>
+
+            <div class="md-detail-divider"></div>
+          </ng-container>
+
+          <!-- Message si aucune donnée technique -->
+          <div *ngIf="!(selectedIntervention.sessions && selectedIntervention.sessions.length > 0) && !selectedIntervention.dateHeureIntervention && !selectedIntervention.dateHeureResolution"
+            class="md-empty-section">
+            <i class="fas fa-hourglass-half"></i> En attente de complétion
+          </div>
+
+          <!-- ── Blocs "En cours de résolution" : un bloc par session ── -->
+          <ng-container *ngIf="(selectedIntervention.sessions && selectedIntervention.sessions.length > 0) || selectedIntervention.enCoursDeResolution">
+            <ng-container *ngIf="selectedIntervention.sessions && selectedIntervention.sessions.length > 0; else legacyEnCours">
+              <div *ngFor="let session of selectedIntervention.sessions; let i = index"
+                class="md-detail-section-block md-block-warning">
+                <div class="md-block-header md-block-header-with-user">
+                  <span class="md-block-header-title">
+                    <i class="fas fa-clock"></i> Session {{ i + 1 }} – En cours de résolution
+                  </span>
+                  <span class="md-block-user-badge" *ngIf="session.userAssigne">
+                    <i class="fas fa-user"></i>
+                    {{ formatUserName(session.userAssigne) }}
+                  </span>
+                </div>
+
+                <div class="md-detail-row" *ngIf="session.resume">
+                  <span class="md-label">Résumé</span>
+                  <span class="md-value md-value-wrap">{{ session.resume }}</span>
+                </div>
+
+                <div class="md-detail-row" *ngIf="session.dateHeureIntervention">
+                  <span class="md-label">Date d'intervention</span>
+                  <span class="md-value">{{ session.dateHeureIntervention | date: 'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+
+                <div class="md-detail-row" *ngIf="session.dureeIntervention">
+                  <span class="md-label">Durée</span>
+                  <span class="md-value">{{ session.dureeIntervention }}</span>
+                </div>
+
+                <div class="md-detail-row" *ngIf="session.fichier">
+                  <span class="md-label">Pièce jointe</span>
+                  <span class="md-value">
+                    <a [href]="getSessionFileDownloadUrl(session.sessionId)" target="_blank" class="md-file-link">
+                      <i class="fas fa-download"></i>
+                      {{ session.fichierOriginalName || 'Télécharger' }}
+                    </a>
+                  </span>
+                </div>
+              </div>
+              <div class="md-detail-divider"></div>
+            </ng-container>
+
+            <!-- Fallback pour les anciennes interventions sans sessions[] -->
+            <ng-template #legacyEnCours>
+              <div class="md-detail-section-block md-block-warning">
+                <div class="md-block-header">
+                  <i class="fas fa-clock"></i> En cours de résolution
+                </div>
+                <!-- Date / durée racine : affichées dans « Intervention principale » ci-dessus -->
+
+                <div class="md-detail-row" *ngIf="selectedIntervention.fichier">
+                  <span class="md-label">Pièce jointe</span>
+                  <span class="md-value">
+                    <a [href]="getFileDownloadUrl(selectedIntervention.interventionCurativeId)" target="_blank"
+                      class="md-file-link">
+                      <i class="fas fa-download"></i>
+                      {{ selectedIntervention.fichierOriginalName || 'Télécharger' }}
+                    </a>
+                  </span>
+                </div>
+              </div>
+              <div class="md-detail-divider"></div>
+            </ng-template>
+          </ng-container>
+
+          <!-- ── Bloc "Résolu" (affiché uniquement si résolu) ── -->
+          <div *ngIf="selectedIntervention.resolu || selectedIntervention.dateHeureResolution">
+            <div class="md-detail-section-block md-block-success">
+              <div class="md-block-header md-block-header-with-user">
+                <span class="md-block-header-title">
+                  <i class="fas fa-check-circle"></i> Résolution
+                </span>
+                <span class="md-block-user-badge" *ngIf="selectedIntervention.resoluByUser">
+                  <i class="fas fa-user"></i>
+                  {{ formatUserName(selectedIntervention.resoluByUser) }}
+                </span>
+              </div>
+
+              <div class="md-detail-row" *ngIf="selectedIntervention.resume">
+                <span class="md-label">Résumé</span>
+                <span class="md-value md-value-wrap">{{ selectedIntervention.resume }}</span>
+              </div>
+
+              <div class="md-detail-row" *ngIf="selectedIntervention.dateHeureResolution">
+                <span class="md-label">Date de résolution</span>
+                <span class="md-value">{{ selectedIntervention.dateHeureResolution | date: 'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+
+              <div class="md-detail-row" *ngIf="selectedIntervention.fichier">
+                <span class="md-label">Pièce jointe</span>
+                <span class="md-value">
+                  <a [href]="getFileDownloadUrl(selectedIntervention.interventionCurativeId)" target="_blank"
+                    class="md-file-link">
+                    <i class="fas fa-download"></i>
+                    {{ selectedIntervention.fichierOriginalName || 'Télécharger' }}
+                  </a>
+                </span>
+              </div>
+            </div>
+            <div class="md-detail-divider"></div>
+          </div>
+
+          <!-- ── Utilisateurs assignés ── -->
+          <div class="md-detail-section-title">Assigné à</div>
+          <div class="md-detail-row">
+            <span class="md-label">Utilisateurs</span>
+            <span class="md-value">
+              <ng-container *ngIf="selectedIntervention.assignedUsers && selectedIntervention.assignedUsers.length > 0">
+                <div *ngFor="let u of selectedIntervention.assignedUsers" class="md-assigned-user">
+                  <i class="fas fa-user"></i> {{ u.firstname }} {{ u.lastname }}
+                </div>
+              </ng-container>
+              <span *ngIf="!selectedIntervention.assignedUsers || selectedIntervention.assignedUsers.length === 0">—</span>
+            </span>
+          </div>
+
+          <!-- Action détail : ouvre popup n°1 (Compléter est dans le pied du modal si vous êtes assigné) -->
+          <div class="md-detail-actions" *ngIf="permissionService.canEdit('curative_interventions')"
+            (click)="$event.stopPropagation()">
+            <button type="button" class="btn btn-sm btn-outline-primary md-detail-action-btn"
+              (click)="openEditModal(selectedIntervention!)">
+              <i class="fas fa-pen"></i> Modifier
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <!-- Modal Popup -->
 <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
+
+    <!-- Header gradient -->
     <div class="modal-header">
-      <h4>{{ isEditMode ? 'Modifier l\'Intervention' : 'Ajouter une Intervention' }}</h4>
-      <button type="button" class="close-btn" (click)="closeModal()">&times;</button>
+      <div class="modal-title-section">
+        <i class="fas fa-ambulance modal-icon"></i>
+        <h4>{{ !isEditMode ? 'Ajouter une intervention curative'
+          : (isAssignedView ? 'Intervention assignée – saisie terrain' : 'Modifier la fiche intervention') }}</h4>
+      </div>
+      <button type="button" class="close-btn" (click)="closeModal()">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
 
-    <form [formGroup]="interventionForm" (ngSubmit)="saveIntervention()">
-      <!-- Fiche d'intervention -->
-      <div class="form-group mb-3">
-        <label for="ficheIntervention" class="form-label">Fiche d'intervention</label>
-        <input type="text" id="ficheIntervention" class="form-control" formControlName="ficheIntervention"
-          placeholder="Numéro de fiche" />
-      </div>
+    <!-- Body -->
+    <div class="modal-body">
+      <form [formGroup]="interventionForm" (ngSubmit)="saveIntervention()">
 
-      <!-- Nom du client -->
-      <div class="form-group mb-3">
-        <label for="nomClient" class="form-label">Nom du Client</label>
-        <app-searchable-client-select formControlName="nomClient" [clients]="clients"></app-searchable-client-select>
-      </div>
-
-      <!-- Produit -->
-      <div class="form-group mb-3">
-        <label for="nomProduit" class="form-label">Produit</label>
-        <select id="nomProduit" class="form-control" formControlName="nomProduit">
-          <option value="">-- Sélectionner un produit --</option>
-          <option *ngFor="let p of nomProduitOptions" [value]="p">{{ p.replace('_', ' ') }}</option>
-        </select>
-      </div>
-
-      <div class="row">
-        <!-- Criticité -->
-        <div class="col-md-6">
-          <div class="form-group mb-3">
-            <label for="criticite" class="form-label">Criticité</label>
-            <select id="criticite" class="form-control" formControlName="criticite">
-              <option value="">-- Sélectionner --</option>
-              <option *ngFor="let crit of criticiteOptions" [value]="crit">{{ crit }}</option>
-            </select>
+        <!-- Nom du client -->
+        <div class="form-group mb-3">
+          <label for="nomClient" class="form-label">Nom du Client</label>
+          <div [class.disabled-bloc]="isLockedIfFilled('nomClient')">
+            <app-searchable-client-select formControlName="nomClient" [clients]="clients"></app-searchable-client-select>
           </div>
         </div>
 
-        <!-- Durée de l'intervention (déplacé ici) -->
-        <div class="col-md-6">
-          <div class="form-group mb-3">
-            <label for="dureeIntervention" class="form-label">Durée de l'Intervention</label>
-            <input type="text" id="dureeIntervention" class="form-control" formControlName="dureeIntervention"
-              placeholder="Ex: 2h30" />
+        <!-- Produit -->
+        <div class="form-group mb-3">
+          <label for="nomProduit" class="form-label">Produit</label>
+          <select id="nomProduit" class="form-control" formControlName="nomProduit" [disabled]="isLockedIfFilled('nomProduit')">
+            <option value="">-- Sélectionner un produit --</option>
+            <option *ngFor="let p of nomProduitOptions" [value]="p">{{ p.replace('_', ' ') }}</option>
+          </select>
+        </div>
+
+        <!-- Vis-à-vis client (auto depuis client) -->
+        <div class="form-group mb-3">
+          <label for="visAVisClient" class="form-label">
+            Vis-à-vis Client
+            <span *ngIf="interventionForm.get('visAVisClient')?.value" class="badge-auto">✓ Auto</span>
+          </label>
+          <input type="text" id="visAVisClient" class="form-control" formControlName="visAVisClient"
+            placeholder="Rempli automatiquement depuis le client" readonly />
+        </div>
+
+        <!-- Date et heure de la demande -->
+        <div class="form-group mb-3">
+          <label for="dateHeureDemande" class="form-label">Date et Heure de la Demande</label>
+          <input type="datetime-local" id="dateHeureDemande" class="form-control" formControlName="dateHeureDemande"
+            [disabled]="isLockedIfFilled('dateHeureDemande')" />
+        </div>
+
+        <!-- Problème -->
+        <div class="form-group mb-3">
+          <label for="probleme" class="form-label">Problème</label>
+          <textarea id="probleme" class="form-control" formControlName="probleme"
+            placeholder="Description du problème signalé" rows="3"
+            [disabled]="isLockedIfFilled('probleme')"></textarea>
+        </div>
+
+        <!-- Criticité (chips) + Délai de Résolution (auto) sur la même ligne -->
+        <div class="row">
+          <!-- Criticité -->
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label class="form-label">
+                Criticité
+                <span *ngIf="interventionForm.get('criticite')?.value" class="badge-auto">✓ Auto</span>
+              </label>
+
+              <!-- Chips disponibles selon le contrat -->
+              <div class="criticite-chips" *ngIf="availableCriticites().length > 0; else noCriticiteTpl">
+                <button type="button"
+                  *ngFor="let crit of availableCriticites()"
+                  class="criticite-chip"
+                  [class.active]="interventionForm.get('criticite')?.value === crit"
+                  [class.chip-c1]="crit === 'C1'"
+                  [class.chip-c2]="crit === 'C2'"
+                  [class.chip-c3]="crit === 'C3'"
+                  [class.chip-c4]="crit === 'C4'"
+                  [disabled]="isLockedIfFilled('criticite')"
+                  (click)="selectCriticite(crit)">
+                  {{ crit }}
+                </button>
+              </div>
+
+              <ng-template #noCriticiteTpl>
+                <div class="criticite-empty">
+                  <i class="fas fa-info-circle"></i>
+                  <span *ngIf="!interventionForm.get('nomClient')?.value || !interventionForm.get('nomProduit')?.value">
+                    Sélectionnez d'abord un client et un produit.
+                  </span>
+                  <span *ngIf="interventionForm.get('nomClient')?.value && interventionForm.get('nomProduit')?.value">
+                    Aucune criticité définie pour ce contrat.
+                  </span>
+                </div>
+              </ng-template>
+              <input type="hidden" formControlName="criticite" />
+            </div>
+          </div>
+
+          <!-- Délai de Résolution -->
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="delaiResolution" class="form-label">
+                Délai de Résolution (en heures)
+                <span *ngIf="interventionForm.get('delaiResolution')?.value" class="badge-auto">✓ Auto</span>
+              </label>
+              <div class="delai-input-group">
+                <input type="text" id="delaiResolution" class="form-control" formControlName="delaiResolution"
+                  placeholder="Rempli auto. selon la criticité" readonly />
+                <span class="delai-suffix" *ngIf="interventionForm.get('delaiResolution')?.value">h</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Problème -->
-      <div class="form-group mb-3">
-        <label for="probleme" class="form-label">Problème</label>
-        <textarea id="probleme" class="form-control" formControlName="probleme"
-          placeholder="Description du problème signalé" rows="3"></textarea>
-      </div>
+        <!-- Affecté à -->
+        <div class="form-group mb-3">
+          <label class="form-label">Utilisateurs assignés</label>
+          <app-searchable-user-select
+            *ngIf="!isAssignedView"
+            [users]="getUnassignedUsers()"
+            (userSelected)="assignUserById($event)"
+            placeholder="Rechercher un utilisateur...">
+          </app-searchable-user-select>
+          <div class="assigned-users-chips" *ngIf="assignedUsers.length > 0">
+            <span *ngFor="let u of assignedUsers; let i = index" class="assigned-chip">
+              <i class="fas fa-user"></i> {{ u.firstname }} {{ u.lastname }}
+              <button *ngIf="!isAssignedView" type="button" class="chip-remove" (click)="removeAssignedUser(i)">&times;</button>
+            </span>
+          </div>
+        </div>
 
-      <!-- Délai de Résolution (auto-rempli depuis contrat) -->
-      <div class="form-group mb-3">
-        <label for="delaiResolution" class="form-label">
-          Délai de Résolution (en heures)
-          <span *ngIf="interventionForm.get('delaiResolution')?.value"
-                class="badge-auto">✓ Auto</span>
-        </label>
-        <input type="text" id="delaiResolution" class="form-control" formControlName="delaiResolution"
-          placeholder="Rempli automatiquement depuis le contrat" readonly />
-        <small class="text-muted" *ngIf="interventionForm.get('delaiResolution')?.value">
-          <i class="fas fa-info-circle"></i> Récupéré automatiquement du contrat.
-        </small>
-      </div>
-
-      <!-- Résumé -->
-      <div class="form-group mb-3">
-        <label for="resume" class="form-label">Résumé</label>
-        <textarea id="resume" class="form-control" formControlName="resume"
-          placeholder="Résumé de l'intervention" rows="3"></textarea>
-      </div>
-
-      <!-- Utilisateurs Assignés -->
-      <div class="form-group mb-3">
-        <label for="assignedUsers" class="form-label">Utilisateurs Assignés</label>
-        <select id="assignedUsers" class="form-control" formControlName="assignedUsers" multiple>
-          <option *ngFor="let user of users" [ngValue]="user">{{ user.nom }} ({{ user.email }})</option>
-        </select>
-        <small class="text-muted">Maintenez Ctrl/Cmd pour sélectionner plusieurs utilisateurs</small>
-      </div>
-
-      <!-- Intervenants avec bouton + -->
-      <div class="form-group mb-3">
-        <label class="form-label">Intervenant(s)</label>
-        <div formArrayName="intervenants">
-          <div *ngFor="let intervenant of intervenants.controls; let i = index" [formGroupName]="i"
-            class="intervenant-row">
-            <input type="text" class="form-control intervenant-input" formControlName="nom"
-              placeholder="Nom de l'intervenant" />
-            <button type="button" class="btn btn-add-intervenant" (click)="addIntervenant()">
-              <i class="fa fa-plus"></i>
+        <!-- Pied : Annuler à gauche ; à droite selon mode (Compléter + Mettre à jour si assigné depuis popup admin) -->
+        <div class="modal-footer modal-footer-curative">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">
+            <i class="fas fa-times"></i> Annuler
+          </button>
+          <div class="modal-footer-curative-right">
+            <button *ngIf="!isAssignedView && isEditMode && showCompleterButtonInAdminModal()"
+              type="button" class="btn btn-outline-primary" (click)="openTechFromAdministrativeModal()">
+              <i class="fas fa-tools"></i> Compléter l'intervention
             </button>
-            <button type="button" class="btn btn-remove-intervenant" *ngIf="intervenants.length > 1"
-              (click)="removeIntervenant(i)">
-              <i class="fa fa-times"></i>
+            <button *ngIf="isAssignedView" type="button" class="btn btn-primary" (click)="openTechPopup()">
+              <i class="fas fa-tools"></i> {{ techButtonLabel }}
+            </button>
+            <button *ngIf="!isAssignedView" type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> {{ isEditMode ? 'Mettre à jour' : 'Enregistrer' }}
             </button>
           </div>
         </div>
-      </div>
 
-      <!-- Date et heure de la demande -->
-      <div class="form-group mb-3">
-        <label for="dateHeureDemande" class="form-label">Date et Heure de la Demande</label>
-        <input type="datetime-local" id="dateHeureDemande" class="form-control" formControlName="dateHeureDemande" />
-      </div>
+      </form>
+    </div>
+  </div>
+</div>
 
-      <!-- Date et heure de l'intervention -->
-      <div class="form-group mb-3">
-        <label for="dateHeureIntervention" class="form-label">Date et Heure de l'Intervention</label>
-        <input type="datetime-local" id="dateHeureIntervention" class="form-control"
-          formControlName="dateHeureIntervention" />
-      </div>
+<!-- Sous-popup technique (résumé / intervention / statut) -->
+<div class="modal-overlay tech-popup-overlay" *ngIf="showTechPopup" (click)="closeTechPopup()">
+  <div class="modal-content tech-popup-content" (click)="$event.stopPropagation()">
 
-      <!-- Date et heure de la résolution -->
-      <div class="form-group mb-3">
-        <label for="dateHeureResolution" class="form-label">Date et Heure de la Résolution</label>
-        <input type="datetime-local" id="dateHeureResolution" class="form-control"
-          formControlName="dateHeureResolution" />
+    <!-- Header gradient -->
+    <div class="modal-header">
+      <div class="modal-title-section">
+        <i class="fas fa-tools modal-icon"></i>
+        <h4>{{ techButtonLabel }}</h4>
       </div>
+      <button type="button" class="close-btn" (click)="closeTechPopup()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
 
-      <div class="row">
-        <!-- Mode d'intervention -->
-        <div class="col-md-12">
-          <div class="form-group mb-3">
-            <label for="modeIntervention" class="form-label">Mode d'Intervention</label>
-            <select id="modeIntervention" class="form-control" formControlName="modeIntervention">
-              <option value="">-- Sélectionner --</option>
-              <option *ngFor="let mode of modeInterventionOptions" [value]="mode">{{ mode }}</option>
-            </select>
+    <!-- Body -->
+    <div class="modal-body">
+      <form [formGroup]="techForm" (ngSubmit)="saveTechPopup()">
+
+        <!-- Intervention principale : date & durée (toujours visibles en haut si scroll) -->
+        <div class="tech-popup-main-fields">
+          <h6 class="tech-popup-main-fields-title">
+            <i class="fas fa-calendar-alt"></i> Intervention principale
+          </h6>
+          <div class="tech-inline-row mb-0">
+            <div class="tech-inline-field">
+              <label for="techMainDateHeureIntervention" class="form-label">Date et heure d'intervention</label>
+              <input type="datetime-local" id="techMainDateHeureIntervention" class="form-control"
+                formControlName="dateHeureIntervention" />
+            </div>
+            <div class="tech-inline-field">
+              <label for="techMainDureeIntervention" class="form-label">Durée</label>
+              <input type="text" id="techMainDureeIntervention" class="form-control"
+                formControlName="dureeIntervention" placeholder="Ex: 2h30" />
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Vis-à-vis client -->
-      <div class="form-group mb-3">
-        <label for="visAVisClient" class="form-label">
-          Vis-à-vis Client
-          <span *ngIf="interventionForm.get('visAVisClient')?.value"
-                class="badge-auto">✓ Auto</span>
-        </label>
-        <input type="text" id="visAVisClient" class="form-control" formControlName="visAVisClient"
-          placeholder="Contact client" />
-        <small class="text-muted" *ngIf="interventionForm.get('visAVisClient')?.value">
-          <i class="fas fa-info-circle"></i> Rempli automatiquement depuis la fiche client.
-        </small>
-      </div>
-
-      <!-- Statut: En cours de résolution et Résolu -->
-      <div class="form-group mb-3">
-        <label class="form-label">Statut</label>
-        <div class="status-checkboxes">
-          <div class="form-check">
-            <input type="checkbox" id="enCoursDeResolution" class="form-check-input"
-              formControlName="enCoursDeResolution" />
-            <label for="enCoursDeResolution" class="form-check-label">En cours de résolution</label>
-          </div>
-          <div class="form-check">
-            <input type="checkbox" id="resolu" class="form-check-input" formControlName="resolu" />
-            <label for="resolu" class="form-check-label">Résolu</label>
+        <!-- 3. Statut -->
+        <div class="form-group mb-3">
+          <label class="form-label">Statut</label>
+          <div class="status-checkboxes">
+            <div class="form-check">
+              <input type="checkbox" id="resoluTech" class="form-check-input" formControlName="resolu" />
+              <label for="resoluTech" class="form-check-label">Résolu</label>
+            </div>
+            <div class="form-check">
+              <input type="checkbox" id="enCoursDeResolutionTech" class="form-check-input"
+                formControlName="enCoursDeResolution" />
+              <label for="enCoursDeResolutionTech" class="form-check-label">En cours de résolution</label>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Tâches effectuées -->
-      <div class="form-group mb-3">
-        <label for="tachesEffectuees" class="form-label">Tâches Effectuées</label>
-        <textarea id="tachesEffectuees" class="form-control" formControlName="tachesEffectuees"
-          placeholder="Détail des tâches effectuées" rows="4"></textarea>
-      </div>
+        <!-- 4. Section "Résolu" -->
+        <div *ngIf="techForm.get('resolu')?.value" class="tech-section tech-section-success">
+          <h6 class="tech-section-title">
+            <i class="fas fa-check-circle text-success"></i> Résolution
+          </h6>
+          <div class="form-group mb-2">
+            <label for="resumeResolution" class="form-label">Résumé</label>
+            <textarea id="resumeResolution" class="form-control" formControlName="resume" rows="3"
+              placeholder="Résumé de la résolution"></textarea>
+          </div>
+          <div class="form-group mb-2">
+            <label for="dateHeureResolution" class="form-label">Date et heure de la résolution</label>
+            <input type="datetime-local" id="dateHeureResolution" class="form-control"
+              formControlName="dateHeureResolution" />
+          </div>
+          <div class="form-group mb-2">
+            <label class="form-label">Pièce jointe</label>
+            <input type="file" class="form-control" (change)="onTechResolutionFileSelected($event)" />
+            <small *ngIf="techResolutionFile" class="text-success mt-1 d-block">
+              <i class="fas fa-file"></i> {{ techResolutionFile.name }}
+            </small>
+          </div>
+        </div>
 
-      <!-- Upload de fichier -->
-      <div class="form-group mb-3">
-        <label class="form-label">Fichier Jointe</label>
+        <!-- 5. Section "En cours" -->
+        <div *ngIf="techForm.get('enCoursDeResolution')?.value || interventionLinesArray.length > 0"
+          class="tech-section tech-section-warning">
+          <h6 class="tech-section-title">
+            <i class="fas fa-clock text-warning"></i> Sessions d'intervention supplémentaires
+          </h6>
 
-        <!-- Afficher le fichier existant en mode édition -->
-        <div *ngIf="isEditMode && existingFile" class="mb-2">
-          <span class="text-success">
-            <i class="fas fa-file"></i> Fichier actuel: {{ existingFileName }}
-          </span>
-          <a [href]="getFileDownloadUrl(editingInterventionId)" target="_blank"
-            class="btn btn-sm btn-outline-primary ms-2">
-            <i class="fa fa-download"></i>
-          </a>
-          <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="deleteExistingFile()" *ngIf="permissionService.canDeleteProduct('interventioncurative')">
-            <i class="fa fa-trash"></i>
+          <div formArrayName="interventionLines">
+            <div *ngFor="let line of interventionLinesArray.controls; let i = index"
+              [formGroupName]="i" class="intervention-line-block">
+
+              <!-- Header session : numéro + actions -->
+              <div class="session-block-header">
+                <span class="session-block-title">Session {{ i + 1 }}</span>
+                <div class="line-actions">
+                  <button type="button" class="btn btn-sm btn-success line-btn"
+                    (click)="addInterventionLine()" title="Ajouter une session">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger line-btn"
+                    *ngIf="interventionLinesArray.length > 1"
+                    (click)="removeInterventionLine(i)" title="Supprimer">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Résumé de la session -->
+              <div class="form-group mb-2">
+                <label class="form-label-sm">Résumé</label>
+                <textarea class="form-control form-control-sm" formControlName="resume" rows="2"
+                  placeholder="Résumé de cette session"></textarea>
+              </div>
+
+              <!-- Date + Durée + Fichier -->
+              <div class="intervention-line-row">
+                <div class="line-field">
+                  <label class="form-label-sm">Date et heure</label>
+                  <input type="datetime-local" class="form-control form-control-sm"
+                    formControlName="dateHeureIntervention" />
+                </div>
+                <div class="line-field line-field-sm">
+                  <label class="form-label-sm">Durée</label>
+                  <input type="text" class="form-control form-control-sm"
+                    formControlName="dureeIntervention" placeholder="2h30" />
+                </div>
+                <div class="line-field">
+                  <label class="form-label-sm">Pièce jointe</label>
+                  <input type="file" class="form-control form-control-sm"
+                    (change)="onTechLineFileSelected($event, i)" />
+                  <small *ngIf="line.get('fichierOriginalName')?.value && !techInterventionFiles[i]"
+                    class="text-muted d-block mt-1">
+                    <i class="fas fa-paperclip"></i> {{ line.get('fichierOriginalName')?.value }}
+                  </small>
+                  <small *ngIf="techInterventionFiles[i]" class="text-success d-block mt-1">
+                    <i class="fas fa-file"></i> {{ techInterventionFiles[i]?.name }}
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button *ngIf="interventionLinesArray.length === 0 && techForm.get('enCoursDeResolution')?.value"
+            type="button" class="btn btn-sm btn-outline-success mt-2"
+            (click)="addInterventionLine()">
+            <i class="fas fa-plus"></i> Ajouter une session
           </button>
         </div>
 
-        <!-- Input pour nouveau fichier -->
-        <input type="file" id="fichierIntervention" class="form-control" (change)="onFileSelected($event)" />
-        <small class="text-muted">Sélectionnez un fichier à joindre (PDF, Word, etc.)</small>
-
-        <!-- Indicateur de fichier sélectionné -->
-        <div *ngIf="selectedFile" class="mt-2">
-          <span class="text-primary">
-            <i class="fas fa-paperclip"></i> Fichier sélectionné: {{ selectedFile.name }}
-          </span>
-          <button type="button" class="btn btn-sm btn-danger ms-2" (click)="clearSelectedFile()">
-            <i class="fas fa-times"></i>
+        <!-- Boutons -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeTechPopup()">
+            <i class="fas fa-times"></i> Annuler
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Enregistrer
           </button>
         </div>
-      </div>
 
-      <!-- Boutons -->
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeModal()">Annuler</button>
-        <button type="submit" class="btn btn-primary">
-          {{ isEditMode ? 'Mettre à jour' : 'Enregistrer' }}
-        </button>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 </div>

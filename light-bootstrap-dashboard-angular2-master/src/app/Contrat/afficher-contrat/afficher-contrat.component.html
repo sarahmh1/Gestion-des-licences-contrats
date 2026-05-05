@@ -1,4 +1,4 @@
-﻿<div class="master-detail-container">
+<div class="master-detail-container">
   <!-- En-tête -->
   <div class="header-row">
     <h2>Suivi des Contrats</h2>
@@ -101,25 +101,55 @@
 
           <div class="md-detail-divider" *ngIf="selectedContrat.nomProduit"></div>
 
-          <!-- Criticité, Délai Intervention, Délai Résolution -->
-          <div class="md-detail-row" *ngIf="selectedContrat.criticite">
-            <span class="md-label">Criticité</span>
-            <span class="md-value">
-              <span class="md-badge" [ngClass]="selectedContrat.criticite === 'C1' ? 'md-badge-red' : (selectedContrat.criticite === 'C2' ? 'md-badge-orange' : 'md-badge-yellow')">
-                {{ selectedContrat.criticite }}
+          <!-- Tableau SLA par criticité -->
+          <ng-container *ngIf="selectedContrat.slaList && selectedContrat.slaList.length > 0; else legacySla">
+            <div class="md-detail-section-title">SLA par criticité</div>
+            <div class="sla-detail-table">
+              <div class="sla-detail-head">
+                <span>Criticité</span>
+                <span>Délai Max d'Intervention</span>
+                <span>Délai Max de Résolution</span>
+              </div>
+              <div class="sla-detail-row" *ngFor="let sla of selectedContrat.slaList">
+                <span class="md-badge"
+                  [ngClass]="{
+                    'md-badge-red':    sla.criticite === 'C1',
+                    'md-badge-orange': sla.criticite === 'C2',
+                    'md-badge-yellow': sla.criticite === 'C3',
+                    'md-badge-green':  sla.criticite === 'C4'
+                  }">
+                  {{ sla.criticite }}
+                </span>
+                <span><strong *ngIf="sla.delaiMaxIntervention">{{ sla.delaiMaxIntervention }}h</strong>
+                  <span *ngIf="!sla.delaiMaxIntervention">—</span></span>
+                <span><strong *ngIf="sla.delaiMaxResolution">{{ sla.delaiMaxResolution }}h</strong>
+                  <span *ngIf="!sla.delaiMaxResolution">—</span></span>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Fallback ancienne structure -->
+          <ng-template #legacySla>
+            <div class="md-detail-row" *ngIf="selectedContrat.criticite">
+              <span class="md-label">Criticité</span>
+              <span class="md-value">
+                <span class="md-badge"
+                  [ngClass]="selectedContrat.criticite === 'C1' ? 'md-badge-red' : (selectedContrat.criticite === 'C2' ? 'md-badge-orange' : 'md-badge-yellow')">
+                  {{ selectedContrat.criticite }}
+                </span>
               </span>
-            </span>
-          </div>
+            </div>
 
-          <div class="md-detail-row" *ngIf="selectedContrat.delaiMaxIntervention">
-            <span class="md-label">Délai Max d'Intervention</span>
-            <span class="md-value">{{ selectedContrat.delaiMaxIntervention }}</span>
-          </div>
+            <div class="md-detail-row" *ngIf="selectedContrat.delaiMaxIntervention">
+              <span class="md-label">Délai Max d'Intervention</span>
+              <span class="md-value"><strong>{{ selectedContrat.delaiMaxIntervention }}j</strong></span>
+            </div>
 
-          <div class="md-detail-row" *ngIf="selectedContrat.delaiMaxResolution">
-            <span class="md-label">Délai Max de Résolution</span>
-            <span class="md-value">{{ selectedContrat.delaiMaxResolution }}</span>
-          </div>
+            <div class="md-detail-row" *ngIf="selectedContrat.delaiMaxResolution">
+              <span class="md-label">Délai Max de Résolution</span>
+              <span class="md-value"><strong>{{ selectedContrat.delaiMaxResolution }}j</strong></span>
+            </div>
+          </ng-template>
 
           <div class="md-detail-divider"></div>
 
@@ -204,31 +234,67 @@
           </select>
         </div>
 
-        <!-- Criticite + Délais (sur la même ligne) -->
-        <div class="row">
-          <div class="col-md-4">
-            <div class="form-group mb-3">
-              <label for="criticite" class="form-label">Criticité</label>
-              <select id="criticite" class="form-control" formControlName="criticite">
-                <option value="">-- Sélectionner --</option>
-                <option value="C1">C1</option>
-                <option value="C2">C2</option>
-                <option value="C3">C3</option>
-              </select>
+        <!-- SLA par criticité (lignes dynamiques C1, C2, C3, C4) -->
+        <div class="sla-section">
+          <div class="sla-section-header">
+            <label class="form-label sla-section-title">SLA par criticité (en heures)</label>
+            <small class="sla-section-hint">Ex : 24h = 1 jour, 48h = 2 jours. Champs optionnels.</small>
+          </div>
+
+          <div formArrayName="slaList" class="sla-list">
+            <div *ngFor="let slaCtrl of slaListArray.controls; let i = index"
+              [formGroupName]="i" class="sla-row">
+
+              <!-- Badge criticité -->
+              <div class="sla-cell sla-criticite-cell">
+                <span class="sla-criticite-badge"
+                  [ngClass]="{
+                    'sla-c1': slaCtrl.get('criticite')?.value === 'C1',
+                    'sla-c2': slaCtrl.get('criticite')?.value === 'C2',
+                    'sla-c3': slaCtrl.get('criticite')?.value === 'C3',
+                    'sla-c4': slaCtrl.get('criticite')?.value === 'C4'
+                  }">
+                  {{ slaCtrl.get('criticite')?.value }}
+                </span>
+                <input type="hidden" formControlName="criticite" />
+              </div>
+
+              <!-- Délai Max d'Intervention (heures) -->
+              <div class="sla-cell">
+                <label class="sla-cell-label">Délai Max d'Intervention</label>
+                <div class="delai-input-group">
+                  <input type="number" class="form-control" formControlName="delaiMaxIntervention"
+                    placeholder="Ex: 24, 48" min="1" />
+                  <span class="delai-suffix">h</span>
+                </div>
+              </div>
+
+              <!-- Délai Max de Résolution (heures) -->
+              <div class="sla-cell">
+                <label class="sla-cell-label">Délai Max de Résolution</label>
+                <div class="delai-input-group">
+                  <input type="number" class="form-control" formControlName="delaiMaxResolution"
+                    placeholder="Ex: 48, 72" min="1" />
+                  <span class="delai-suffix">h</span>
+                </div>
+              </div>
+
+              <!-- Bouton supprimer -->
+              <div class="sla-cell sla-action-cell">
+                <button type="button" class="btn btn-sm sla-remove-btn"
+                  (click)="removeSlaRow(i)" *ngIf="slaListArray.length > 1"
+                  title="Supprimer cette ligne">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
             </div>
           </div>
-          <div class="col-md-4">
-            <div class="form-group mb-3">
-              <label for="delaiMaxIntervention" class="form-label">Délai Max d'Intervention</label>
-              <input type="number" id="delaiMaxIntervention" class="form-control" formControlName="delaiMaxIntervention" placeholder="Ex: 4, 8" />
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="form-group mb-3">
-              <label for="delaiMaxResolution" class="form-label">Délai Max de Résolution</label>
-              <input type="number" id="delaiMaxResolution" class="form-control" formControlName="delaiMaxResolution" placeholder="Ex: 24, 48" />
-            </div>
-          </div>
+
+          <!-- Bouton + pour ajouter une criticité -->
+          <button type="button" class="btn btn-sm sla-add-btn" (click)="addSlaRow()"
+            *ngIf="canAddSla()">
+            <i class="fas fa-plus"></i> Ajouter une criticité
+          </button>
         </div>
 
         <div class="row">

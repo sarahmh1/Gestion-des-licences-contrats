@@ -268,6 +268,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                         .requestMatchers(HttpMethod.GET, "/InterventionCurative/{id}/download").permitAll() // Téléchargement
                                                                                                    // fichiers
                                                                                                    // InterventionCurative par ID
+                        .requestMatchers(HttpMethod.GET, "/InterventionCurative/session/{sessionId}/download").permitAll() // Téléchargement fichiers de session
                         .requestMatchers(HttpMethod.GET, "/InterventionPreventive/{id}/download").permitAll() // Téléchargement
                                                                                                    // fichiers
                                                                                                    // InterventionPreventive par ID

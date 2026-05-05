@@ -1,9 +1,6 @@
 package com.example.projet2024.controller;
 
 import com.example.projet2024.entite.ESET;
-import com.example.projet2024.entite.ESETCI;
-import com.example.projet2024.entite.ESETFR;
-import com.example.projet2024.entite.ESETNFR;
 import com.example.projet2024.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -31,12 +28,6 @@ import java.util.UUID;
 public class EsetController {
     @Autowired
     private EsetServiceImpl esetService   ;
-    @Autowired
-private EsetFrServiceImpl esetFrService ;
-    @Autowired
-    private EsetCIServiceImpl esetCIService ;
-    @Autowired
-    private EsetNFRServiceImpl esetNFRService ;
     @Autowired
     private EmailService emailService;
 
@@ -146,91 +137,7 @@ public ResponseEntity<?> addEset(@RequestBody ESET eset){
         esetService.activate(id);
     }
 
-    /////////////////////////////////////////////////////////
-    @PostMapping("/addESETCI")
-    public ESETCI addEset(@RequestBody ESETCI eset){
-            return  esetCIService.addESET(eset);
-    }
-    @PutMapping("/updateESETCI")
-    public ESETCI updateEset(@RequestBody ESETCI eset){
-        return  esetCIService.updateESET(eset);
-    }
-    @GetMapping("/get/esetci/{id}")
-    public ESETCI getByIdCI(@PathVariable("id-ESETCI") Long esetid){
-        return esetCIService.retrieveESET(esetid);
-    }
-    @GetMapping("/allESETCI")
-    public List<ESETCI> getAllesetsCI(){
-        return esetCIService.retrieveAllESETs();
-    }
-
-    @DeleteMapping("/Delete-ESETCI/{ESETCI-id}")
-    public void deleteByIdCI(@PathVariable("ESETCI-id") Long esetid) {
-        esetCIService.deleteById(esetid);
-    }
-
-    @PutMapping("/approuveCI/{id}")
-    public void activateArticleCI(@PathVariable("id") Long id) {
-        esetCIService.activate(id);
-    }
-
-    ///////////////////////////////////////////
-
-    @PostMapping("/addESETFR")
-    public ESETFR addEsetFR(@RequestBody ESETFR eset){
-        return  esetFrService.addESETFR(eset);
-    }
-    @PutMapping("/updateEsetFR")
-    public ESETFR updateEsetFR(@RequestBody ESETFR eset){
-        return  esetFrService.updateESETFR(eset);
-    }
-    @GetMapping("/get/esetfr/{id}")
-    public ESETFR getByIdFR(@PathVariable("id-EsetFR") Long esetid){
-        return esetFrService.retrieveFRESET(esetid);
-    }
-    @GetMapping("/allEsetFR")
-    public List<ESETFR> getAllesetsFR(){
-        return esetFrService.retrieveAllESETsFR();
-    }
-
-    @DeleteMapping("/Delete-ESETFR/{EsetFR-id}")
-    public void deleteByIdFR(@PathVariable("EsetFR-id") Long esetid) {
-        esetFrService.deleteByIdFR(esetid);
-    }
-
-    @PutMapping("/approuveFR/{id}")
-    public void activateArticleFR(@PathVariable("id") Long id) {
-        esetFrService.activateFR(id);
-    }
-/////////////////////////
-
-@PostMapping("/addESETNFR")
-public ESETNFR addEset(@RequestBody ESETNFR eset){
-    return  esetNFRService.addESET(eset);
-}
-    @PutMapping("/updateESETNFR")
-    public ESETNFR updateEset(@RequestBody ESETNFR eset){
-        return  esetNFRService.updateESET(eset);
-    }
-    @GetMapping("/get/esetnfr/{id}")
-    public ESETNFR getByIdNFR(@PathVariable("id-ESETNFR") Long esetid){
-        return esetNFRService.retrieveESET(esetid);
-    }
-    @GetMapping("/allESETNFR")
-    public List<ESETNFR> getAllesetsNFR(){
-        return esetNFRService.retrieveAllESETs();
-    }
-
-    @DeleteMapping("/Delete-ESETNFR/{ESETNFR-id}")
-    public void deleteByIdNFR(@PathVariable("ESETNFR-id") Long esetid) {
-        esetNFRService.deleteById(esetid);
-    }
-
-    @PutMapping("/approuveNFR/{id}")
-    public void activateArticleNFR(@PathVariable("id") Long id) {
-        esetNFRService.activate(id);
-    }
-
+   
     // ==================== GESTION DES FICHIERS ESET ====================
     
     private final Path fileStorageLocation = Paths.get("uploads/eset-files").toAbsolutePath().normalize();

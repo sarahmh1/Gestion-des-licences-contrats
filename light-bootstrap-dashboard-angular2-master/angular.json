@@ -38,7 +38,11 @@
           },
           "configurations": {
             "production": {
-              "optimization": true,
+              "optimization": {
+                "scripts": true,
+                "styles": true,
+                "fonts": false
+              },
               "outputHashing": "all",
               "sourceMap": false,
               "namedChunks": false,
@@ -64,7 +68,7 @@
                   "minify": false,
                   "inlineCritical": true
                 },
-                "fonts": true
+                "fonts": false
               },
               "outputHashing": "all"
             }
