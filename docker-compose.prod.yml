@@ -1,0 +1,19 @@
+# Override pour la VM SOC (GitHub Actions deploy).
+# Usage : docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-build
+#
+# Variables :
+#   IMAGE_TAG  — ex. sha-a1b2c3d (défaut : latest)
+# Fichier .env sur la VM (non versionné) : mail SMTP, APP_FRONTEND_BASE_URL, etc.
+
+services:
+  backend:
+    image: sarahmhadhbi/gestion-licences-backend:${IMAGE_TAG:-latest}
+    pull_policy: always
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
+
+  frontend:
+    image: sarahmhadhbi/gestion-licences-frontend:${IMAGE_TAG:-latest}
+    pull_policy: always
