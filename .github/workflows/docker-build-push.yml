@@ -18,15 +18,84 @@ env:
   FRONTEND_IMAGE: sarahmhadhbi/gestion-licences-frontend
 
 jobs:
-  build-and-push:
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - name: Compute image tag
+        id: tag
+        run: echo "tag=sha-$(echo "${GITHUB_SHA}" | cut -c1-7)" >> "$GITHUB_OUTPUT"
+
+  build-backend:
+    needs: meta
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Image tag
-        id: meta
-        run: echo "tag=sha-$(echo "${GITHUB_SHA}" | cut -c1-7)" >> "$GITHUB_OUTPUT"
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./projet2024
+          push: false
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:${{ needs.meta.outputs.image_tag }}
+            ${{ env.BACKEND_IMAGE }}:latest
+          outputs: type=docker,dest=${{ runner.temp }}/backend-image.tar
+
+      - name: Upload backend image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-image
+          path: ${{ runner.temp }}/backend-image.tar
+          retention-days: 1
+
+  build-frontend:
+    needs: meta
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./light-bootstrap-dashboard-angular2-master
+          push: false
+          tags: |
+            ${{ env.FRONTEND_IMAGE }}:${{ needs.meta.outputs.image_tag }}
+            ${{ env.FRONTEND_IMAGE }}:latest
+          outputs: type=docker,dest=${{ runner.temp }}/frontend-image.tar
+
+      - name: Upload frontend image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-image
+          path: ${{ runner.temp }}/frontend-image.tar
+          retention-days: 1
+
+  push:
+    needs: [meta, build-backend, build-frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download backend image
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-image
+          path: ${{ runner.temp }}/images
+
+      - name: Download frontend image
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-image
+          path: ${{ runner.temp }}/images
+
+      - name: Load images into Docker
+        run: |
+          docker load -i "${{ runner.temp }}/images/backend-image.tar"
+          docker load -i "${{ runner.temp }}/images/frontend-image.tar"
+          docker images | grep gestion-licences
 
       - name: Login Docker Hub
         uses: docker/login-action@v3
@@ -34,28 +103,20 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push backend
-        uses: docker/build-push-action@v6
-        with:
-          context: ./projet2024
-          push: true
-          tags: |
-            ${{ env.BACKEND_IMAGE }}:${{ steps.meta.outputs.tag }}
-            ${{ env.BACKEND_IMAGE }}:latest
+      - name: Push backend tags
+        run: |
+          docker push "${{ env.BACKEND_IMAGE }}:${{ needs.meta.outputs.image_tag }}"
+          docker push "${{ env.BACKEND_IMAGE }}:latest"
 
-      - name: Build and push frontend
-        uses: docker/build-push-action@v6
-        with:
-          context: ./light-bootstrap-dashboard-angular2-master
-          push: true
-          tags: |
-            ${{ env.FRONTEND_IMAGE }}:${{ steps.meta.outputs.tag }}
-            ${{ env.FRONTEND_IMAGE }}:latest
+      - name: Push frontend tags
+        run: |
+          docker push "${{ env.FRONTEND_IMAGE }}:${{ needs.meta.outputs.image_tag }}"
+          docker push "${{ env.FRONTEND_IMAGE }}:latest"
 
       - name: Summary
         run: |
-          echo "Images poussées :"
-          echo "  ${{ env.BACKEND_IMAGE }}:${{ steps.meta.outputs.tag }}"
+          echo "Images poussées sur Docker Hub :"
+          echo "  ${{ env.BACKEND_IMAGE }}:${{ needs.meta.outputs.image_tag }}"
           echo "  ${{ env.BACKEND_IMAGE }}:latest"
-          echo "  ${{ env.FRONTEND_IMAGE }}:${{ steps.meta.outputs.tag }}"
+          echo "  ${{ env.FRONTEND_IMAGE }}:${{ needs.meta.outputs.image_tag }}"
           echo "  ${{ env.FRONTEND_IMAGE }}:latest"

@@ -7,7 +7,19 @@ Dans le dépôt : **Settings → Secrets and variables → Actions → New repos
 | Nom | Valeur |
 |-----|--------|
 | `DOCKERHUB_USERNAME` | `sarahmhadhbi` |
-| `DOCKERHUB_TOKEN` | Token d’accès Docker Hub (Account Settings → Security) |
+| `DOCKERHUB_TOKEN` | Token Docker Hub (voir ci-dessous) |
+
+### Erreur `access token has insufficient scopes`
+
+Le secret doit être un **Access Token Docker Hub**, pas un token GitHub.
+
+1. [hub.docker.com](https://hub.docker.com) → **Account Settings** → **Security** → **New Access Token**
+2. Description : `github-actions`
+3. Permissions : **Read, Write, Delete** (au minimum **Read & Write**)
+4. Copier le token → mettre à jour le secret `DOCKERHUB_TOKEN` sur GitHub
+5. Relancer le workflow (**Actions** → run en échec → **Re-run jobs**)
+
+Le workflow sépare **build** (sans login) et **push** (login uniquement dans le job `push`).
 
 ## 2. Runner self-hosted sur la VM
 
