@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { VMware } from 'app/Model/VMware';
@@ -41,7 +42,7 @@ export class UpdateVMwareComponent implements OnInit {
         adresseEmailContact: ['', [Validators.required, Validators.email]],
         mailAdmin: ['', Validators.email],
         ccMail: this.fb.array([]),
-        numero: [''],
+        numero: ['', AppValidators.optionalPhone],
         remarque: [''],
         sousContrat: [false],
         licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
@@ -62,7 +63,7 @@ export class UpdateVMwareComponent implements OnInit {
     createLicenceGroup(): FormGroup {
       return this.fb.group({
         nomDesLicences: ['', Validators.required],
-        quantite: ['', Validators.required],
+        quantite: ['', AppValidators.requiredQuantity],
         dateEx: ['', Validators.required]
       });
     }
@@ -72,7 +73,7 @@ export class UpdateVMwareComponent implements OnInit {
     }
   // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par dï¿½faut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -85,7 +86,7 @@ export class UpdateVMwareComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par défaut
+        return CommandePasserPar.GI_TN; // Valeur par dï¿½faut
     }
   }
     removeLicence(index: number): void {
@@ -115,7 +116,7 @@ export class UpdateVMwareComponent implements OnInit {
             data.licences.forEach(lic => {
               this.licences.push(this.fb.group({
                 nomDesLicences: [lic.nomDesLicences, Validators.required],
-                quantite: [lic.quantite, Validators.required],
+                quantite: [lic.quantite, AppValidators.requiredQuantity],
                 dateEx: [this.formatDate(lic.dateEx), Validators.required]
               }));
             });
@@ -134,7 +135,7 @@ export class UpdateVMwareComponent implements OnInit {
           }
         },
         error => {
-          console.error('Erreur récupération VMware:', error);
+          console.error('Erreur rï¿½cupï¿½ration VMware:', error);
         }
       );
     }
@@ -145,8 +146,12 @@ export class UpdateVMwareComponent implements OnInit {
     }
   
     updateVMware(): void {
-      if (this.updateForm.valid) {
-        const updatedVMware: VMware = {
+      if (!this.updateForm.valid) {
+      this.updateForm.markAllAsTouched();
+      return;
+    }
+
+            const updatedVMware: VMware = {
           vmwareId: this.vmwareId,
           ...this.updateForm.value,
           fichier: this.vmware.fichier,
@@ -155,30 +160,28 @@ export class UpdateVMwareComponent implements OnInit {
 
         this.vmwareService.updateVMware(updatedVMware).subscribe(
           () => {
-            console.log('VMware mis à jour avec succès');
+            console.log('VMware mis ï¿½ jour avec succï¿½s');
             this.router.navigate(['/Affichervmw']);
           },
           error => {
-            console.error('Erreur mise à jour VMware:', error);
+            console.error('Erreur mise ï¿½ jour VMware:', error);
           }
         );
-      } else {
-        console.error('Formulaire invalide', this.updateForm);
-      }
+      
     }
 
     onFileSelected(event: any): void {
       const file = event.target.files[0];
       if (file) {
         this.selectedFile = file;
-        // Upload immédiat du fichier
+        // Upload immï¿½diat du fichier
         this.vmwareService.uploadFile(this.vmwareId, file).subscribe(
           (response: VMware) => {
             this.vmware.fichier = response.fichier;
             this.vmware.fichierOriginalName = response.fichierOriginalName;
             this.selectedFile = null;
             this.cdr.detectChanges();
-            window.alert('Fichier uploadé avec succès');
+            window.alert('Fichier uploadï¿½ avec succï¿½s');
           },
           (error) => {
             console.error('Erreur upload fichier:', error);
@@ -195,7 +198,7 @@ export class UpdateVMwareComponent implements OnInit {
             this.vmware.fichier = undefined;
             this.vmware.fichierOriginalName = undefined;
             this.cdr.detectChanges();
-            window.alert('Fichier supprimé avec succès');
+            window.alert('Fichier supprimï¿½ avec succï¿½s');
           },
           (error) => {
             console.error('Erreur suppression fichier:', error);

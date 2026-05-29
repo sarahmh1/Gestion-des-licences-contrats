@@ -11,6 +11,7 @@ import { AdminLayoutRoutes } from './admin-layout.routing';
 import { JhFormatPipe } from '../../shared/jh-format.pipe';
 import { SearchableClientSelectComponent } from '../../shared/searchable-client-select/searchable-client-select.component';
 import { SearchableUserSelectComponent } from '../../shared/searchable-user-select/searchable-user-select.component';
+import { SharedDirectivesModule } from '../../shared/shared-directives.module';
 
 import { HomeComponent } from '../../home/home.component';
 //import { UserComponent } from '../../user/user.component';
@@ -128,6 +129,7 @@ import { AfficherInterventionCurativeComponent } from '../../InterventionCurativ
 import { AfficherInterventionPreventiveComponent } from '../../intervention-preventive/afficher-intervention-preventive/afficher-intervention-preventive.component';
 import { ClientStatsComponent } from '../../client-stats/client-stats/client-stats.component';
 import { HistoriqueContratComponent } from '../../Contrat/historique-contrat/historique-contrat.component';
+import { AssistantUiModule } from '../../assistant/assistant-ui.module';
 
 
 
@@ -137,6 +139,8 @@ import { HistoriqueContratComponent } from '../../Contrat/historique-contrat/his
     RouterModule.forChild(AdminLayoutRoutes),
     FormsModule,
     ReactiveFormsModule,
+    AssistantUiModule,
+    SharedDirectivesModule,
     LbdModule,
     NguiMapModule.forRoot({ apiUrl: 'https://maps.google.com/maps/api/js?key=YOUR_KEY_HERE' })
   ],

@@ -228,10 +228,11 @@
       <div class="cs-field-section">
         <div class="cs-section-title"><span class="cs-section-dot"></span>N Telephone <span
             class="cs-optional-badge">Optionnel</span></div>
+        <p class="text-danger small" *ngIf="telValidationError">{{ telValidationError }}</p>
         <div *ngFor="let v of newClient.numTel; let i = index; trackBy: trackByIndex" class="cs-multi-row">
           <div class="cs-input-icon-wrap"><i class="fas fa-phone cs-input-icon"></i>
             <input type="text" class="cs-input" placeholder="+216 XX XXX XXX" [name]="'tel_' + i"
-              [(ngModel)]="newClient.numTel[i]" />
+              [(ngModel)]="newClient.numTel[i]" appNumbersOnly maxlength="8" />
           </div>
           <div class="cs-multi-actions">
             <button class="cs-btn-add" type="button" (click)="addItem(newClient.numTel)"><i
@@ -327,9 +328,10 @@
       <div class="cs-field-section">
         <div class="cs-section-title"><span class="cs-section-dot"></span>N Telephone <span
             class="cs-optional-badge">Optionnel</span></div>
+        <p class="text-danger small" *ngIf="telValidationError">{{ telValidationError }}</p>
         <div *ngFor="let v of editTels; let i = index; trackBy: trackByIndex" class="cs-multi-row">
           <div class="cs-input-icon-wrap"><i class="fas fa-phone cs-input-icon"></i>
-            <input type="text" class="cs-input" [name]="'etel_' + i" [(ngModel)]="editTels[i]" />
+            <input type="text" class="cs-input" [name]="'etel_' + i" [(ngModel)]="editTels[i]" appNumbersOnly maxlength="8" />
           </div>
           <div class="cs-multi-actions">
             <button class="cs-btn-add" type="button" (click)="addItem(editTels)"><i class="fas fa-plus"></i></button>

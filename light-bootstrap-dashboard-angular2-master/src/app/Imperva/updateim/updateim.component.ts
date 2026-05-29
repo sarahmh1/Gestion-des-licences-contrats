@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Imperva } from 'app/Model/Imperva';
@@ -42,7 +43,7 @@ export class UpdateImpervaComponent implements OnInit {
         mailAdmin: ['', Validators.email],
          commandePasserPar: ['', Validators.required],
         ccMail: this.fb.array([]),
-        numero: [''],
+        numero: ['', AppValidators.optionalPhone],
         remarque: [''],
         sousContrat: [false],
         licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
@@ -61,7 +62,7 @@ export class UpdateImpervaComponent implements OnInit {
     }
     // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par dï¿½faut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -74,13 +75,13 @@ export class UpdateImpervaComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par défaut
+        return CommandePasserPar.GI_TN; // Valeur par dï¿½faut
     }
   }
     createLicenceGroup(): FormGroup {
       return this.fb.group({
         nomDesLicences: ['', Validators.required],
-        quantite: ['', Validators.required],
+        quantite: ['', AppValidators.requiredQuantity],
         dateEx: ['', Validators.required]
       });
     }
@@ -118,7 +119,7 @@ export class UpdateImpervaComponent implements OnInit {
             data.licences.forEach(lic => {
               this.licences.push(this.fb.group({
                 nomDesLicences: [lic.nomDesLicences, Validators.required],
-                quantite: [lic.quantite, Validators.required],
+                quantite: [lic.quantite, AppValidators.requiredQuantity],
                 dateEx: [this.formatDate(lic.dateEx), Validators.required]
               }));
             });
@@ -137,7 +138,7 @@ export class UpdateImpervaComponent implements OnInit {
           }
         },
         error => {
-          console.error('Erreur récupération imperva:', error);
+          console.error('Erreur rï¿½cupï¿½ration imperva:', error);
         }
       );
     }
@@ -148,8 +149,12 @@ export class UpdateImpervaComponent implements OnInit {
     }
   
     updateImperva(): void {
-      if (this.updateForm.valid) {
-        const updatedImperva: Imperva = {
+      if (!this.updateForm.valid) {
+      this.updateForm.markAllAsTouched();
+      return;
+    }
+
+            const updatedImperva: Imperva = {
           impervaId: this.impervaId,
           ...this.updateForm.value,
           fichier: this.currentFileName,
@@ -158,16 +163,14 @@ export class UpdateImpervaComponent implements OnInit {
   
         this.impervaService.updateImperva(updatedImperva).subscribe(
           () => {
-            console.log('Imperva mis à jour avec succès');
+            console.log('Imperva mis ï¿½ jour avec succï¿½s');
             this.router.navigate(['/Afficherim']);
           },
           error => {
-            console.error('Erreur mise à jour Imperva:', error);
+            console.error('Erreur mise ï¿½ jour Imperva:', error);
           }
         );
-      } else {
-        console.error('Formulaire invalide', this.updateForm);
-      }
+      
     }
   
     onSubmit(): void {
@@ -186,7 +189,7 @@ export class UpdateImpervaComponent implements OnInit {
           (updatedImperva) => {
             this.currentFileName = updatedImperva.fichier || null;
             this.currentFileOriginalName = updatedImperva.fichierOriginalName || null;
-            window.alert('Fichier uploadé avec succès');
+            window.alert('Fichier uploadï¿½ avec succï¿½s');
           },
           error => {
             console.error('Erreur upload fichier:', error);
@@ -206,7 +209,7 @@ export class UpdateImpervaComponent implements OnInit {
           () => {
             this.currentFileName = null;
             this.currentFileOriginalName = null;
-            window.alert('Fichier supprimé avec succès');
+            window.alert('Fichier supprimï¿½ avec succï¿½s');
           },
           error => {
             console.error('Erreur suppression fichier:', error);

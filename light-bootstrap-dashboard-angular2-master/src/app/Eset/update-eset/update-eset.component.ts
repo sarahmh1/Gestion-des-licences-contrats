@@ -7,6 +7,7 @@ import { TypeAchat } from 'app/Model/TypeAchat';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { HttpEventType } from '@angular/common/http';
 import { ClientService, Client } from '../../Services/client.service';
+import { AppValidators } from '../../shared/validators/app-validators';
 
 @Component({
   selector: 'app-update-eset',
@@ -33,7 +34,7 @@ export class UpdateEsetComponent implements OnInit {
   currentFileName: string | null = null;
   currentFileOriginalName: string | null = null;
 
-  // Variables pour le modal de succès
+  // Variables pour le modal de succï¿½s
   showSuccessModal: boolean = false;
   successMessage: string = '';
   successTitle: string = '';
@@ -55,7 +56,7 @@ export class UpdateEsetComponent implements OnInit {
     this.clientService.getAllClients().subscribe(data => this.clients = data);
     this.initializeForm();
     
-    // Si l'ESET est passé en Input (mode modal), l'utiliser
+    // Si l'ESET est passï¿½ en Input (mode modal), l'utiliser
     if (this.esetToEdit) {
       this.eset = this.esetToEdit;
       this.esetid = this.esetToEdit.esetid!;
@@ -77,7 +78,7 @@ export class UpdateEsetComponent implements OnInit {
       identifiant: ['', Validators.required],
       cle_de_Licence: ['', Validators.required],
       nom_produit: ['', Validators.required],
-      nombre: [1, [Validators.required, Validators.min(1)]],
+      nombre: ['', AppValidators.requiredQuantity],
       nmb_tlf: ['', [ Validators.pattern(/^\d+$/)]],
       nom_contact: [''],
       dureeDeLicence: [''],
@@ -97,7 +98,7 @@ export class UpdateEsetComponent implements OnInit {
     this.esetService.getEsetById(this.esetid).subscribe(
       (data: Eset) => {
         this.eset = data;
-        console.log('Eset reçu:', this.eset);
+        console.log('Eset reï¿½u:', this.eset);
         this.populateForm(data);
         // Charger le nom du fichier existant
         if (data.fichier) {
@@ -106,13 +107,13 @@ export class UpdateEsetComponent implements OnInit {
         }
       },
       (error) => {
-        console.error('Erreur lors de la récupération d\'ESET:', error);
+        console.error('Erreur lors de la rï¿½cupï¿½ration d\'ESET:', error);
       }
     );
   }
 
   populateForm(data: Eset): void {
-    // Préparer la date au format yyyy-MM-dd pour input date
+    // Prï¿½parer la date au format yyyy-MM-dd pour input date
     let dateExStr = '';
     if (data.dateEx) {
       const date = new Date(data.dateEx);
@@ -125,7 +126,7 @@ export class UpdateEsetComponent implements OnInit {
       identifiant: data.identifiant ?? '',
       cle_de_Licence: data.cle_de_Licence ?? '',
       nom_produit: data.nom_produit ?? '',
-      nombre: data.nombre ?? 1,
+      nombre: data.nombre != null ? String(data.nombre) : '',
       nmb_tlf: data.nmb_tlf ? data.nmb_tlf.toString() : '',
       nom_contact: data.nom_contact ?? '',
       dureeDeLicence: data.dureeDeLicence ?? '',
@@ -167,8 +168,12 @@ export class UpdateEsetComponent implements OnInit {
   }
 
   updateEset(): void {
-    if (this.updateForm.valid) {
-      const formValue = this.updateForm.value;
+    if (!this.updateForm.valid) {
+      this.updateForm.markAllAsTouched();
+      return;
+    }
+
+    const formValue = this.updateForm.value;
       
       const updatedEset: Eset = {
         esetid: this.esetid,
@@ -191,30 +196,25 @@ export class UpdateEsetComponent implements OnInit {
         approuve: this.eset.approuve // Conserver le statut d'approbation
       };
 
-      console.log('Données envoyées au serveur:', updatedEset);
+      console.log('Donnï¿½es envoyï¿½es au serveur:', updatedEset);
 
       this.esetService.updateEset(updatedEset).subscribe(
         () => {
-          console.log('Eset mis à jour avec succès');
-          this.successTitle = 'Succès';
-          this.successMessage = 'ESET mise à jour avec succès!';
+          console.log('Eset mis ï¿½ jour avec succï¿½s');
+          this.successTitle = 'Succï¿½s';
+          this.successMessage = 'ESET mise ï¿½ jour avec succï¿½s!';
           this.showSuccessModal = true;
           
-          // Émettre l'événement au lieu de naviguer
+          // ï¿½mettre l'ï¿½vï¿½nement au lieu de naviguer
           setTimeout(() => {
             this.updated.emit();
           }, 1500);
         },
         (error) => {
-          console.error('Erreur mise à jour ESET:', error);
-          alert('Erreur lors de la mise à jour: ' + (error.error?.message || error.message));
+          console.error('Erreur mise ï¿½ jour ESET:', error);
+          alert('Erreur lors de la mise ï¿½ jour: ' + (error.error?.message || error.message));
         }
       );
-    } else {
-      console.error('Formulaire invalide', this.updateForm);
-      this.markFormGroupTouched(this.updateForm);
-      alert('Veuillez corriger les erreurs dans le formulaire');
-    }
   }
 
   private markFormGroupTouched(formGroup: FormGroup) {
@@ -254,7 +254,7 @@ export class UpdateEsetComponent implements OnInit {
 
   uploadFile(): void {
     if (!this.selectedFile) {
-      this.uploadMessage = 'Veuillez sélectionner un fichier';
+      this.uploadMessage = 'Veuillez sï¿½lectionner un fichier';
       this.uploadSuccess = false;
       return;
     }
@@ -271,7 +271,7 @@ export class UpdateEsetComponent implements OnInit {
           this.uploading = false;
           if (event.body.success) {
             this.uploadSuccess = true;
-            this.uploadMessage = 'Fichier uploadé avec succès!';
+            this.uploadMessage = 'Fichier uploadï¿½ avec succï¿½s!';
             this.currentFileName = event.body.fichier;
             this.currentFileOriginalName = event.body.originalName || this.selectedFile?.name;
             this.selectedFile = null;
@@ -298,12 +298,12 @@ export class UpdateEsetComponent implements OnInit {
   }
 
   deleteFile(): void {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce fichier?')) {
+    if (confirm('ï¿½tes-vous sï¿½r de vouloir supprimer ce fichier?')) {
       this.esetService.deleteFile(this.esetid).subscribe({
         next: (response: any) => {
           if (response.success) {
             this.currentFileName = null;
-            this.uploadMessage = 'Fichier supprimé avec succès';
+            this.uploadMessage = 'Fichier supprimï¿½ avec succï¿½s';
             this.uploadSuccess = true;
           } else {
             this.uploadMessage = response.message || 'Erreur lors de la suppression';
@@ -328,7 +328,7 @@ export class UpdateEsetComponent implements OnInit {
   }
 
   onCancel(): void {
-    // Émettre l'événement d'annulation si des observateurs écoutent (mode modal)
+    // ï¿½mettre l'ï¿½vï¿½nement d'annulation si des observateurs ï¿½coutent (mode modal)
     if (this.cancelled.observers.length) {
       this.cancelled.emit();
     } else {

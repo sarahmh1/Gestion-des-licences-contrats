@@ -13,6 +13,7 @@ export class ExpiredProofpointComponent implements OnInit {
   filteredExpiredProofpoints: Proofpoint[] = [];
   pagedExpiredProofpoints: Proofpoint[] = [];
   searchTerm: string = '';
+  selectedProofpoint: Proofpoint | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -92,8 +93,19 @@ export class ExpiredProofpointComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectProofpoint(item: Proofpoint): void {
+    this.selectedProofpoint = item;
+  }
+
+  closeDetail(): void {
+    this.selectedProofpoint = null;
+  }
+
   desapprouve(id: number): void {
     this.proofpointService.activate(id).subscribe(() => {
+      if (this.selectedProofpoint?.proofpointId === id) {
+        this.selectedProofpoint = null;
+      }
       // Après désapprobation, retirer le Proofpoint de la liste approuvée locale
       this.expiredProofpoints = this.expiredProofpoints.filter(proofpoint => proofpoint.proofpointId !== id);
       this.filteredExpiredProofpoints = this.filteredExpiredProofpoints.filter(proofpoint => proofpoint.proofpointId !== id);

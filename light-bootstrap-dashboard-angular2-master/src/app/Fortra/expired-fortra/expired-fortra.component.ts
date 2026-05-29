@@ -13,6 +13,7 @@ export class ExpiredFortraComponent implements OnInit {
   filteredExpiredFortras: Fortra[] = [];
   pagedExpiredFortras: Fortra[] = [];
   searchTerm: string = '';
+  selectedFortra: Fortra | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -92,8 +93,19 @@ export class ExpiredFortraComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectFortra(item: Fortra): void {
+    this.selectedFortra = item;
+  }
+
+  closeDetail(): void {
+    this.selectedFortra = null;
+  }
+
   desapprouve(id: number): void {
     this.fortraService.activate(id).subscribe(() => {
+      if (this.selectedFortra?.fortraId === id) {
+        this.selectedFortra = null;
+      }
       // Après désapprobation, retirer le Fortra de la liste approuvée locale
       this.expiredFortras = this.expiredFortras.filter(fortra => fortra.fortraId !== id);
       this.filteredExpiredFortras = this.filteredExpiredFortras.filter(fortra => fortra.fortraId !== id);

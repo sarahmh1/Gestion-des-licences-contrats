@@ -13,6 +13,7 @@ export class ExpiredOneIdentityComponent implements OnInit {
   filteredExpiredOneIdentitys: OneIdentity[] = [];
   pagedExpiredOneIdentitys: OneIdentity[] = [];
   searchTerm: string = '';
+  selectedOneIdentity: OneIdentity | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -92,8 +93,19 @@ export class ExpiredOneIdentityComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectOneIdentity(item: OneIdentity): void {
+    this.selectedOneIdentity = item;
+  }
+
+  closeDetail(): void {
+    this.selectedOneIdentity = null;
+  }
+
   desapprouve(id: number): void {
     this.oneIdentityService.activate(id).subscribe(() => {
+      if (this.selectedOneIdentity?.oneIdentityId === id) {
+        this.selectedOneIdentity = null;
+      }
       // Après désapprobation, retirer le OneIdentity de la liste approuvée locale
       this.expiredOneIdentitys = this.expiredOneIdentitys.filter(oneIdentity => oneIdentity.oneIdentityId !== id);
       this.filteredExpiredOneIdentitys = this.filteredExpiredOneIdentitys.filter(oneIdentity => oneIdentity.oneIdentityId !== id);

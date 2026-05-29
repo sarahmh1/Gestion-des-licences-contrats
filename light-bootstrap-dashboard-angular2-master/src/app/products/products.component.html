@@ -1,10 +1,45 @@
-﻿<div class="container mt-5">
+<div class="container mt-5">
 
   <h2 class="text-center mb-4">
     Ajouter licence ESET
   </h2>
 
   <form [formGroup]="productForm" (ngSubmit)="addProduct()" class="form-wrapper">
+    <!-- Document en premier : analyse puis préremplissage -->
+    <div class="form-group eset-import-block">
+      <label class="form-label">
+        Document (PDF ou TXT)
+      </label>
+      <p class="text-muted small mb-2">
+        Uploadez d’abord le document : les champs ci-dessous peuvent être remplis automatiquement. Vous pourrez les corriger avant d’enregistrer.
+      </p>
+      <div class="file-input-wrapper">
+        <input
+          type="file"
+          class="form-control"
+          accept=".pdf,.txt,application/pdf,text/plain"
+          (change)="onFileSelected($event)"
+          #fileInput
+          id="fileInput"
+        />
+        <label for="fileInput" class="file-input-label">
+          <span>{{ selectedFile ? selectedFile.name : 'Choisir un fichier…' }}</span>
+        </label>
+      </div>
+      <div *ngIf="analyzeImportInProgress" class="text-info small mt-2">
+        <i class="fa fa-spinner fa-spin"></i> Analyse du document en cours…
+      </div>
+      <div *ngIf="uploadSuccess && uploadMessage && !analyzeImportInProgress" class="alert alert-success mt-2">
+        {{ uploadMessage }}
+      </div>
+      <div *ngIf="lastAnalyzeSkipped && uploadMessage && !analyzeImportInProgress" class="alert alert-warning mt-2">
+        {{ uploadMessage }}
+      </div>
+      <div *ngIf="!uploadSuccess && !lastAnalyzeSkipped && uploadMessage && !analyzeImportInProgress" class="alert alert-danger mt-2">
+        {{ uploadMessage }}
+      </div>
+    </div>
+
     <!-- Client -->
     <div class="form-group">
       <label for="client" class="form-label">
@@ -13,9 +48,7 @@
       <div style="position: relative; z-index: 10000;">
         <app-searchable-client-select #clientSelect formControlName="client" [clients]="clients"></app-searchable-client-select>
       </div>
-      <div *ngIf="productForm.get('client')?.touched && productForm.get('client')?.invalid" class="text-danger">
-        Ce champ est obligatoire.
-      </div>
+      <app-field-error [control]="productForm.get('client')"></app-field-error>
     </div>
 
     <!-- Identifiant -->
@@ -30,9 +63,7 @@
         formControlName="identifiant"
         placeholder="Entrez l'identifiant"
       />
-      <div *ngIf="productForm.get('identifiant')?.touched && productForm.get('identifiant')?.invalid" class="text-danger">
-        Ce champ est obligatoire.
-      </div>
+      <app-field-error [control]="productForm.get('identifiant')"></app-field-error>
     </div>
 
     <!-- Clé de Licence -->
@@ -47,9 +78,7 @@
         formControlName="cle_de_Licence"
         placeholder="Entrez la clé de licence"
       />
-      <div *ngIf="productForm.get('cle_de_Licence')?.touched && productForm.get('cle_de_Licence')?.invalid" class="text-danger">
-        Ce champ est obligatoire.
-      </div>
+      <app-field-error [control]="productForm.get('cle_de_Licence')"></app-field-error>
     </div>
 
     <!-- Row: Produit + Quantité -->
@@ -124,9 +153,7 @@
             ✓ Produit sélectionné: {{ getSelectedProductDisplay() }}
           </small>
         </div>
-        <div *ngIf="productForm.get('nom_produit')?.touched && productForm.get('nom_produit')?.invalid" class="text-danger">
-          Ce champ est obligatoire.
-        </div>
+        <app-field-error [control]="productForm.get('nom_produit')"></app-field-error>
       </div>
 
       <!-- Quantité -->
@@ -134,17 +161,16 @@
         <label for="nombre" class="form-label">
           Quantité
         </label>
-        <input
-          type="number"
-          id="nombre"
-          class="form-control"
-          formControlName="nombre"
-          placeholder="Entrez la quantité"
-          min="1"
-        />
-        <div *ngIf="productForm.get('nombre')?.touched && productForm.get('nombre')?.invalid" class="text-danger">
-          <div *ngIf="productForm.get('nombre')?.errors?.['required']">La quantité est obligatoire.</div>
-          <div *ngIf="productForm.get('nombre')?.errors?.['min']">La quantité doit être au moins 1.</div>
+        <div class="form-field-stack">
+          <input
+            type="text"
+            id="nombre"
+            class="form-control"
+            formControlName="nombre"
+            placeholder="Entrez la quantité"
+            [class.is-invalid]="productForm.get('nombre')?.invalid && (productForm.get('nombre')?.dirty || productForm.get('nombre')?.touched)"
+          />
+          <app-field-error [control]="productForm.get('nombre')" field="quantity"></app-field-error>
         </div>
       </div>
     </div>
@@ -160,6 +186,7 @@
           <option value="">-- Sélectionner un type --</option>
           <option *ngFor="let type of typeAchatOptions" [value]="type.value">{{ type.display }}</option>
         </select>
+        <app-field-error [control]="productForm.get('typeAchat')"></app-field-error>
       </div>
 
       <!-- Date d'expiration -->
@@ -185,7 +212,7 @@
         <option value="">-- Sélectionner --</option>
         <option *ngFor="let option of commandePasserParOptions" [value]="option.value">{{ option.label }}</option>
       </select>
-    </div>
+    <app-field-error [control]="productForm.get('commandePasserPar')"></app-field-error></div>
 
     <!-- Durée de la Licence -->
     <div class="form-group">
@@ -330,32 +357,8 @@
       </label>
     </div>
     
-    <div class="form-group">
-      <label class="form-label">
-        Sélectionner un fichier
-      </label>
-      <div class="file-input-wrapper">
-        <input 
-          type="file" 
-          class="form-control" 
-          (change)="onFileSelected($event)"
-          #fileInput
-          id="fileInput"
-        />
-        <label for="fileInput" class="file-input-label">
-          <span>{{ selectedFile ? selectedFile.name : 'Cliquez pour sélectionner...' }}</span>
-        </label>
-      </div>
-      <div *ngIf="uploadSuccess" class="alert alert-success mt-2">
-        {{ uploadMessage }}
-      </div>
-      <div *ngIf="!uploadSuccess && uploadMessage" class="alert alert-danger mt-2">
-        {{ uploadMessage }}
-      </div>
-    </div>
-
     <div class="form-buttons">
-      <button type="submit" class="btn btn-primary" [disabled]="!productForm.valid">
+      <button type="submit" class="btn btn-primary">
         Ajouter Licence
       </button>
       <button type="reset" class="btn btn-secondary">Réinitialiser</button>

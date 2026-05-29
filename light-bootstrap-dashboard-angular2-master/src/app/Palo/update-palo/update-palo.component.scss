@@ -159,8 +159,26 @@ div[formArrayName] {
   }
   
   .md-btn-icon {
-    flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: opacity 0.2s;
+
+  i {
+    font-size: 0.9rem;
+    line-height: 1;
   }
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
 }
 
 // Boutons
@@ -375,32 +393,24 @@ div[formArrayName] {
 
 // Icon Buttons
 .md-btn-icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 6px;
   border: none;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: all 0.2s ease;
-  padding: 0;
-  margin-left: 8px;
+  transition: opacity 0.2s;
+
+  i {
+    font-size: 0.9rem;
+    line-height: 1;
+  }
 
   &:hover {
-    opacity: 0.85;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+    opacity: 0.8;
   }
 }
 
@@ -426,4 +436,15 @@ div[formArrayName] {
 .client-select-wrapper {
   position: relative;
   z-index: 10000;
+}
+
+.badge-autofill {
+  display: inline-block;
+  background-color: #17a2b8;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
 }

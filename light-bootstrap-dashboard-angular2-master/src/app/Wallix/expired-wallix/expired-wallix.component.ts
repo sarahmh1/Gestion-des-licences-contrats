@@ -14,6 +14,7 @@ export class ExpiredWallixComponent implements OnInit {
   filteredExpiredWallixs: Wallix[] = [];
   pagedExpiredWallixs: Wallix[] = [];
   searchTerm: string = '';
+  selectedWallix: Wallix | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -93,8 +94,19 @@ export class ExpiredWallixComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectWallix(item: Wallix): void {
+    this.selectedWallix = item;
+  }
+
+  closeDetail(): void {
+    this.selectedWallix = null;
+  }
+
   desapprouve(id: number): void {
     this.wallixService.activate(id).subscribe(() => {
+      if (this.selectedWallix?.wallixId === id) {
+        this.selectedWallix = null;
+      }
       // Après désapprobation, retirer le Wallix de la liste approuvée locale
       this.expiredWallixs = this.expiredWallixs.filter(wallix => wallix.wallixId !== id);
       this.filteredExpiredWallixs = this.filteredExpiredWallixs.filter(wallix => wallix.wallixId !== id);

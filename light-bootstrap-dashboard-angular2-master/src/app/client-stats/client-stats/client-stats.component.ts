@@ -3,6 +3,7 @@ import { ClientStatsService } from '../../Services/client-stats.service';
 import { ClientService, Client } from '../../Services/client.service';
 import { ClientStats } from '../../Model/ClientStats';
 import { PermissionService } from '../../Services/permission.service';
+import { isValidPhone } from 'app/shared/validators/app-validators';
 
 @Component({
   selector: 'app-client-stats',
@@ -45,6 +46,7 @@ export class ClientStatsComponent implements OnInit {
   editMails: string[] = [''];
   editTels: string[] = [''];
   editAdresses: string[] = [''];
+  telValidationError = '';
 
   constructor(
     private clientStatsService: ClientStatsService,
@@ -124,6 +126,7 @@ export class ClientStatsComponent implements OnInit {
   // ── Modal Ajouter ─────────────────────────────────────────────────────────
   openAddModal(): void {
     this.newClient = { nomClient: '', nosVisAVis: [''], adressesMail: [''], numTel: [''], adresses: [''] };
+    this.telValidationError = '';
     this.showAddModal = true;
   }
   closeAddModal(): void { this.showAddModal = false; }
@@ -136,12 +139,14 @@ export class ClientStatsComponent implements OnInit {
     this.editMails    = client.adressesMail?.length ? [...client.adressesMail] : [''];
     this.editTels     = client.numTel?.length       ? [...client.numTel]       : [''];
     this.editAdresses = client.adresses?.length     ? [...client.adresses]     : [''];
+    this.telValidationError = '';
     this.showEditModal = true;
   }
   closeEditModal(): void { this.showEditModal = false; }
 
   saveEdit(): void {
     if (!this.editClient.id || !this.editClient.nomClient?.trim()) return;
+    if (!this.validatePhoneList(this.editTels)) return;
     const updated: Client = {
       ...this.editClient,
       nomClient: this.editClient.nomClient!.trim(),
@@ -187,9 +192,23 @@ export class ClientStatsComponent implements OnInit {
   }
 
   // ── Sauvegarder nouveau client ─────────────────────────────────────────────
+  private validatePhoneList(phones: string[]): boolean {
+    const invalid = phones
+      .map(v => (v ?? '').trim())
+      .filter(v => v !== '')
+      .find(v => !isValidPhone(v));
+    if (invalid !== undefined) {
+      this.telValidationError = `Numéro invalide : « ${invalid} » — utilisez 8 chiffres uniquement.`;
+      return false;
+    }
+    this.telValidationError = '';
+    return true;
+  }
+
   saveClient(): void {
     const name = this.newClient.nomClient.trim();
     if (!name) return;
+    if (!this.validatePhoneList(this.newClient.numTel)) return;
     this.clientService.addClient({
       nomClient: name,
       nosVisAVis:   this.filterArr(this.newClient.nosVisAVis),

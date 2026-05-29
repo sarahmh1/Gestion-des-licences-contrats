@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Cisco } from 'app/Model/Cisco';
 import { CiscoService } from 'app/Services/cisco.service';
@@ -43,7 +44,7 @@ export class UpdateCiscoComponent implements OnInit {
         mailAdmin: ['', Validators.email],
         commandePasserPar: ['', Validators.required],
         ccMail: this.fb.array([]),
-        numero: [''],
+        numero: ['', AppValidators.optionalPhone],
         remarque: [''],
         sousContrat: [false],
         licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
@@ -64,7 +65,7 @@ export class UpdateCiscoComponent implements OnInit {
     createLicenceGroup(): FormGroup {
       return this.fb.group({
         nomDesLicences: ['', Validators.required],
-        quantite: ['', Validators.required],
+        quantite: ['', AppValidators.requiredQuantity],
         dateEx: ['', Validators.required]
       });
     }
@@ -78,7 +79,7 @@ export class UpdateCiscoComponent implements OnInit {
     }
   // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par dï¿½faut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -91,7 +92,7 @@ export class UpdateCiscoComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par défaut
+        return CommandePasserPar.GI_TN; // Valeur par dï¿½faut
     }
   }
 
@@ -120,7 +121,7 @@ export class UpdateCiscoComponent implements OnInit {
             data.licences.forEach(lic => {
               this.licences.push(this.fb.group({
                 nomDesLicences: [lic.nomDesLicences, Validators.required],
-                quantite: [lic.quantite, Validators.required],
+                quantite: [lic.quantite, AppValidators.requiredQuantity],
                 dateEx: [this.formatDate(lic.dateEx), Validators.required]
               }));
             });
@@ -139,7 +140,7 @@ export class UpdateCiscoComponent implements OnInit {
           }
         },
         error => {
-          console.error('Erreur récupération cisco:', error);
+          console.error('Erreur rï¿½cupï¿½ration cisco:', error);
         }
       );
     }
@@ -150,8 +151,12 @@ export class UpdateCiscoComponent implements OnInit {
     }
   
     updateCisco(): void {
-      if (this.updateForm.valid) {
-        const updatedCisco: Cisco = {
+      if (!this.updateForm.valid) {
+      this.updateForm.markAllAsTouched();
+      return;
+    }
+
+            const updatedCisco: Cisco = {
           ciscoId: this.ciscoId,
           ...this.updateForm.value,
           fichier: this.currentFileName,
@@ -160,16 +165,14 @@ export class UpdateCiscoComponent implements OnInit {
   
         this.ciscoService.updateCisco(updatedCisco).subscribe(
           () => {
-            console.log('Cisco mis à jour avec succès');
+            console.log('Cisco mis ï¿½ jour avec succï¿½s');
             this.router.navigate(['/Afficherc']);
           },
           error => {
-            console.error('Erreur mise à jour Cisco:', error);
+            console.error('Erreur mise ï¿½ jour Cisco:', error);
           }
         );
-      } else {
-        console.error('Formulaire invalide', this.updateForm);
-      }
+      
     }
   
     onSubmit(): void {
@@ -194,11 +197,11 @@ export class UpdateCiscoComponent implements OnInit {
             this.currentFileName = response.fichier || null;
             this.currentFileOriginalName = response.fichierOriginalName || null;
             this.selectedFile = null;
-            window.alert('Fichier uploadé avec succès');
+            window.alert('Fichier uploadï¿½ avec succï¿½s');
           },
           (error) => {
             console.error('Erreur upload fichier:', error);
-            window.alert('Échec de l\'upload du fichier');
+            window.alert('ï¿½chec de l\'upload du fichier');
           }
         );
       }
@@ -210,11 +213,11 @@ export class UpdateCiscoComponent implements OnInit {
           () => {
             this.currentFileName = null;
             this.currentFileOriginalName = null;
-            window.alert('Fichier supprimé avec succès');
+            window.alert('Fichier supprimï¿½ avec succï¿½s');
           },
           (error) => {
             console.error('Erreur suppression fichier:', error);
-            window.alert('Échec de la suppression du fichier');
+            window.alert('ï¿½chec de la suppression du fichier');
           }
         );
       }

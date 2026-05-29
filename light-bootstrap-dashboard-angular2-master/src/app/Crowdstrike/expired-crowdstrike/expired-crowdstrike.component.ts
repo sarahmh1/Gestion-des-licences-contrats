@@ -13,6 +13,7 @@ export class ExpiredCrowdstrikeComponent implements OnInit {
   filteredExpiredCrowdstrikes: Crowdstrike[] = [];
   pagedExpiredCrowdstrikes: Crowdstrike[] = [];
   searchTerm: string = '';
+  selectedCrowdstrike: Crowdstrike | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -92,8 +93,19 @@ export class ExpiredCrowdstrikeComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectCrowdstrike(item: Crowdstrike): void {
+    this.selectedCrowdstrike = item;
+  }
+
+  closeDetail(): void {
+    this.selectedCrowdstrike = null;
+  }
+
   desapprouve(id: number): void {
     this.crowdstrikeService.activate(id).subscribe(() => {
+      if (this.selectedCrowdstrike?.crowdstrikeid === id) {
+        this.selectedCrowdstrike = null;
+      }
       // Après désapprobation, retirer le CrowdStrike de la liste approuvée locale
       this.expiredCrowdstrikes = this.expiredCrowdstrikes.filter(crowdstrike => crowdstrike.crowdstrikeid !== id);
       this.filteredExpiredCrowdstrikes = this.filteredExpiredCrowdstrikes.filter(crowdstrike => crowdstrike.crowdstrikeid !== id);

@@ -13,6 +13,7 @@ export class ExpiredInfobloxComponent implements OnInit {
   filteredExpiredInfobloxs: Infoblox[] = [];
   pagedExpiredInfobloxs: Infoblox[] = [];
   searchTerm: string = '';
+  selectedInfoblox: Infoblox | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -92,8 +93,19 @@ export class ExpiredInfobloxComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectInfoblox(item: Infoblox): void {
+    this.selectedInfoblox = item;
+  }
+
+  closeDetail(): void {
+    this.selectedInfoblox = null;
+  }
+
   desapprouve(id: number): void {
     this.infobloxService.activate(id).subscribe(() => {
+      if (this.selectedInfoblox?.infobloxId === id) {
+        this.selectedInfoblox = null;
+      }
       // Après désapprobation, retirer le Infoblox de la liste approuvée locale
       this.expiredInfobloxs = this.expiredInfobloxs.filter(infoblox => infoblox.infobloxId !== id);
       this.filteredExpiredInfobloxs = this.filteredExpiredInfobloxs.filter(infoblox => infoblox.infobloxId !== id);

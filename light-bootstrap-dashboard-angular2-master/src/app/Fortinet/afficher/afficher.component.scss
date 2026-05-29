@@ -111,18 +111,25 @@
 }
 
 .md-btn-icon {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 6px;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   transition: opacity 0.2s;
 
-  &:hover { opacity: 0.8; }
+  i {
+    font-size: 0.9rem;
+    line-height: 1;
+  }
+
+  &:hover {
+    opacity: 0.8;
+  }
 }
 
 .md-btn-view    { background: #17a2b8; color: #fff; }

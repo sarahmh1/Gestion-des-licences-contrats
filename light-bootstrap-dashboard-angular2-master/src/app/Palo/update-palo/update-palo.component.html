@@ -1,28 +1,22 @@
-﻿<div class="container mt-5">
+<div class="container mt-5">
   <h2 class="text-center mb-4">Mettre à jour Paloalto</h2>
   <form [formGroup]="updateForm" (ngSubmit)="onSubmit()">
     <div class="form-group mb-3">
       <label for="client">Client</label>
       <app-searchable-client-select formControlName="client" [clients]="clients"></app-searchable-client-select>
-      <div *ngIf="updateForm.get('client')?.touched && updateForm.get('client')?.invalid" class="text-danger">
-        Ce champ est obligatoire.
-      </div>
+      <app-field-error [control]="updateForm.get('client')"></app-field-error>
     </div>
 
     <div class="form-group mb-3">
       <label for="nomDuBoitier">Nom du Boîtier</label>
       <input id="nomDuBoitier" type="text" class="form-control" formControlName="nomDuBoitier" />
-      <div *ngIf="updateForm.get('nomDuBoitier')?.touched && updateForm.get('nomDuBoitier')?.invalid" class="text-danger">
-        Ce champ est obligatoire.
-      </div>
+      <app-field-error [control]="updateForm.get('nomDuBoitier')"></app-field-error>
     </div>
 
     <div class="form-group mb-3">
       <label for="numeroSerieBoitier">Numéro de Série</label>
       <input id="numeroSerieBoitier" type="text" class="form-control" formControlName="numeroSerieBoitier" />
-      <div *ngIf="updateForm.get('numeroSerieBoitier')?.touched && updateForm.get('numeroSerieBoitier')?.invalid" class="text-danger">
-        Ce champ est obligatoire.
-      </div>
+      <app-field-error [control]="updateForm.get('numeroSerieBoitier')"></app-field-error>
     </div>
 
    <!-- Licences -->
@@ -34,27 +28,29 @@
           class="row align-items-end mb-2"
         >
           <div class="col-md-4">
-            <input
+            <div class="licence-field-stack"><input
               type="text"
               class="form-control"
               placeholder="Nom de licence"
-              formControlName="nomDesLicences"
-            />
+              formControlName="nomDesLicences" [class.is-invalid]="licences.at(i).get('nomDesLicences')?.invalid && (licences.at(i).get('nomDesLicences')?.dirty || licences.at(i).get('nomDesLicences')?.touched)" /><app-field-error [control]="licences.at(i).get('nomDesLicences')"></app-field-error></div>
           </div>
           <div class="col-md-3">
-            <input
-              type="text"
-              class="form-control"
-              placeholder="Quantité"
-              formControlName="quantite"
-            />
+            <div class="licence-field-stack">
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Quantité"
+                formControlName="quantite"
+                [class.is-invalid]="licences.at(i).get('quantite')?.invalid && (licences.at(i).get('quantite')?.dirty || licences.at(i).get('quantite')?.touched)"
+          />
+              <app-field-error [control]="licences.at(i).get('quantite')" field="quantity"></app-field-error>
+            </div>
           </div>
           <div class="col-md-4">
-            <input
+            <div class="licence-field-stack"><input
               type="date"
               class="form-control"
-              formControlName="dateEx"
-            />
+              formControlName="dateEx" [class.is-invalid]="licences.at(i).get('dateEx')?.invalid && (licences.at(i).get('dateEx')?.dirty || licences.at(i).get('dateEx')?.touched)" /><app-field-error [control]="licences.at(i).get('dateEx')"></app-field-error></div>
           </div>
           <div class="col-md-1">
         <button type="button" class="md-btn-icon md-btn-remove" (click)="removeLicence(i)" title="Supprimer cette licence" *ngIf="licences.length > 1">
@@ -73,19 +69,25 @@
     </div>
 
     <div class="form-group mb-3">
-      <label for="nomDuContact">Nom du Contact</label>
-      <input id="nomDuContact" type="text" class="form-control" formControlName="nomDuContact" />
+      <label for="nomDuContact">
+        Vis-&#224;-vis client
+        <span class="badge-autofill" *ngIf="updateForm.get('nomDuContact')?.value">Auto</span>
+      </label>
+      <input id="nomDuContact" type="text" class="form-control" formControlName="nomDuContact" placeholder="Auto-rempli depuis le client" />
     </div>
 
     <div class="form-group mb-3">
-      <label for="adresseEmailContact">Adresse Email du Contact</label>
-      <input id="adresseEmailContact" type="email" class="form-control" formControlName="adresseEmailContact" />
+      <label for="adresseEmailContact">
+        Email client
+        <span class="badge-autofill" *ngIf="updateForm.get('adresseEmailContact')?.value">Auto</span>
+      </label>
+      <input id="adresseEmailContact" type="email" class="form-control" formControlName="adresseEmailContact" placeholder="Auto-rempli depuis le client" />
       <div *ngIf="updateForm.get('adresseEmailContact')?.touched && updateForm.get('adresseEmailContact')?.invalid" class="text-danger">
         Veuillez entrer une adresse email valide.
       </div>
     </div>
     <div class="form-group">
-      <label for="mailAdmin">Email Admin</label>
+      <label for="mailAdmin">Email commercial</label>
       <input id="mailAdmin" type="email" class="form-control" formControlName="mailAdmin" />
       <div *ngIf="updateForm.get('mailAdmin')?.touched && updateForm.get('mailAdmin')?.invalid" class="text-danger">
         <div *ngIf="updateForm.get('mailAdmin')?.errors?.['email']">Format email invalide</div>
@@ -104,8 +106,17 @@
     </button>
     </div>
     <div class="form-group mb-3">
-      <label for="numero">Numéro</label>
-      <input id="numero" type="text" class="form-control" formControlName="numero" />
+      <label for="numero">
+        N&#176; t&#233;l&#233;phone
+        <span class="badge-autofill" *ngIf="updateForm.get('numero')?.value">Auto</span>
+      </label>
+      <div class="form-field-stack">
+      <input id="numero" type="text" class="form-control" formControlName="numero" placeholder="Auto-rempli depuis le client"
+        appNumbersOnly maxlength="8"
+        [class.is-invalid]="updateForm.get('numero')?.invalid && (updateForm.get('numero')?.dirty || updateForm.get('numero')?.touched)"
+      />
+      <app-field-error [control]="updateForm.get('numero')" field="phone"></app-field-error>
+      </div>
     </div>
 
     <div class="form-group mb-3">
@@ -187,8 +198,8 @@
             {{ option.label }}
           </option>
         </select>
-      </div>
-    <button type="submit" class="btn btn-primary" [disabled]="updateForm.invalid">Mettre à jour</button>
+      <app-field-error [control]="updateForm.get('commandePasserPar')"></app-field-error></div>
+    <button type="submit" class="btn btn-primary">Mettre à jour</button>
     <button type="button" class="btn btn-secondary ms-2" (click)="resetForm()">Réinitialiser</button>
   </form>
 </div>

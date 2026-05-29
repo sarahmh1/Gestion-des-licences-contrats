@@ -1,5 +1,6 @@
 import { Component, OnInit, OnChanges, SimpleChanges, Output, EventEmitter, ViewChild, ElementRef, Input } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Palo } from 'app/Model/Palo';
@@ -68,7 +69,7 @@ export class AjouterPaloComponent implements OnInit, OnChanges {
        sousContrat: [false],
        mailAdmin: ['', [Validators.email]],
        ccMail: this.fb.array([this.fb.control('', [Validators.email])]),
-       numero: [''],
+       numero: ['', AppValidators.optionalPhone],
        remarque: [''],
        licences: this.fb.array([
          this.createLicenceGroup()
@@ -77,6 +78,21 @@ export class AjouterPaloComponent implements OnInit, OnChanges {
      if (this.paloToEdit) {
        this.loadPaloIntoForm();
      }
+     this.watchClientAutoFill();
+   }
+
+   private watchClientAutoFill(): void {
+     this.PaloForm.get('client')!.valueChanges.subscribe((selectedName: string) => {
+       if (!selectedName) return;
+       const found = this.clients.find(c => c.nomClient === selectedName);
+       if (found) {
+         this.PaloForm.patchValue({
+           nomDuContact: found.nosVisAVis?.[0] || '',
+           numero: found.numTel?.[0] || '',
+           adresseEmailContact: found.adressesMail?.[0] || ''
+         }, { emitEvent: false });
+       }
+     });
    }
 
    loadPaloIntoForm(): void {
@@ -97,7 +113,7 @@ export class AjouterPaloComponent implements OnInit, OnChanges {
        mailAdmin: this.paloToEdit.mailAdmin,
        numero: this.paloToEdit.numero,
        remarque: this.paloToEdit.remarque
-     });
+     }, { emitEvent: false });
 
      // Set licences
      this.licences.clear();
@@ -105,7 +121,7 @@ export class AjouterPaloComponent implements OnInit, OnChanges {
        this.paloToEdit.licences.forEach(lic => {
          this.licences.push(this.fb.group({
            nomDesLicences: [lic.nomDesLicences, Validators.required],
-           quantite: [lic.quantite, Validators.required],
+           quantite: [lic.quantite, AppValidators.requiredQuantity],
            dateEx: [this.formatDate(lic.dateEx), Validators.required]
          }));
        });
@@ -125,7 +141,7 @@ export class AjouterPaloComponent implements OnInit, OnChanges {
    createLicenceGroup(): FormGroup {
      return this.fb.group({
        nomDesLicences: ['', Validators.required],
-       quantite: ['', Validators.required],
+       quantite: ['', AppValidators.requiredQuantity],
        dateEx: ['', Validators.required]
      });
    }
@@ -178,7 +194,7 @@ export class AjouterPaloComponent implements OnInit, OnChanges {
          palo.licences.forEach(lic => {
            this.licences.push(this.fb.group({
              nomDesLicences: [lic.nomDesLicences, Validators.required],
-             quantite: [lic.quantite, Validators.required],
+             quantite: [lic.quantite, AppValidators.requiredQuantity],
              dateEx: [this.formatDate(lic.dateEx), Validators.required]
            }));
          });
@@ -194,8 +210,12 @@ export class AjouterPaloComponent implements OnInit, OnChanges {
    }
  
    addPalo() {
-     if (this.PaloForm.valid) {
-       const paloData: Palo = {
+     if (!this.PaloForm.valid) {
+       this.PaloForm.markAllAsTouched();
+       return;
+     }
+
+     const paloData: Palo = {
          paloId: this.isEditing ? this.currentPaloId! : null!,
          client: this.PaloForm.value.client,
          nomDuBoitier: this.PaloForm.value.nomDuBoitier,
@@ -218,41 +238,38 @@ export class AjouterPaloComponent implements OnInit, OnChanges {
        if (this.isEditing) {
          this.paloService.updatePalo(paloData).subscribe(
            (response: any) => {
-             console.log('Réponse serveur:', response);
+             console.log('RÃ©ponse serveur:', response);
              
              if (this.selectedFile && this.currentPaloId) {
                this.uploadFileAfterCreation(this.currentPaloId);
              } else {
-               window.alert('Palo mis à jour avec succès');
+               window.alert('Palo mis Ã  jour avec succÃ¨s');
                this.paloAdded.emit();
              }
            },
            error => {
-             console.error('Erreur lors de la mise à jour du Palo', error);
-             window.alert('Échec de la mise à jour');
+             console.error('Erreur lors de la mise Ã  jour du Palo', error);
+             window.alert('Ã‰chec de la mise Ã  jour');
            }
          );
        } else {
          this.paloService.addPalo(paloData).subscribe(
            (response: any) => {
-             console.log('Réponse serveur:', response);
+             console.log('RÃ©ponse serveur:', response);
              
              if (this.selectedFile && response.paloId) {
                this.uploadFileAfterCreation(response.paloId);
              } else {
-               window.alert('Palo ajouté avec succès');
+               window.alert('Palo ajoutÃ© avec succÃ¨s');
                this.paloAdded.emit();
              }
            },
            error => {
              console.error('Erreur lors de l\'ajout du Palo', error);
-             window.alert('Échec de l\'ajout');
+             window.alert('Ã‰chec de l\'ajout');
            }
          );
        }
-     } else {
-       window.alert('Le formulaire est invalide. Veuillez corriger les erreurs.');
-     }
    }
 
    // ==================== GESTION DES FICHIERS ====================
@@ -267,7 +284,7 @@ export class AjouterPaloComponent implements OnInit, OnChanges {
 
    uploadFileAfterCreation(paloId: number): void {
      if (!this.selectedFile) {
-       window.alert(this.isEditing ? 'Palo mis à jour avec succès' : 'Palo ajouté avec succès');
+       window.alert(this.isEditing ? 'Palo mis Ã  jour avec succÃ¨s' : 'Palo ajoutÃ© avec succÃ¨s');
        this.paloAdded.emit();
        return;
      }
@@ -277,14 +294,14 @@ export class AjouterPaloComponent implements OnInit, OnChanges {
          if (event.type === HttpEventType.Response) {
            if (event.body.success) {
              this.uploadSuccess = true;
-             this.uploadMessage = 'Fichier uploadé avec succès!';
-             const message = this.isEditing ? 'Palo et fichier mis à jour avec succès' : 'Palo et fichier ajoutés avec succès';
+             this.uploadMessage = 'Fichier uploadÃ© avec succÃ¨s!';
+             const message = this.isEditing ? 'Palo et fichier mis Ã  jour avec succÃ¨s' : 'Palo et fichier ajoutÃ©s avec succÃ¨s';
              window.alert(message);
              this.paloAdded.emit();
            } else {
              this.uploadSuccess = false;
              this.uploadMessage = event.body.message || 'Erreur lors de l\'upload';
-             const message = this.isEditing ? 'Palo mis à jour mais erreur lors de l\'upload du fichier' : 'Palo ajouté mais erreur lors de l\'upload du fichier';
+             const message = this.isEditing ? 'Palo mis Ã  jour mais erreur lors de l\'upload du fichier' : 'Palo ajoutÃ© mais erreur lors de l\'upload du fichier';
              window.alert(message);
              this.paloAdded.emit();
            }
@@ -294,7 +311,7 @@ export class AjouterPaloComponent implements OnInit, OnChanges {
          this.uploadSuccess = false;
          this.uploadMessage = 'Erreur lors de l\'upload: ' + (error.error?.message || error.message);
          console.error('Erreur upload:', error);
-         const message = this.isEditing ? 'Palo mis à jour mais erreur lors de l\'upload du fichier: ' : 'Palo ajouté mais erreur lors de l\'upload du fichier: ';
+         const message = this.isEditing ? 'Palo mis Ã  jour mais erreur lors de l\'upload du fichier: ' : 'Palo ajoutÃ© mais erreur lors de l\'upload du fichier: ';
          window.alert(message + this.uploadMessage);
          this.paloAdded.emit();
        }

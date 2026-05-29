@@ -1,6 +1,7 @@
 
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Proofpoint } from 'app/Model/Proofpoint';
@@ -43,7 +44,7 @@ export class UpdateProofpointComponent implements OnInit {
        mailAdmin: ['', Validators.email],
        commandePasserPar: ['', Validators.required],
        ccMail: this.fb.array([]),
-       numero: [''],
+       numero: ['', AppValidators.optionalPhone],
        remarque: [''],
        sousContrat: [false],
        licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
@@ -62,7 +63,7 @@ export class UpdateProofpointComponent implements OnInit {
    }
    // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par dï¿½faut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -75,13 +76,13 @@ export class UpdateProofpointComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par défaut
+        return CommandePasserPar.GI_TN; // Valeur par dï¿½faut
     }
   }
    createLicenceGroup(): FormGroup {
      return this.fb.group({
        nomDesLicences: ['', Validators.required],
-       quantite: ['', Validators.required],
+       quantite: ['', AppValidators.requiredQuantity],
        dateEx: ['', Validators.required]
      });
    }
@@ -98,13 +99,13 @@ export class UpdateProofpointComponent implements OnInit {
      const file = event.target.files[0];
      if (file) {
        this.selectedFile = file;
-       // Upload immédiatement le fichier
+       // Upload immï¿½diatement le fichier
        this.proofpointService.uploadFile(this.proofpointId, file).subscribe(
          (updatedProofpoint) => {
            this.proofpoint = updatedProofpoint;
            this.selectedFile = null;
            this.cdr.detectChanges();
-           window.alert('Fichier uploadé avec succès');
+           window.alert('Fichier uploadï¿½ avec succï¿½s');
          },
          (error) => {
            console.error('Erreur lors de l\'upload du fichier', error);
@@ -124,7 +125,7 @@ export class UpdateProofpointComponent implements OnInit {
          (updatedProofpoint) => {
            this.proofpoint = updatedProofpoint;
            this.cdr.detectChanges();
-           window.alert('Fichier supprimé avec succès');
+           window.alert('Fichier supprimï¿½ avec succï¿½s');
          },
          (error) => {
            console.error('Erreur lors de la suppression du fichier', error);
@@ -157,7 +158,7 @@ export class UpdateProofpointComponent implements OnInit {
            data.licences.forEach(lic => {
              this.licences.push(this.fb.group({
                nomDesLicences: [lic.nomDesLicences, Validators.required],
-               quantite: [lic.quantite, Validators.required],
+               quantite: [lic.quantite, AppValidators.requiredQuantity],
                dateEx: [this.formatDate(lic.dateEx), Validators.required]
              }));
            });
@@ -176,7 +177,7 @@ export class UpdateProofpointComponent implements OnInit {
          }
        },
        error => {
-         console.error('Erreur récupération Proofpoint:', error);
+         console.error('Erreur rï¿½cupï¿½ration Proofpoint:', error);
        }
      );
    }
@@ -187,8 +188,12 @@ export class UpdateProofpointComponent implements OnInit {
    }
  
    updateProofpoint(): void {
-     if (this.updateForm.valid) {
-       const updatedProofpoint: Proofpoint = {
+     if (!this.updateForm.valid) {
+      this.updateForm.markAllAsTouched();
+      return;
+    }
+
+           const updatedProofpoint: Proofpoint = {
          proofpointId: this.proofpointId,
          ...this.updateForm.value,
          fichier: this.proofpoint?.fichier,
@@ -197,16 +202,14 @@ export class UpdateProofpointComponent implements OnInit {
  
        this.proofpointService.updateProofpoint(updatedProofpoint).subscribe(
          () => {
-           console.log('Proofpoint mis à jour avec succès');
+           console.log('Proofpoint mis ï¿½ jour avec succï¿½s');
            this.router.navigate(['/Afficherproof']);
          },
          error => {
-           console.error('Erreur mise à jour Proofpoint:', error);
+           console.error('Erreur mise ï¿½ jour Proofpoint:', error);
          }
        );
-     } else {
-       console.error('Formulaire invalide', this.updateForm);
-     }
+     
    }
  
    onSubmit(): void {

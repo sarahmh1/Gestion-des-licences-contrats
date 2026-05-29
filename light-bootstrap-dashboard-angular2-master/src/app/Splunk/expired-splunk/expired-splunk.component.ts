@@ -13,6 +13,7 @@ export class ExpiredSplunkComponent implements OnInit {
   filteredExpiredSplunks: Splunk[] = [];
   pagedExpiredSplunks: Splunk[] = [];
   searchTerm: string = '';
+  selectedSplunk: Splunk | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -92,8 +93,19 @@ export class ExpiredSplunkComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectSplunk(item: Splunk): void {
+    this.selectedSplunk = item;
+  }
+
+  closeDetail(): void {
+    this.selectedSplunk = null;
+  }
+
   desapprouve(id: number): void {
     this.splunkService.activate(id).subscribe(() => {
+      if (this.selectedSplunk?.splunkid === id) {
+        this.selectedSplunk = null;
+      }
       // Après désapprobation, retirer le Splunk de la liste approuvée locale
       this.expiredSplunks = this.expiredSplunks.filter(splunk => splunk.splunkid !== id);
       this.filteredExpiredSplunks = this.filteredExpiredSplunks.filter(splunk => splunk.splunkid !== id);

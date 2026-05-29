@@ -102,19 +102,38 @@ export class AfficherComponent implements OnInit {
     });
   }
 
-  deleteFortinet(id: number | undefined | null): void {
-    if (id != null && confirm('Confirmer la suppression ?')) {
-      this.fortinetService.deleteFortinet(id).subscribe(
-        () => {
-          this.getAllFortinets();
-          alert('Fortinet supprimé avec succès');
-        },
-        error => {
-          console.error('Erreur suppression Fortinet', error);
-          alert('Échec suppression');
-        }
-      );
-    }
+  showDeleteModal = false;
+  deleteModalDetail = '';
+  private pendingDeleteId: number | null = null;
+
+  requestDeleteFortinet(f: { fortinetId?: number; client?: string }): void {
+    if (f?.fortinetId == null) return;
+    this.pendingDeleteId = f.fortinetId;
+    this.deleteModalDetail = f.client ? `Client : ${f.client}` : '';
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.pendingDeleteId = null;
+    this.deleteModalDetail = '';
+  }
+
+  confirmDeleteFortinet(): void {
+    const id = this.pendingDeleteId;
+    if (id == null) return;
+    this.fortinetService.deleteFortinet(id).subscribe(
+      () => {
+        this.getAllFortinets();
+        this.closeDeleteModal();
+        if (this.selectedFortinet?.fortinetId === id) this.selectedFortinet = null;
+        alert('Fortinet supprimé avec succès');
+      },
+      error => {
+        console.error('Erreur suppression Fortinet', error);
+        alert('Échec suppression');
+      }
+    );
   }
 
   selectFortinet(f: Fortinet): void {

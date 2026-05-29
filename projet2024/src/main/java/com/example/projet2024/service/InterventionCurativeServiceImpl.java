@@ -15,8 +15,10 @@ import org.slf4j.LoggerFactory;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -266,12 +268,43 @@ public class InterventionCurativeServiceImpl implements IInterventionCurativeSer
             return getAllInterventionsCuratives();
         }
         
-        List<InterventionCurative> byClient = interventionCurativeRepository.findByNomClientContainingIgnoreCase(searchTerm);
+        List<InterventionCurative> byClient = filterInterventionsByNomClientFlexible(searchTerm.trim());
         List<InterventionCurative> byIntervenant = interventionCurativeRepository.findByIntervenantContainingIgnoreCase(searchTerm);
-        
-        return Stream.concat(byClient.stream(), byIntervenant.stream())
+        List<InterventionCurative> byAssign = interventionCurativeRepository.findByAssignedUserMatching(searchTerm);
+        List<InterventionCurative> bySessionAssign = interventionCurativeRepository.findBySessionAssignedUserMatching(searchTerm);
+        List<InterventionCurative> byCrit = interventionCurativeRepository.findByCriticiteContainingIgnoreCase(searchTerm);
+
+        return Stream.of(byClient.stream(), byIntervenant.stream(), byAssign.stream(), bySessionAssign.stream(), byCrit.stream())
+                .flatMap(s -> s)
                 .distinct()
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<InterventionCurative> searchByCriticite(String fragment) {
+        if (fragment == null || fragment.trim().length() < 1) {
+            return List.of();
+        }
+        return interventionCurativeRepository.findByCriticiteContainingIgnoreCase(fragment.trim());
+    }
+
+    @Override
+    public List<InterventionCurative> searchByClientName(String fragment) {
+        if (fragment == null || fragment.trim().length() < 2) {
+            return List.of();
+        }
+        return filterInterventionsByNomClientFlexible(fragment.trim());
+    }
+
+    @Override
+    public List<InterventionCurative> searchByUserAssignee(String fragment) {
+        if (fragment == null || fragment.trim().length() < 2) {
+            return List.of();
+        }
+        String t = fragment.trim();
+        List<InterventionCurative> a = interventionCurativeRepository.findByAssignedUserMatching(t);
+        List<InterventionCurative> b = interventionCurativeRepository.findBySessionAssignedUserMatching(t);
+        return Stream.concat(a.stream(), b.stream()).distinct().collect(Collectors.toList());
     }
 
     @Override
@@ -285,5 +318,31 @@ public class InterventionCurativeServiceImpl implements IInterventionCurativeSer
         intervention.setFichier(fichier);
         intervention.setFichierOriginalName(fichierOriginalName);
         interventionCurativeRepository.save(intervention);
+    }
+
+    /** Recherche nom client : LIKE puis repli sans accents (« delice » retrouve « Délice »). */
+    private List<InterventionCurative> filterInterventionsByNomClientFlexible(String term) {
+        if (term == null || term.length() < 2) {
+            return List.of();
+        }
+        List<InterventionCurative> hit = interventionCurativeRepository.findByNomClientContainingIgnoreCase(term);
+        if (!hit.isEmpty()) {
+            return hit;
+        }
+        String folded = foldAccents(term);
+        if (folded.length() < 2) {
+            return List.of();
+        }
+        return interventionCurativeRepository.findAll().stream()
+                .filter(ic -> ic.getNomClient() != null && foldAccents(ic.getNomClient()).contains(folded))
+                .collect(Collectors.toList());
+    }
+
+    private static String foldAccents(String s) {
+        if (s == null || s.isEmpty()) {
+            return "";
+        }
+        String nfd = Normalizer.normalize(s, Normalizer.Form.NFD);
+        return nfd.replaceAll("\\p{M}+", "").toLowerCase(Locale.ROOT);
     }
 }

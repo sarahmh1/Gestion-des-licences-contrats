@@ -112,23 +112,17 @@
                 <div class="col-md-6">
                   <div class="form-group">
                     <label>Prénom *</label>
-                    <input type="text" class="form-control" formControlName="firstname"
-                           [class.is-invalid]="profileForm.get('firstname')?.invalid && profileForm.get('firstname')?.touched">
-                    <div *ngIf="profileForm.get('firstname')?.invalid && profileForm.get('firstname')?.touched" 
-                         class="invalid-feedback">
-                      Le prénom est requis (min. 2 caractères)
-                    </div>
+                    <input type="text" class="form-control" formControlName="firstname" appLettersOnly
+                           [class.is-invalid]="profileForm.get('firstname')?.invalid && (profileForm.get('firstname')?.dirty || profileForm.get('firstname')?.touched)">
+                    <app-field-error [control]="profileForm.get('firstname')" field="name"></app-field-error>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="form-group">
                     <label>Nom *</label>
-                    <input type="text" class="form-control" formControlName="lastname"
-                           [class.is-invalid]="profileForm.get('lastname')?.invalid && profileForm.get('lastname')?.touched">
-                    <div *ngIf="profileForm.get('lastname')?.invalid && profileForm.get('lastname')?.touched" 
-                         class="invalid-feedback">
-                      Le nom est requis (min. 2 caractères)
-                    </div>
+                    <input type="text" class="form-control" formControlName="lastname" appLettersOnly
+                           [class.is-invalid]="profileForm.get('lastname')?.invalid && (profileForm.get('lastname')?.dirty || profileForm.get('lastname')?.touched)">
+                    <app-field-error [control]="profileForm.get('lastname')" field="name"></app-field-error>
                   </div>
                 </div>
               </div>
@@ -138,14 +132,14 @@
                   <div class="form-group">
                     <label>Date de naissance *</label>
                     <input type="date" class="form-control" formControlName="dateOfBirth"
-                           [class.is-invalid]="profileForm.get('dateOfBirth')?.invalid && profileForm.get('dateOfBirth')?.touched">
+                           [class.is-invalid]="profileForm.get('dateOfBirth')?.invalid && (profileForm.get('dateOfBirth')?.dirty || profileForm.get('dateOfBirth')?.touched)">
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="form-group">
                     <label>Sexe *</label>
                     <select class="form-control" formControlName="sex"
-                           [class.is-invalid]="profileForm.get('sex')?.invalid && profileForm.get('sex')?.touched">
+                           [class.is-invalid]="profileForm.get('sex')?.invalid && (profileForm.get('sex')?.dirty || profileForm.get('sex')?.touched)">
                       <option value="">Sélectionner</option>
                       <option value="MALE">Masculin</option>
                       <option value="FEMALE">Féminin</option>
@@ -158,20 +152,18 @@
                 <div class="col-md-6">
                   <div class="form-group">
                     <label>Numéro de téléphone *</label>
-                    <input type="text" class="form-control" formControlName="phoneNumber"
-                           [class.is-invalid]="profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched">
-                    <div *ngIf="profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched" 
-                         class="invalid-feedback">
-                      Numéro de téléphone invalide (8-15 chiffres)
-                    </div>
+                    <input type="text" class="form-control" formControlName="phoneNumber" placeholder="22222222"
+                           appNumbersOnly maxlength="8"
+                           [class.is-invalid]="profileForm.get('phoneNumber')?.invalid && (profileForm.get('phoneNumber')?.dirty || profileForm.get('phoneNumber')?.touched)">
+                    <app-field-error [control]="profileForm.get('phoneNumber')" field="phone"></app-field-error>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="form-group">
                     <label>Email *</label>
                     <input type="email" class="form-control" formControlName="email"
-                           [class.is-invalid]="profileForm.get('email')?.invalid && profileForm.get('email')?.touched">
-                    <div *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched" 
+                           [class.is-invalid]="profileForm.get('email')?.invalid && (profileForm.get('email')?.dirty || profileForm.get('email')?.touched)">
+                    <div *ngIf="profileForm.get('email')?.invalid && (profileForm.get('email')?.dirty || profileForm.get('email')?.touched)" 
                          class="invalid-feedback">
                       Email valide requis
                     </div>
@@ -194,11 +186,18 @@
                     <label>Mot de passe actuel *</label>
                     <input type="password" class="form-control" formControlName="currentPassword"
                            placeholder="Mot de passe actuel"
-                           [class.is-invalid]="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched">
-                    <div *ngIf="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched" 
+                           [class.is-invalid]="passwordForm.get('currentPassword')?.invalid && (passwordForm.get('currentPassword')?.dirty || passwordForm.get('currentPassword')?.touched)">
+                    <div *ngIf="passwordForm.get('currentPassword')?.invalid && (passwordForm.get('currentPassword')?.dirty || passwordForm.get('currentPassword')?.touched)" 
                          class="invalid-feedback">
                       Requis
                     </div>
+
+                    <p class="profil-forgot-row">
+                      <button type="button" class="btn btn-link btn-sm profil-forgot-link" (click)="toggleForgotPassword()">
+                        <i class="glyphicon glyphicon-envelope"></i>
+                        {{ forgotOpen ? 'Masquer' : 'Mot de passe oublié ?' }}
+                      </button>
+                    </p>
                   </div>
                 </div>
                 <div class="col-md-4">
@@ -206,11 +205,9 @@
                     <label>Nouveau mot de passe *</label>
                     <input type="password" class="form-control" formControlName="newPassword"
                            placeholder="Nouveau mot de passe"
-                           [class.is-invalid]="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched">
-                    <div *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched" 
-                         class="invalid-feedback">
-                      Min. 6 caractères
-                    </div>
+                           [class.is-invalid]="passwordForm.get('newPassword')?.invalid && (passwordForm.get('newPassword')?.dirty || passwordForm.get('newPassword')?.touched)">
+                    <app-field-error [control]="passwordForm.get('newPassword')" field="password"></app-field-error>
+                    <p class="text-muted small" style="margin-top: 4px;">8 car. min., majuscule, minuscule, chiffre et caractère spécial.</p>
                   </div>
                 </div>
                 <div class="col-md-4">
@@ -218,14 +215,69 @@
                     <label>Confirmer le mot de passe *</label>
                     <input type="password" class="form-control" formControlName="confirmPassword"
                            placeholder="Confirmer"
-                           [class.is-invalid]="passwordForm.get('confirmPassword')?.invalid && passwordForm.get('confirmPassword')?.touched">
+                           [class.is-invalid]="passwordForm.get('confirmPassword')?.invalid && (passwordForm.get('confirmPassword')?.dirty || passwordForm.get('confirmPassword')?.touched)">
                     <div *ngIf="passwordForm.hasError('passwordMismatch') && passwordForm.get('confirmPassword')?.touched" 
                          class="invalid-feedback">
-                      Non identiques
+                      Les mots de passe ne correspondent pas.
                     </div>
                   </div>
                 </div>
               </div>
+            <div *ngIf="forgotOpen" class="panel panel-warning profil-forgot-panel">
+              <div class="panel-heading">
+                <h4 class="panel-title">
+                  <i class="glyphicon glyphicon-envelope"></i> Réinitialisation par e-mail
+                </h4>
+              </div>
+              <div class="panel-body">
+                <p class="text-muted" *ngIf="forgotStep === 'send'">
+                  Un code à 6 chiffres sera envoyé à votre adresse e-mail (valable 15 minutes).
+                </p>
+                <p class="text-muted" *ngIf="forgotStep === 'reset'">
+                  Saisissez le code reçu et choisissez un nouveau mot de passe.
+                </p>
+                <form [formGroup]="forgotForm">
+                  <div class="form-group">
+                    <label>E-mail du compte</label>
+                    <input type="email" class="form-control" formControlName="email" readonly />
+                  </div>
+                  <ng-container *ngIf="forgotStep === 'reset'">
+                    <div class="form-group">
+                      <label>Code reçu par e-mail *</label>
+                      <input type="text" class="form-control" formControlName="code" inputmode="numeric" maxlength="6" placeholder="000000" />
+                    </div>
+                    <div class="form-group">
+                      <label>Nouveau mot de passe *</label>
+                      <input type="password" class="form-control" formControlName="newPassword" autocomplete="new-password"
+                             [class.is-invalid]="forgotForm.get('newPassword')?.invalid && (forgotForm.get('newPassword')?.dirty || forgotForm.get('newPassword')?.touched)" />
+                      <app-field-error [control]="forgotForm.get('newPassword')" field="password"></app-field-error>
+                    </div>
+                    <div class="form-group">
+                      <label>Confirmer le mot de passe *</label>
+                      <input type="password" class="form-control" formControlName="confirmPassword" autocomplete="new-password"
+                             [class.is-invalid]="forgotForm.hasError('passwordMismatch') && forgotForm.get('confirmPassword')?.touched" />
+                      <div *ngIf="forgotForm.hasError('passwordMismatch') && forgotForm.get('confirmPassword')?.touched" class="invalid-feedback">
+                        Les mots de passe ne correspondent pas.
+                      </div>
+                    </div>
+                  </ng-container>
+                  <div *ngIf="forgotMessage" class="alert alert-success">{{ forgotMessage }}</div>
+                  <div *ngIf="forgotError" class="alert alert-danger">{{ forgotError }}</div>
+                  <div style="margin-top: 12px;">
+                    <button type="button" class="btn btn-warning" *ngIf="forgotStep === 'send'" [disabled]="isForgotSubmitting" (click)="sendResetCode()">
+                      {{ isForgotSubmitting ? 'Envoi…' : 'Envoyer le code' }}
+                    </button>
+                    <button type="button" class="btn btn-warning" *ngIf="forgotStep === 'reset'" [disabled]="isForgotSubmitting" (click)="submitNewPasswordByCode()" style="margin-left: 8px;">
+                      {{ isForgotSubmitting ? 'Mise à jour…' : 'Réinitialiser le mot de passe' }}
+                    </button>
+                    <button type="button" class="btn btn-default" *ngIf="forgotStep === 'reset'" (click)="forgotStep = 'send'; forgotError = null; forgotMessage = null" style="margin-left: 8px;">
+                      Renvoyer un code
+                    </button>
+                    <button type="button" class="btn btn-link" (click)="closeForgotPassword()" style="margin-left: 8px;">Annuler</button>
+                  </div>
+                </form>
+              </div>
+            </div>
 
               <div *ngIf="passwordChangeMessage" 
                    class="alert"

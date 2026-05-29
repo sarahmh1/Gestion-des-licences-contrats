@@ -1,8 +1,9 @@
-import { Component, OnInit} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Location, PopStateEvent } from '@angular/common';
 import { Router, NavigationEnd, NavigationStart } from '@angular/router';
 import PerfectScrollbar from 'perfect-scrollbar';
 import { filter, Subscription } from 'rxjs';
+import { PermissionService } from '../../Services/permission.service';
 
 @Component({
   selector: 'app-admin-layout',
@@ -14,7 +15,11 @@ export class AdminLayoutComponent implements OnInit {
   private lastPoppedUrl: string;
   private yScrollStack: number[] = [];
 
-  constructor( public location: Location, private router: Router) {}
+  constructor(
+    public location: Location,
+    private router: Router,
+    public permission: PermissionService
+  ) {}
 
   ngOnInit() {
     console.log(this.router)

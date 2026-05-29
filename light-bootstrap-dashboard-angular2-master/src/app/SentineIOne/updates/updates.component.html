@@ -1,12 +1,10 @@
-﻿<div class="container mt-5">
+<div class="container mt-5">
   <h2 class="text-center mb-4">Mettre à jour SentineIOne</h2>
   <form [formGroup]="updateForm" (ngSubmit)="onSubmit()">
     <div class="form-group mb-3">
       <label for="client">Client</label>
       <app-searchable-client-select formControlName="client" [clients]="clients"></app-searchable-client-select>
-      <div *ngIf="updateForm.get('client')?.touched && updateForm.get('client')?.invalid" class="text-danger">
-        Ce champ est obligatoire.
-      </div>
+      <app-field-error [control]="updateForm.get('client')"></app-field-error>
     </div>
 
    <div formArrayName="licences" class="mb-3">
@@ -14,15 +12,20 @@
   <div *ngFor="let lic of licences.controls; let i = index" [formGroupName]="i" class="row align-items-end mb-2">
     <div class="col-md-4">
       <label>Nom de licence</label>
-      <input type="text" class="form-control" formControlName="nomDesLicences" />
+      <div class="licence-field-stack"><input type="text" class="form-control" formControlName="nomDesLicences" [class.is-invalid]="licences.at(i).get('nomDesLicences')?.invalid && (licences.at(i).get('nomDesLicences')?.dirty || licences.at(i).get('nomDesLicences')?.touched)" /><app-field-error [control]="licences.at(i).get('nomDesLicences')"></app-field-error></div>
     </div>
     <div class="col-md-3">
       <label>quantité</label>
-      <input type="text" class="form-control" formControlName="quantite" />
+        <div class="licence-field-stack">
+        <input type="text" class="form-control" formControlName="quantite"
+        [class.is-invalid]="licences.at(i).get('quantite')?.invalid && (licences.at(i).get('quantite')?.dirty || licences.at(i).get('quantite')?.touched)"
+          />
+        <app-field-error [control]="licences.at(i).get('quantite')" field="quantity"></app-field-error>
+      </div>
     </div>
     <div class="col-md-3">
       <label>Date d'expiration</label>
-      <input type="date" class="form-control" formControlName="dateEx" />
+      <div class="licence-field-stack"><input type="date" class="form-control" formControlName="dateEx" [class.is-invalid]="licences.at(i).get('dateEx')?.invalid && (licences.at(i).get('dateEx')?.dirty || licences.at(i).get('dateEx')?.touched)" /><app-field-error [control]="licences.at(i).get('dateEx')"></app-field-error></div>
     </div>
     <div class="col-md-2 d-flex align-items-end">
       <button type="button" class="btn btn-danger btn-sm" (click)="removeLicence(i)" *ngIf="licences.length > 1">
@@ -58,16 +61,22 @@
       </div>
     </div>
     <div formArrayName="ccMail" class="form-group">
-    <label>Emails en copie (CC)</label>
-    <div *ngFor="let ccCtrl of ccMail.controls; let i = index">
-      <input [formControlName]="i" type="email" class="form-control mb-2" placeholder="Email CC" />
-      <button type="button" class="btn btn-danger btn-sm mb-2" (click)="ccMail.removeAt(i)" *ngIf="ccMail.length > 1">Supprimer</button>
-    </div>
-    <button type="button" class="btn btn-primary btn-sm" (click)="ccMail.push(fb.control('', Validators.email))">Ajouter un email CC</button>
+      <label>Emails en copie (CC)</label>
+      <div *ngFor="let ccCtrl of ccMail.controls; let i = index">
+        <input [formControlName]="i" type="email" class="form-control mb-2" placeholder="Email CC" />
+        <button type="button" class="btn btn-danger btn-sm mb-2" (click)="removeCcMail(i)" *ngIf="ccMail.length > 1">Supprimer</button>
+      </div>
+      <button type="button" class="btn btn-primary btn-sm" (click)="addCcMail()">Ajouter un email CC</button>
     </div>
     <div class="form-group mb-3">
       <label for="numero">Numéro</label>
-      <input id="numero" type="text" class="form-control" formControlName="numero" />
+      <div class="form-field-stack">
+      <input id="numero" type="text" class="form-control" formControlName="numero"
+        appNumbersOnly maxlength="8"
+        [class.is-invalid]="updateForm.get('numero')?.invalid && (updateForm.get('numero')?.dirty || updateForm.get('numero')?.touched)"
+      />
+      <app-field-error [control]="updateForm.get('numero')" field="phone"></app-field-error>
+      </div>
     </div>
 
     <div class="form-group mb-3">
@@ -86,28 +95,27 @@
             {{ option.label }}
           </option>
         </select>
-      </div>
+      <app-field-error [control]="updateForm.get('commandePasserPar')"></app-field-error></div>
 
     <!-- Fichier -->
     <div class="form-group mb-3">
       <label class="form-label">Fichier</label>
-      <div *ngIf="sentineIOne?.fichierOriginalName" class="mb-2">
-        <a [href]="getFileDownloadUrl()" target="_blank" class="btn btn-sm btn-info me-2">
-          <i class="fa fa-download"></i> {{ sentineIOne.fichierOriginalName }}
+      <div *ngIf="sentineIOne?.fichier" class="mb-2">
+        <a [href]="getFileDownloadUrl()" target="_blank" class="btn btn-sm btn-info">
+          <i class="fa fa-download"></i> {{ sentineIOne.fichierOriginalName || 'Télécharger' }}
         </a>
-        <button type="button" class="btn btn-sm btn-danger" (click)="deleteFile()" *ngIf="permissionService.canDeleteProduct('sentineione')">
+        <button type="button" class="btn btn-sm btn-danger ms-2" (click)="deleteFile()" *ngIf="permissionService.canDeleteProduct('sentineione')">
           <i class="fa fa-trash"></i> Supprimer
         </button>
       </div>
-      <input
-        type="file"
-        class="form-control"
-        (change)="onFileSelected($event)"
-      />
-      <small *ngIf="selectedFile" class="text-success">Nouveau fichier sélectionné: {{ selectedFile.name }}</small>
+      <div *ngIf="!sentineIOne?.fichier">
+        <span class="text-muted">Aucun fichier</span>
+      </div>
+      <input type="file" class="form-control mt-2" (change)="onFileSelected($event)" />
+      <small *ngIf="selectedFile" class="text-success">Nouveau fichier: {{ selectedFile.name }}</small>
     </div>
 
-    <button type="submit" class="btn btn-success" [disabled]="updateForm.invalid">Mettre à jour</button>
+    <button type="submit" class="btn btn-success">Mettre à jour</button>
     <button type="button" class="btn btn-secondary" (click)="onCancel()">Annuler</button>
   </form>
 </div>

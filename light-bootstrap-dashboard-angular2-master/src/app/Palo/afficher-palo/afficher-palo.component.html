@@ -1,4 +1,4 @@
-﻿<div class="master-detail-container">
+<div class="master-detail-container">
   <div class="header-row">
     <h2>Licences Paloalto</h2>
     <div class="action-group">
@@ -24,7 +24,7 @@
           <div class="md-item-actions" (click)="$event.stopPropagation()">
             <button class="md-btn-icon md-btn-view" (click)="selectPalo(p)" title="Voir details"><i class="fas fa-eye"></i></button>
             <button class="md-btn-icon md-btn-edit" (click)="updatePalo(p)" *ngIf="permissionService.canEditProduct('palo')"><i class="fas fa-pen"></i></button>
-            <button class="md-btn-icon md-btn-delete" (click)="deletePalo(p.paloId)" *ngIf="permissionService.canDeleteProduct('palo')"><i class="fas fa-trash"></i></button>
+            <button class="md-btn-icon md-btn-delete" (click)="requestDeletePalo(p)" *ngIf="permissionService.canDeleteProduct('palo')"><i class="fas fa-trash"></i></button>
             <button class="md-btn-icon md-btn-approve" (click)="approvePalo(p.paloId)" *ngIf="permissionService.canEditProduct('palo')"><i class="fas fa-check"></i></button>
           </div>
         </div>
@@ -50,9 +50,9 @@
             <div class="md-detail-row"><span class="md-label">Expiration</span><span class="md-value">{{ lic.dateEx | date:'dd/MM/yyyy' }}</span></div>
           </div>
           <div class="md-detail-divider"></div>
-          <div class="md-detail-section-title">Contact Client</div>
-          <div class="md-detail-row"><span class="md-label">Nom contact</span><span class="md-value">{{ selectedPalo.nomDuContact || '-' }}</span></div>
-          <div class="md-detail-row"><span class="md-label">N° Téléphone</span><span class="md-value">{{ selectedPalo.numero || '-' }}</span></div>
+          <div class="md-detail-section-title">Vis-&#224;-vis client</div>
+          <div class="md-detail-row"><span class="md-label">Vis-&#224;-vis client</span><span class="md-value">{{ selectedPalo.nomDuContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">N&#176; t&#233;l&#233;phone</span><span class="md-value">{{ selectedPalo.numero || '-' }}</span></div>
           <div class="md-detail-row"><span class="md-label">Email client</span><span class="md-value">{{ selectedPalo.adresseEmailContact || '-' }}</span></div>
           <div class="md-detail-row"><span class="md-label">Email Commercial</span><span class="md-value">{{ selectedPalo.mailAdmin || '-' }}</span></div>
           <div class="md-detail-row"><span class="md-label">CC Mail</span><span class="md-value">{{ selectedPalo.ccMail || '-' }}</span></div>
@@ -65,7 +65,7 @@
           <div class="md-detail-divider"></div>
           <div class="md-detail-actions">
             <button (click)="updatePalo(selectedPalo)" class="btn btn-sm btn-primary" *ngIf="permissionService.canEditProduct('palo')"><i class="fas fa-pen"></i> Modifier</button>
-            <button (click)="deletePalo(selectedPalo.paloId)" class="btn btn-sm btn-danger" *ngIf="permissionService.canDeleteProduct('palo')"><i class="fas fa-trash"></i> Supprimer</button>
+            <button (click)="requestDeletePalo(selectedPalo)" class="btn btn-sm btn-danger" *ngIf="permissionService.canDeleteProduct('palo')"><i class="fas fa-trash"></i> Supprimer</button>
             <button (click)="approvePalo(selectedPalo.paloId)" class="btn btn-sm btn-success" *ngIf="permissionService.canEditProduct('palo')"><i class="fas fa-check"></i> Approuver</button>
           </div>
         </div>
@@ -239,3 +239,11 @@
     width: 100%;
   }
 </style>
+<app-confirm-delete-modal
+  [visible]="showDeleteModal"
+  message="Êtes-vous sûr de vouloir supprimer cette licence Palo Alto ?"
+  [detail]="deleteModalDetail"
+  [canConfirm]="permissionService.canDeleteProduct('palo')"
+  (cancel)="closeDeleteModal()"
+  (confirm)="confirmDeletePalo()">
+</app-confirm-delete-modal>

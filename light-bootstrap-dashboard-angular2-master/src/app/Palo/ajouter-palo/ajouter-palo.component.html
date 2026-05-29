@@ -1,4 +1,4 @@
-﻿<form [formGroup]="PaloForm" (ngSubmit)="addPalo()" class="form-wrapper">
+<form [formGroup]="PaloForm" (ngSubmit)="addPalo()" class="form-wrapper">
   <h5 class="form-title mb-4">{{ isEditing ? 'Modifier licence Paloalto' : 'Ajouter licence Paloalto' }}</h5>
   
   <!-- Client -->
@@ -9,9 +9,7 @@
       formControlName="client" 
       [clients]="clients">
     </app-searchable-client-select>
-    <div *ngIf="PaloForm.get('client')?.touched && PaloForm.get('client')?.invalid" class="text-danger">
-      Ce champ est obligatoire.
-    </div>
+    <app-field-error [control]="PaloForm.get('client')"></app-field-error>
   </div>
 
     <!-- Nom du Boîtier -->
@@ -24,9 +22,7 @@
         formControlName="nomDuBoitier"
         placeholder="Nom du boîtier"
       />
-      <div *ngIf="PaloForm.get('nomDuBoitier')?.touched && PaloForm.get('nomDuBoitier')?.invalid" class="text-danger">
-        Ce champ est obligatoire.
-      </div>
+      <app-field-error [control]="PaloForm.get('nomDuBoitier')"></app-field-error>
     </div>
 <!-- Licences -->
 <div formArrayName="licences">
@@ -37,27 +33,29 @@
     class="row align-items-end mb-2"
   >
     <div class="col-md-4">
-      <input
+      <div class="licence-field-stack"><input
         type="text"
         class="form-control"
         placeholder="Nom de licence"
-        formControlName="nomDesLicences"
-      />
+        formControlName="nomDesLicences" [class.is-invalid]="licences.at(i).get('nomDesLicences')?.invalid && (licences.at(i).get('nomDesLicences')?.dirty || licences.at(i).get('nomDesLicences')?.touched)" /><app-field-error [control]="licences.at(i).get('nomDesLicences')"></app-field-error></div>
     </div>
     <div class="col-md-3">
-      <input
-        type="text"
-        class="form-control"
-        placeholder="quantité"
-        formControlName="quantite"
-      />
+      <div class="licence-field-stack">
+        <input
+          type="text"
+          class="form-control"
+          placeholder="quantité"
+          formControlName="quantite"
+          [class.is-invalid]="licences.at(i).get('quantite')?.invalid && (licences.at(i).get('quantite')?.dirty || licences.at(i).get('quantite')?.touched)"
+          />
+        <app-field-error [control]="licences.at(i).get('quantite')" field="quantity"></app-field-error>
+      </div>
     </div>
     <div class="col-md-4">
-      <input
+      <div class="licence-field-stack"><input
         type="date"
         class="form-control"
-        formControlName="dateEx"
-      />
+        formControlName="dateEx" [class.is-invalid]="licences.at(i).get('dateEx')?.invalid && (licences.at(i).get('dateEx')?.dirty || licences.at(i).get('dateEx')?.touched)" /><app-field-error [control]="licences.at(i).get('dateEx')"></app-field-error></div>
     </div>
     <div class="col-md-1">
       <button
@@ -85,9 +83,7 @@
         formControlName="numeroSerieBoitier"
         placeholder="Numéro de série"
       />
-      <div *ngIf="PaloForm.get('numeroSerieBoitier')?.touched && PaloForm.get('numeroSerieBoitier')?.invalid" class="text-danger">
-        Ce champ est obligatoire.
-      </div>
+      <app-field-error [control]="PaloForm.get('numeroSerieBoitier')"></app-field-error>
     </div>
 
     
@@ -106,36 +102,51 @@
 
     <!-- Nom du Contact -->
     <div class="form-group mb-3">
-      <label for="nomDuContact" class="form-label">Contact Client</label>
+      <label for="nomDuContact" class="form-label">
+        Vis-&#224;-vis client
+        <span class="badge-autofill" *ngIf="PaloForm.get('nomDuContact')?.value">Auto</span>
+      </label>
       <input
         type="text"
         id="nomDuContact"
         class="form-control"
         formControlName="nomDuContact"
-        placeholder="Nom du contact"
+        placeholder="Auto-rempli depuis le client"
       />
     </div>
 
 <!-- Numéro -->
     <div class="form-group mb-3">
-      <label for="numero" class="form-label">N° Client</label>
+      <label for="numero" class="form-label">
+        N&#176; t&#233;l&#233;phone
+        <span class="badge-autofill" *ngIf="PaloForm.get('numero')?.value">Auto</span>
+      </label>
+      <div class="form-field-stack">
       <input
         type="text"
         id="numero"
         class="form-control"
         formControlName="numero"
-        placeholder="Numéro du contact"
+        placeholder="Auto-rempli depuis le client"
+
+        appNumbersOnly maxlength="8"
+        [class.is-invalid]="PaloForm.get('numero')?.invalid && (PaloForm.get('numero')?.dirty || PaloForm.get('numero')?.touched)"
       />
+      <app-field-error [control]="PaloForm.get('numero')" field="phone"></app-field-error>
+      </div>
     </div>
     <!-- Adresse Email Contact -->
     <div class="form-group mb-3">
-      <label for="adresseEmailContact" class="form-label">Email Client </label>
+      <label for="adresseEmailContact" class="form-label">
+        Email client
+        <span class="badge-autofill" *ngIf="PaloForm.get('adresseEmailContact')?.value">Auto</span>
+      </label>
       <input
         type="email"
         id="adresseEmailContact"
         class="form-control"
         formControlName="adresseEmailContact"
-        placeholder="Email du contact"
+        placeholder="Auto-rempli depuis le client"
       />
       <div *ngIf="PaloForm.get('adresseEmailContact')?.touched && PaloForm.get('adresseEmailContact')?.invalid" class="text-danger">
         Veuillez entrer une adresse email valide.
@@ -145,7 +156,7 @@
 
       <!-- Email Admin -->
 <div class="form-group mb-3">
-  <label for="mailAdmin" class="form-label">Email Commercial</label>
+  <label for="mailAdmin" class="form-label">Email commercial</label>
   <input type="email" id="mailAdmin" formControlName="mailAdmin" class="form-control" placeholder="Email de l'administrateur" />
 </div>
 <!-- CC Mail -->
@@ -225,13 +236,13 @@
             {{ option.label }}
           </option>
         </select>
-      </div>
+      <app-field-error [control]="PaloForm.get('commandePasserPar')"></app-field-error></div>
   
 
 
 
     <!-- Bouton Ajouter/Modifier -->
-    <button type="submit" class="btn btn-primary" [disabled]="PaloForm.invalid">
+    <button type="submit" class="btn btn-primary">
       <i class="fas fa-check me-2"></i>{{ isEditing ? 'Modifier' : 'Ajouter' }}
     </button>
     <button type="button" class="btn btn-secondary ms-2" (click)="resetForm()">Réinitialiser</button>

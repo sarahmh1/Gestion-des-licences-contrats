@@ -81,6 +81,10 @@ const routes: Routes =[
     path: 'signup', 
     loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule)
   },
+  {
+    path: 'verify-email',
+    loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule)
+  },
   
 
   {

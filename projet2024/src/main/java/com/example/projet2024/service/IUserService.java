@@ -30,4 +30,11 @@ public interface IUserService {
     List<UserDTO> getAllUsersDTO();
     
     boolean changePassword(Long userId, PasswordChangeRequest request);
+
+    void requestPasswordReset(String email);
+
+    boolean resetPasswordWithCode(String email, String code, String newPassword);
+
+    /** Renvoie l'e-mail de vérification si le compte existe et n'est pas encore vérifié. */
+    void resendVerificationEmail(String email);
 }

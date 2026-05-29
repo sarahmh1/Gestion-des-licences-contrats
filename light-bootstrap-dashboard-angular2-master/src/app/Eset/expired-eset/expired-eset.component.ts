@@ -14,6 +14,7 @@ export class ExpiredEsetComponent implements OnInit {
   pagedExpiredProducts: Eset[] = [];
   allEsets: Eset[] = []; // Ajouté pour le HTML
   searchTerm: string = '';
+  selectedEset: Eset | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -96,8 +97,19 @@ export class ExpiredEsetComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectEset(item: Eset): void {
+    this.selectedEset = item;
+  }
+
+  closeDetail(): void {
+    this.selectedEset = null;
+  }
+
   desapprouve(id: number): void {
     this.esetService.activate(id).subscribe(() => {
+      if (this.selectedEset?.esetid === id) {
+        this.selectedEset = null;
+      }
       // Après désapprobation, retirer le produit de la liste approuvée locale
       this.expiredProducts = this.expiredProducts.filter(eset => eset.esetid !== id);
       this.filteredExpiredProducts = this.filteredExpiredProducts.filter(eset => eset.esetid !== id);

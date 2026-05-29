@@ -13,6 +13,7 @@ export class ExpiredVMwareComponent implements OnInit {
   filteredExpiredVMwares: VMware[] = [];
   pagedExpiredVMwares: VMware[] = [];
   searchTerm: string = '';
+  selectedVMware: VMware | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -92,8 +93,19 @@ export class ExpiredVMwareComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectVMware(item: VMware): void {
+    this.selectedVMware = item;
+  }
+
+  closeDetail(): void {
+    this.selectedVMware = null;
+  }
+
   desapprouve(id: number): void {
     this.vmwareService.activate(id).subscribe(() => {
+      if (this.selectedVMware?.vmwareId === id) {
+        this.selectedVMware = null;
+      }
       // Après désapprobation, retirer le VMware de la liste approuvée locale
       this.expiredVMwares = this.expiredVMwares.filter(vmware => vmware.vmwareId !== id);
       this.filteredExpiredVMwares = this.filteredExpiredVMwares.filter(vmware => vmware.vmwareId !== id);

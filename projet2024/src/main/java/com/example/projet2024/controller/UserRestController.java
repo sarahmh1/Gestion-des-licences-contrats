@@ -360,19 +360,22 @@ public class UserRestController {
     }
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
+    public ResponseEntity<?> createUser(@RequestBody User user) {
         System.out.println("\n" + "=".repeat(80));
         System.out.println("🔧 POST /Users - CREATE USER");
         System.out.println("  Email: " + user.getEmail());
         System.out.println("  Role: " + user.getRole());
         System.out.println("  Password length: " + (user.getPassword() != null ? user.getPassword().length() : "NULL"));
         System.out.println("=".repeat(80));
-        
-        User createdUser = userService.createUser(user);
-        
-        System.out.println("✅ User created with ID: " + createdUser.getId());
-        System.out.println("=".repeat(80) + "\n");
-        return createdUser;
+
+        try {
+            User createdUser = userService.createUser(user);
+            System.out.println("✅ User created with ID: " + createdUser.getId());
+            System.out.println("=".repeat(80) + "\n");
+            return ResponseEntity.ok(createdUser);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 
     @PutMapping("/{id}")
@@ -628,6 +631,7 @@ public class UserRestController {
     }
 
     @PutMapping("/{id}/role")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMINISTRATEUR', 'ROLE_SUPER_ADMIN')")
     public User assignUserRole(@PathVariable Long id, @RequestParam Role_Enum role) {
         return userService.assignUserRole(id, role);
     }
@@ -713,7 +717,22 @@ public class UserRestController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             
-            System.out.println("✅ /me: Utilisateur retourné - " + user.getEmail());
+            if (user.getRole() == null && authentication.getAuthorities() != null) {
+                authentication.getAuthorities().stream()
+                        .map(a -> a.getAuthority())
+                        .filter(a -> a.startsWith("ROLE_"))
+                        .findFirst()
+                        .ifPresent(authority -> {
+                            try {
+                                user.setRole(Role_Enum.valueOf(authority));
+                            } catch (IllegalArgumentException ignored) {
+                                // ignore invalid authority name
+                            }
+                        });
+            }
+
+            user.setPassword(null);
+            System.out.println("✅ /me: Utilisateur retourné - " + user.getEmail() + " (rôle: " + user.getRole() + ")");
             return ResponseEntity.ok(user);
             
         } catch (Exception e) {
@@ -764,7 +783,7 @@ public class UserRestController {
 
             // Changer le mot de passe
             boolean success = userService.changePassword(id, request);
-            
+
             if (success) {
                 response.put("success", true);
                 response.put("message", "Mot de passe changé avec succès");
@@ -774,7 +793,11 @@ public class UserRestController {
                 response.put("message", "Mot de passe actuel incorrect");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
-            
+
+        } catch (IllegalArgumentException e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Erreur lors du changement de mot de passe: " + e.getMessage());

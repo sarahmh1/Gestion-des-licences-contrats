@@ -13,6 +13,7 @@ export class ExpiredBitdefenderComponent implements OnInit {
   filteredExpiredBitdefenders: Bitdefender[] = [];
   pagedExpiredBitdefenders: Bitdefender[] = [];
   searchTerm: string = '';
+  selectedBitdefender: Bitdefender | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -92,8 +93,19 @@ export class ExpiredBitdefenderComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectBitdefender(item: Bitdefender): void {
+    this.selectedBitdefender = item;
+  }
+
+  closeDetail(): void {
+    this.selectedBitdefender = null;
+  }
+
   desapprouve(id: number): void {
     this.bitdefenderService.activate(id).subscribe(() => {
+      if (this.selectedBitdefender?.bitdefenderId === id) {
+        this.selectedBitdefender = null;
+      }
       // Après désapprobation, retirer le Bitdefender de la liste approuvée locale
       this.expiredBitdefenders = this.expiredBitdefenders.filter(bitdefender => bitdefender.bitdefenderId !== id);
       this.filteredExpiredBitdefenders = this.filteredExpiredBitdefenders.filter(bitdefender => bitdefender.bitdefenderId !== id);

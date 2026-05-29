@@ -1,180 +1,130 @@
-﻿<div class="container mt-5">
-  <h2 class="text-center mb-4">Ajouter licence imperva</h2>
+﻿<form [formGroup]="impervaForm" (ngSubmit)="saveImperva()" class="form-wrapper">
+  <h5 class="form-title mb-4">{{ isEditing ? 'Modifier licence Imperva' : 'Ajouter licence Imperva' }}</h5>
 
-  <form [formGroup]="impervaForm" (ngSubmit)="addImperva()">
-    <!-- Client -->
-    <div class="form-group mb-3">
-      <label for="client" class="form-label">Client</label>
-      <app-searchable-client-select formControlName="client" [clients]="clients"></app-searchable-client-select>
-      <div *ngIf="impervaForm.get('client')?.touched && impervaForm.get('client')?.invalid" class="text-danger">
-        Ce champ est obligatoire.
+  <div class="form-group client-select-wrapper" style="position: relative; z-index: 10000;">
+    <label for="client-im" class="form-label">Client</label>
+    <app-searchable-client-select #clientSelect formControlName="client" [clients]="clients"></app-searchable-client-select>
+    <app-field-error [control]="impervaForm.get('client')"></app-field-error>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Licences</label>
+    <div formArrayName="licences">
+      <div *ngFor="let licence of licences.controls; let i = index" [formGroupName]="i" class="licence-row">
+        <div class="licence-field-stack"><input type="text" class="form-control" placeholder="Nom de licence" formControlName="nomDesLicences" [class.is-invalid]="licences.at(i).get('nomDesLicences')?.invalid && (licences.at(i).get('nomDesLicences')?.dirty || licences.at(i).get('nomDesLicences')?.touched)" /><app-field-error [control]="licences.at(i).get('nomDesLicences')"></app-field-error></div>
+        <div class="licence-field-stack">
+        <input type="text" class="form-control" placeholder="Quantité" formControlName="quantite"
+        [class.is-invalid]="licences.at(i).get('quantite')?.invalid && (licences.at(i).get('quantite')?.dirty || licences.at(i).get('quantite')?.touched)"
+          />
+        <app-field-error [control]="licences.at(i).get('quantite')" field="quantity"></app-field-error>
+        </div>
+        <div class="licence-field-stack"><input type="date" class="form-control" formControlName="dateEx" [class.is-invalid]="licences.at(i).get('dateEx')?.invalid && (licences.at(i).get('dateEx')?.dirty || licences.at(i).get('dateEx')?.touched)" /><app-field-error [control]="licences.at(i).get('dateEx')"></app-field-error></div>
+        <button type="button" class="btn btn-danger" (click)="removeLicence(i)" *ngIf="licences.length > 1">×</button>
       </div>
-    </div>
-
-<!-- Licences -->
-<div formArrayName="licences">
-  <label class="form-label">Licences</label>
-  <div
-    *ngFor="let licence of licences.controls; let i = index"
-    [formGroupName]="i"
-    class="row align-items-end mb-2"
-  >
-    <div class="col-md-4">
-      <input
-        type="text"
-        class="form-control"
-        placeholder="Nom de licence"
-        formControlName="nomDesLicences"
-      />
-    </div>
-    <div class="col-md-3">
-      <input
-        type="text"
-        class="form-control"
-        placeholder="quantité"
-        formControlName="quantite"
-      />
-    </div>
-    <div class="col-md-4">
-      <input
-        type="date"
-        class="form-control"
-        formControlName="dateEx"
-      />
-    </div>
-    <div class="col-md-1">
-      <button
-        type="button"
-        class="btn btn-danger"
-        (click)="removeLicence(i)"
-        *ngIf="licences.length > 1"
-      >
-        ×
+      <button type="button" class="md-btn-icon md-btn-add" (click)="addLicence()" title="Ajouter une licence" style="margin-top: 0.75rem;">
+        <i class="fas fa-plus"></i>
       </button>
     </div>
   </div>
-  <button type="button" class="btn btn-secondary mt-2" (click)="addLicence()">
-    Ajouter une licence
-  </button>
-</div>
 
+  <div class="form-group">
+    <label for="duree-im" class="form-label">Durée de la licence</label>
+    <input type="text" id="duree-im" class="form-control" formControlName="dureeDeLicence" placeholder="Durée de la licence" />
+  </div>
 
-    
-
-        <!-- Durée de la Licence -->
-    <div class="form-group mb-3">
-      <label for="dureeDeLicence" class="form-label">Durée de la Licence</label>
-      <input
-        type="text"
-        id="dureeDeLicence"
-        class="form-control"
-        formControlName="dureeDeLicence"
-        placeholder="Durée de la licence"
-      />
+  <div class="form-row">
+    <div class="form-group">
+      <label for="contact-im" class="form-label">
+        Vis-à-vis client
+        <span class="badge-autofill" *ngIf="impervaForm.get('nomDuContact')?.value">Auto</span>
+      </label>
+      <input type="text" id="contact-im" class="form-control" formControlName="nomDuContact" placeholder="Auto-rempli depuis le client" />
     </div>
-
-    <!-- Nom du Contact -->
-    <div class="form-group mb-3">
-      <label for="nomDuContact" class="form-label">Contact Client</label>
-      <input
-        type="text"
-        id="nomDuContact"
-        class="form-control"
-        formControlName="nomDuContact"
-        placeholder="Nom du contact"
+    <div class="form-group">
+      <label for="tel-im" class="form-label">
+        Numéro de téléphone
+        <span class="badge-autofill" *ngIf="impervaForm.get('numero')?.value">Auto</span>
+      </label>
+      <div class="form-field-stack">
+      <input type="text" id="tel-im" class="form-control" formControlName="numero" placeholder="Auto-rempli depuis le client"
+        appNumbersOnly maxlength="8"
+        [class.is-invalid]="impervaForm.get('numero')?.invalid && (impervaForm.get('numero')?.dirty || impervaForm.get('numero')?.touched)"
       />
+      <app-field-error [control]="impervaForm.get('numero')" field="phone"></app-field-error>
+      </div>
     </div>
+  </div>
 
-<!-- Numéro -->
-    <div class="form-group mb-3">
-      <label for="numero" class="form-label">N° Client</label>
-      <input
-        type="text"
-        id="numero"
-        class="form-control"
-        formControlName="numero"
-        placeholder="Numéro du contact"
-      />
-    </div>
-    <!-- Adresse Email Contact -->
-    <div class="form-group mb-3">
-      <label for="adresseEmailContact" class="form-label">Email Client </label>
-      <input
-        type="email"
-        id="adresseEmailContact"
-        class="form-control"
-        formControlName="adresseEmailContact"
-        placeholder="Email du contact"
-      />
+  <div class="form-row">
+    <div class="form-group">
+      <label for="email-im" class="form-label">
+        Email client
+        <span class="badge-autofill" *ngIf="impervaForm.get('adresseEmailContact')?.value">Auto</span>
+      </label>
+      <input type="email" id="email-im" class="form-control" formControlName="adresseEmailContact" placeholder="Auto-rempli depuis le client" />
       <div *ngIf="impervaForm.get('adresseEmailContact')?.touched && impervaForm.get('adresseEmailContact')?.invalid" class="text-danger">
         Veuillez entrer une adresse email valide.
       </div>
     </div>
-    
-
-      <!-- Email Admin -->
-<div class="form-group mb-3">
-  <label for="mailAdmin" class="form-label">Email Commercial</label>
-  <input type="email" id="mailAdmin" formControlName="mailAdmin" class="form-control" placeholder="Email de l'administrateur" />
-</div>
-<!-- CC Mail -->
-<div class="form-group mb-3">
-  <label>Emails en copie (CC)</label>
-  <div *ngIf="impervaForm.get('ccMail') as cc">
-    <div [formArrayName]="'ccMail'">
-      <div *ngFor="let control of cc.controls; let i = index" class="d-flex mb-2">
-        <input
-          [formControlName]="i"
-          type="email"
-          class="form-control me-2"
-          placeholder="Email en copie"
-        />
-        <button type="button" class="btn btn-danger" (click)="removeCcMail(i)">Supprimer</button>
-      </div>
+    <div class="form-group">
+      <label for="commercial-im" class="form-label">Email commercial</label>
+      <input type="email" id="commercial-im" formControlName="mailAdmin" class="form-control" placeholder="Email commercial" />
     </div>
   </div>
-  <button type="button" class="btn btn-secondary mt-2" (click)="addCcMail()">Ajouter Email</button>
-</div>
-    <!-- Remarque -->
-    <div class="form-group mb-3">
-      <label for="remarque" class="form-label">Remarque</label>
-      <textarea
-        id="remarque"
-        class="form-control"
-        formControlName="remarque"
-        placeholder="Ajouter une remarque"
-      ></textarea>
-    </div>
-    <!-- Sous Contrat -->
-      <div class="form-group mb-3 form-check">
-        <input type="checkbox" id="sousContrat" class="form-check-input" formControlName="sousContrat" />
-        <label for="sousContrat" class="form-check-label">Sous Contrat</label>
-      </div>
-      <div class="form-group">
-        <label for="commandePasserPar">Commande Passer Par</label>
-        <select id="commandePasserPar" formControlName="commandePasserPar" class="form-control">
-          <option *ngFor="let option of commandePasserParOptions" [value]="option.value">
-            {{ option.label }}
-          </option>
-        </select>
-      </div>
 
-    <!-- Fichier -->
-    <div class="form-group mb-3">
-      <label for="fichier" class="form-label">Fichier (optionnel)</label>
-      <input
-        type="file"
-        id="fichier"
-        class="form-control"
-        (change)="onFileSelected($event)"
-      />
+  <div class="form-group">
+    <label class="form-label">Emails en copie (CC)</label>
+    <div [formArrayName]="'ccMail'">
+      <div *ngFor="let control of ccMail.controls; let i = index" class="cc-email-row">
+        <input [formControlName]="i" type="email" class="form-control" placeholder="Email en copie" />
+        <button type="button" class="md-btn-icon md-btn-remove" (click)="removeCcMail(i)" title="Supprimer">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
     </div>
-
-    <!-- Bouton Ajouter -->
-    <button type="submit" class="btn btn-primary" [disabled]="impervaForm.invalid">
-      Ajouter
+    <button type="button" class="md-btn-icon md-btn-add" (click)="addCcMail()" title="Ajouter un email" style="margin-top: 0.75rem;">
+      <i class="fas fa-plus"></i>
     </button>
-     <button type="button" class="btn btn-secondary" (click)="onCancel()">Annuler</button>
-  </form>
-  
-</div>
+  </div>
+
+  <div class="form-group">
+    <label for="rem-im" class="form-label">Remarque</label>
+    <textarea id="rem-im" class="form-control" formControlName="remarque" placeholder="Remarque" rows="3"></textarea>
+  </div>
+
+  <div class="form-group form-check">
+    <input type="checkbox" id="sous-im" class="form-check-input" formControlName="sousContrat" />
+    <label for="sous-im" class="form-check-label">Sous contrat</label>
+  </div>
+
+  <div class="form-group">
+    <label for="cmd-im" class="form-label">Commande passer par</label>
+    <select id="cmd-im" formControlName="commandePasserPar" class="form-control">
+      <option *ngFor="let option of commandePasserParOptions" [value]="option.value">{{ option.label }}</option>
+    </select>
+  <app-field-error [control]="impervaForm.get('commandePasserPar')"></app-field-error></div>
+
+  <div class="form-group" *ngIf="isEditing && impervaToEdit?.fichier">
+    <label class="form-label">Fichier actuel</label>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <a [href]="getFileDownloadUrl()" target="_blank" class="btn btn-sm btn-outline-primary">
+        <i class="fa fa-download"></i> {{ impervaToEdit?.fichierOriginalName || 'Télécharger' }}
+      </a>
+      <button type="button" class="btn btn-sm btn-danger" (click)="deleteExistingFile()">Supprimer le fichier</button>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="fichier-imperva" class="form-label">{{ isEditing ? 'Nouveau fichier (optionnel)' : 'Fichier (PDF, DOC, etc.)' }}</label>
+    <input type="file" id="fichier-imperva" class="form-control" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.png,.jpg,.jpeg" />
+    <small class="text-muted">Le fichier sera uploadé après l'enregistrement</small>
+  </div>
+
+  <div class="form-buttons">
+    <button type="submit" class="btn btn-primary">
+      <i class="fas" [class.fa-save]="isEditing" [class.fa-plus]="!isEditing"></i>
+      {{ isEditing ? 'Enregistrer' : 'Ajouter' }}
+    </button>
+    <button type="button" class="btn btn-secondary" (click)="onReinitialiser()">Réinitialiser</button>
+  </div>
+</form>

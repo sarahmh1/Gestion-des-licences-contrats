@@ -1,5 +1,4 @@
-<div class="container">
-  <!-- En-tête avec titre et boutons alignés -->
+﻿<div class="master-detail-container">
   <div class="header-row">
     <h2>Liste des utilisateurs</h2>
     <div class="action-group">
@@ -7,76 +6,127 @@
         <i class="fa fa-plus"></i>
       </button>
       <div class="input-group search-box">
-        <input 
-          type="text" 
-          class="form-control" 
-          placeholder="Rechercher..." 
-          [(ngModel)]="searchTerm" 
-          (input)="onSearch()" 
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Rechercher..."
+          [(ngModel)]="searchTerm"
+          (input)="onSearch()"
         />
       </div>
     </div>
   </div>
 
-  <!-- Tableau responsive -->
-  <div class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Prénom</th>
-          <th>Nom</th>
-          <th>Date de naissance</th>
-          <th>Sexe</th>
-          <th>N° téléphone</th>
-          <th>Email</th>
-          <th>Rôle</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let user of pagedUsers">
-          <td>{{ user.firstname }}</td>
-          <td>{{ user.lastname }}</td>
-          <td>{{ user.dateOfBirth | date: 'dd/MM/yyyy' }}</td>
-          <td>{{ user.sex }}</td>
-          <td>{{ user.phoneNumber }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.role }}</td>
-          <td>
-            <div class="d-flex flex-column gap-1">
-              <button (click)="openEditModal(user)" class="btn btn-sm btn-primary">
-                <i class="fas fa-pen"></i>
-              </button>
-              <button (click)="deleteUser(user.id)" class="btn btn-sm btn-danger" *ngIf="permissionService.canDeleteProduct('user')">
-                <i class="fas fa-trash"></i>
-              </button>
-              <button *ngIf="!user.verified" (click)="activateUser(user.id)" class="btn btn-sm btn-success">
-                <i class="fas fa-check"></i>
-              </button>
-              <button *ngIf="user.verified" (click)="deactivateUser(user.id)" class="btn btn-sm btn-warning">
-                <i class="fas fa-times"></i>
-              </button>
+  <div class="md-layout" [class.detail-open]="selectedUser">
+    <div class="md-master">
+      <div class="md-list">
+        <div *ngFor="let user of pagedUsers" class="md-item"
+          [class.md-item-active]="selectedUser?.id === user.id"
+          (click)="selectUser(user)">
+          <div class="md-item-info">
+            <div class="md-item-client">{{ user.firstname }} {{ user.lastname }}</div>
+            <div class="md-item-fields">
+              <span class="md-field">
+                <span class="md-badge md-badge-role">{{ getRoleLabel(user.role) }}</span>
+              </span>
+              <span class="md-field">
+                <span [class]="user.verified ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">
+                  {{ user.verified ? 'Actif' : 'Inactif' }}
+                </span>
+              </span>
+              <span class="md-field"><strong>Email :</strong> {{ user.email || '-' }}</span>
+              <span class="md-field"><strong>Tél. :</strong> {{ user.phoneNumber || '-' }}</span>
             </div>
-          </td>
-        </tr>
-        <tr *ngIf="filteredUsers.length === 0">
-          <td colspan="8" class="text-center">Aucun utilisateur trouvé.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+          </div>
+          <div class="md-item-actions" (click)="$event.stopPropagation()">
+            <button class="md-btn-icon md-btn-view" (click)="selectUser(user)" title="Voir détails">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button class="md-btn-icon md-btn-edit" (click)="openEditModal(user)" title="Modifier">
+              <i class="fas fa-pen"></i>
+            </button>
+            <button class="md-btn-icon md-btn-delete" (click)="deleteUser(user.id)" title="Supprimer"
+              *ngIf="permissionService.canDeleteProduct('user')">
+              <i class="fas fa-trash"></i>
+            </button>
+            <button *ngIf="!user.verified" class="md-btn-icon md-btn-approve" (click)="activateUser(user.id)"
+              title="Activer">
+              <i class="fas fa-check"></i>
+            </button>
+            <button *ngIf="user.verified" class="md-btn-icon md-btn-unapprove" (click)="deactivateUser(user.id)"
+              title="Désactiver">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
 
-  <!-- Pagination -->
-  <div class="text-center mt-3">
-    <ng-container *ngIf="totalPages > 1">
-      <button 
-        *ngFor="let page of pageNumbers; let i = index"
-        (click)="changePage(i)"
-        [class.active]="i === currentPage"
-        class="btn btn-sm btn-outline-primary mx-1">
-        {{ i + 1 }}
-      </button>
-    </ng-container>
+        <div *ngIf="pagedUsers.length === 0" class="md-empty">
+          <i class="fas fa-users"></i>
+          <p>Aucun utilisateur trouvé.</p>
+        </div>
+      </div>
+
+      <div class="md-pagination" *ngIf="totalPages > 1">
+        <button
+          *ngFor="let page of pageNumbers; let i = index"
+          (click)="changePage(i)"
+          [class.active]="i === currentPage"
+          class="btn btn-sm btn-outline-primary mx-1">
+          {{ i + 1 }}
+        </button>
+      </div>
+    </div>
+
+    <div class="md-detail" *ngIf="selectedUser">
+      <div class="md-detail-card">
+        <div class="md-detail-header">
+          <h4>{{ selectedUser.firstname }} {{ selectedUser.lastname }}</h4>
+          <button class="md-detail-close" (click)="closeDetail()">&times;</button>
+        </div>
+        <div class="md-detail-body">
+          <div class="md-detail-section-title">Identité</div>
+          <div class="md-detail-row"><span class="md-label">Prénom</span><span class="md-value">{{ selectedUser.firstname || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Nom</span><span class="md-value">{{ selectedUser.lastname || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Date de naissance</span><span class="md-value">{{ selectedUser.dateOfBirth | date:'dd/MM/yyyy' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Sexe</span><span class="md-value">{{ selectedUser.sex || '-' }}</span></div>
+
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-section-title">Contact</div>
+          <div class="md-detail-row"><span class="md-label">N° téléphone</span><span class="md-value">{{ selectedUser.phoneNumber || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Email</span><span class="md-value">{{ selectedUser.email || '-' }}</span></div>
+
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-section-title">Compte</div>
+          <div class="md-detail-row"><span class="md-label">Rôle</span>
+            <span class="md-value"><span class="md-badge md-badge-role">{{ getRoleLabel(selectedUser.role) }}</span></span>
+          </div>
+          <div class="md-detail-row"><span class="md-label">Statut</span>
+            <span class="md-value">
+              <span [class]="selectedUser.verified ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">
+                {{ selectedUser.verified ? 'Actif' : 'Inactif' }}
+              </span>
+            </span>
+          </div>
+
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-actions">
+            <button (click)="openEditModal(selectedUser)" class="btn btn-sm btn-primary">
+              <i class="fas fa-pen"></i> Modifier
+            </button>
+            <button (click)="deleteUser(selectedUser.id)" class="btn btn-sm btn-danger"
+              *ngIf="permissionService.canDeleteProduct('user')">
+              <i class="fas fa-trash"></i> Supprimer
+            </button>
+            <button *ngIf="!selectedUser.verified" (click)="activateUser(selectedUser.id)" class="btn btn-sm btn-success">
+              <i class="fas fa-check"></i> Activer
+            </button>
+            <button *ngIf="selectedUser.verified" (click)="deactivateUser(selectedUser.id)" class="btn btn-sm btn-warning">
+              <i class="fas fa-times"></i> Désactiver
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -89,21 +139,23 @@
         <h4 class="modal-title">{{ isEditMode ? 'Modifier utilisateur' : 'Ajouter utilisateur' }}</h4>
       </div>
 
-      <!-- MODAL BODY SANS SCROLL -->
       <div class="modal-body" style="padding: 20px;">
-        <!-- FORMULAIRE AVEC SCROLL -->
         <form [formGroup]="userForm" style="max-height: 50vh; overflow-y: auto; padding-right: 10px;">
           <div class="row">
             <div class="col-md-6">
               <div class="form-group">
                 <label>Prénom</label>
-                <input type="text" class="form-control" formControlName="firstname">
+                <input type="text" class="form-control" formControlName="firstname" appLettersOnly
+                  [class.is-invalid]="userForm.get('firstname')?.invalid && (userForm.get('firstname')?.dirty || userForm.get('firstname')?.touched)">
+                <app-field-error [control]="userForm.get('firstname')" field="name"></app-field-error>
               </div>
             </div>
             <div class="col-md-6">
               <div class="form-group">
                 <label>Nom</label>
-                <input type="text" class="form-control" formControlName="lastname">
+                <input type="text" class="form-control" formControlName="lastname" appLettersOnly
+                  [class.is-invalid]="userForm.get('lastname')?.invalid && (userForm.get('lastname')?.dirty || userForm.get('lastname')?.touched)">
+                <app-field-error [control]="userForm.get('lastname')" field="name"></app-field-error>
               </div>
             </div>
           </div>
@@ -131,13 +183,18 @@
             <div class="col-md-6">
               <div class="form-group">
                 <label>Numéro de téléphone</label>
-                <input type="text" class="form-control" formControlName="phoneNumber" placeholder="22222222">
+                <input type="text" class="form-control" formControlName="phoneNumber" placeholder="22222222"
+                  appNumbersOnly maxlength="8"
+                  [class.is-invalid]="userForm.get('phoneNumber')?.invalid && (userForm.get('phoneNumber')?.dirty || userForm.get('phoneNumber')?.touched)">
+                <app-field-error [control]="userForm.get('phoneNumber')" field="phone"></app-field-error>
               </div>
             </div>
             <div class="col-md-6">
               <div class="form-group">
                 <label>Email</label>
-                <input type="email" class="form-control" formControlName="email" placeholder="email@example.com">
+                <input type="email" class="form-control" formControlName="email" placeholder="email@example.com"
+                  [class.is-invalid]="userForm.get('email')?.invalid && (userForm.get('email')?.dirty || userForm.get('email')?.touched)">
+                <app-field-error [control]="userForm.get('email')" field="email"></app-field-error>
               </div>
             </div>
           </div>
@@ -146,33 +203,38 @@
             <div class="col-md-6">
               <div class="form-group">
                 <label>Rôle</label>
-                <select class="form-control" formControlName="role">
+                <select class="form-control" formControlName="role" [disabled]="isEditMode && !canManageRoles()">
                   <option value="">Sélectionner un rôle</option>
                   <option value="ROLE_SUPER_ADMIN">Super Admin</option>
                   <option value="ROLE_ADMIN_COMMERCIAL">Admin Commercial</option>
                   <option value="ROLE_ADMIN_TECHNIQUE">Admin Technique</option>
                   <option value="ROLE_COMMERCIAL">Commercial</option>
                   <option value="ROLE_TECHNIQUE">Technique</option>
+                  <option value="ROLE_ADMINISTRATEUR">Administrateur (legacy)</option>
                 </select>
+                <p class="help-block text-muted" *ngIf="isEditMode && !canManageRoles()">
+                  Seuls Super Admin et Administrateur peuvent modifier le rôle. Reconnectez-vous après un changement de rôle en base.
+                </p>
               </div>
             </div>
             <div class="col-md-6" *ngIf="!isEditMode">
               <div class="form-group">
                 <label>Mot de passe</label>
                 <div class="input-group">
-                  <input type="password" class="form-control" formControlName="password" placeholder="●●●●●●●●" id="passwordField">
+                  <input type="password" class="form-control" formControlName="password" placeholder="Mot de passe sécurisé" id="passwordField"
+                    [class.is-invalid]="userForm.get('password')?.invalid && (userForm.get('password')?.dirty || userForm.get('password')?.touched)">
                   <span class="input-group-addon" style="cursor: pointer; background-color: #fff;" (click)="togglePasswordVisibility()">
                     <i class="glyphicon glyphicon-eye-open" id="passwordIcon"></i>
                   </span>
                 </div>
+                <app-field-error [control]="userForm.get('password')" field="password"></app-field-error>
+                <p class="text-muted small" style="margin-top: 4px;">8 car. min., majuscule, minuscule, chiffre et caractère spécial.</p>
               </div>
             </div>
-          
           </div>
         </form>
       </div>
 
-      <!-- Footer fixé en bas -->
       <div class="modal-footer bg-light" style="position: sticky; bottom: 0; background: #f8f9fa !important; border-top: 1px solid #ddd; z-index: 1000;">
         <button type="button" class="btn btn-default" (click)="closeModal()">Annuler</button>
         <button type="button" class="btn btn-primary" (click)="submitForm()" [disabled]="!userForm.valid">

@@ -1,101 +1,100 @@
-<div class="container">
-  <!-- En-tête avec titre et boutons alignés -->
+﻿<div class="master-detail-container">
   <div class="header-row">
     <h2>Licences Expirées Palo Alto</h2>
     <div class="action-group">
       <div class="input-group search-box">
-        <input 
-          type="text" 
-          class="form-control" 
-          placeholder="Rechercher..." 
-          [(ngModel)]="searchTerm" 
-          (input)="onSearch()" 
-        />
+        <input type="text" class="form-control" placeholder="Rechercher..."
+          [(ngModel)]="searchTerm" (input)="onSearch()" />
       </div>
     </div>
   </div>
 
-  <!-- Show a message if no approved products are found -->
-  <div *ngIf="filteredExpiredPalos.length === 0" class="text-center mt-4">
-    <p>Aucune licence Palo Alto approuvée trouvée.</p>
-  </div>
-
-  <!-- Tableau responsive -->
-  <div *ngIf="filteredExpiredPalos.length > 0" class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Client</th>
-          <th>Nom du Boîtier</th>
-          <th>Numéro de Série</th>
-          <th>Licences</th>
-          <th>Durée</th>
-          <th>Contact client</th>
-          <th>N° client</th>
-          <th>Email client</th>
-          <th>Email Commercial</th>
-          <th>Cc mail</th>
-          <th>Remarque</th>
-          <th>Sous Contrat</th>
-          <th>Commande Passer Par</th>
-          <th>Fichier</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let palo of pagedExpiredPalos">
-          <td>{{ palo.client }}</td>
-          <td>{{ palo.nomDuBoitier }}</td>
-          <td>{{ palo.numeroSerieBoitier }}</td>
-
-          <!-- LICENCES (affichage groupé) -->
-          <td>
-            <div *ngFor="let lic of palo.licences" class="licence-block d-flex align-items-center gap-3 mb-2">
-              <div><strong>Licence:</strong> {{ lic.nomDesLicences }}</div>
-              <div><strong>Quantité:</strong> {{ lic.quantite }}</div>
-              <div><strong>Expire le:</strong> {{ lic.dateEx | date: 'dd/MM/yyyy' }}</div>
+  <div class="md-layout" [class.detail-open]="selectedPalo">
+    <div class="md-master">
+      <div class="md-list">
+        <div *ngFor="let palo of pagedExpiredPalos" class="md-item"
+          [class.md-item-active]="selectedPalo?.paloId === palo.paloId"
+          (click)="selectPalo(palo)">
+          <div class="md-item-info">
+            <div class="md-item-client">{{ palo.client }}</div>
+            <div class="md-item-fields">
+              <span class="md-field"><strong>Boîtier :</strong> {{ palo.nomDuBoitier || '-' }}</span>
+              <span class="md-field"><strong>N° série :</strong> {{ palo.numeroSerieBoitier || '-' }}</span>
+              <span class="md-field"><strong>Durée :</strong> {{ palo.dureeDeLicence || '-' }}</span>
+              <span *ngFor="let lic of palo.licences" class="md-field">
+                <strong>{{ lic.nomDesLicences }} :</strong> expire {{ lic.dateEx | date:'dd/MM/yyyy' }}
+              </span>
             </div>
-          </td>
+          </div>
+          <div class="md-item-actions" (click)="$event.stopPropagation()">
+            <button class="md-btn-icon md-btn-view" (click)="selectPalo(palo)" title="Voir détails">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button class="md-btn-icon md-btn-unapprove" (click)="desapprouve(palo.paloId)" title="Désexpirer">
+              <i class="fas fa-times-circle"></i>
+            </button>
+          </div>
+        </div>
+        <div *ngIf="pagedExpiredPalos.length === 0" class="md-empty">
+          <i class="fas fa-folder-open"></i>
+          <p>Aucune licence Palo Alto approuvée trouvée.</p>
+        </div>
+      </div>
+      <div class="md-pagination" *ngIf="totalPages > 1">
+        <button *ngFor="let page of pageNumbers; let i = index" (click)="changePage(i)"
+          [class.active]="i === currentPage" class="btn btn-sm btn-outline-primary mx-1">
+          {{ i + 1 }}
+        </button>
+      </div>
+    </div>
 
-          <td>{{ palo.dureeDeLicence }}</td>
-          <td>{{ palo.nomDuContact }}</td>
-          <td>{{ palo.numero }}</td>
-          <td>{{ palo.adresseEmailContact }}</td>
-          <td>{{ palo.mailAdmin }}</td>
-          <td>{{ palo.ccMail }}</td>
-          <td>{{ palo.remarque }}</td>
-          <td>{{ palo.sousContrat }}</td>
-          <td>{{ getCommandePasserParLabel(palo.commandePasserPar) }}</td>
-
-          <td>
-            <a *ngIf="palo.fichier" [href]="getFileDownloadUrl(palo.paloId)" target="_blank" class="btn btn-sm btn-info">
-              <i class="fas fa-download"></i> {{ palo.fichierOriginalName || 'Télécharger' }}
-            </a>
-            <span *ngIf="!palo.fichier">-</span>
-          </td>
-
-          <td>
-            <div class="d-flex flex-column gap-1">
-              <button class="btn btn-sm btn-warning" (click)="desapprouve(palo.paloId)">
-                <i class="fas fa-times-circle"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Pagination -->
-  <div *ngIf="filteredExpiredPalos.length > 0" class="text-center mt-3">
-    <ng-container *ngIf="totalPages > 1">
-      <button 
-        *ngFor="let page of pageNumbers; let i = index"
-        (click)="changePage(i)"
-        [class.active]="i === currentPage"
-        class="btn btn-sm btn-outline-primary mx-1">
-        {{ i + 1 }}
-      </button>
-    </ng-container>
+    <div class="md-detail" *ngIf="selectedPalo">
+      <div class="md-detail-card">
+        <div class="md-detail-header">
+          <h4>{{ selectedPalo.client }}</h4>
+          <button class="md-detail-close" (click)="closeDetail()">&times;</button>
+        </div>
+        <div class="md-detail-body">
+          <div class="md-detail-section-title">Équipement</div>
+          <div class="md-detail-row"><span class="md-label">Nom du boîtier</span><span class="md-value">{{ selectedPalo.nomDuBoitier || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Numéro de série</span><span class="md-value">{{ selectedPalo.numeroSerieBoitier || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Durée de licence</span><span class="md-value">{{ selectedPalo.dureeDeLicence || '-' }}</span></div>
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-section-title">Licences</div>
+          <div *ngFor="let lic of selectedPalo.licences" class="licence-block">
+            <div class="md-detail-row"><span class="md-label">Licence</span><span class="md-value">{{ lic.nomDesLicences }}</span></div>
+            <div class="md-detail-row"><span class="md-label">Quantité</span><span class="md-value">{{ lic.quantite }}</span></div>
+            <div class="md-detail-row"><span class="md-label">Expiration</span><span class="md-value">{{ lic.dateEx | date:'dd/MM/yyyy' }}</span></div>
+          </div>
+          <div class="md-detail-divider"></div>
+          
+          <div class="md-detail-section-title">Vis-à-vis client</div>
+          <div class="md-detail-row"><span class="md-label">Vis-à-vis client</span><span class="md-value">{{ selectedPalo.nomDuContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">N° téléphone</span><span class="md-value">{{ selectedPalo.numero || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Email client</span><span class="md-value">{{ selectedPalo.adresseEmailContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Email commercial</span><span class="md-value">{{ selectedPalo.mailAdmin || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">CC Mail</span><span class="md-value">{{ selectedPalo.ccMail || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Sous contrat</span>
+            <span class="md-value"><span [class]="selectedPalo.sousContrat ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">{{ selectedPalo.sousContrat ? 'Oui' : 'Non' }}</span></span>
+          </div>
+          <div class="md-detail-row"><span class="md-label">Remarque</span><span class="md-value">{{ selectedPalo.remarque || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Commande par</span><span class="md-value">{{ getCommandePasserParLabel(selectedPalo.commandePasserPar) || '-' }}</span></div>
+          <div class="md-detail-row" *ngIf="selectedPalo.fichier">
+            <span class="md-label">Fichier</span>
+            <span class="md-value">
+              <a [href]="getFileDownloadUrl(selectedPalo.paloId)" target="_blank" class="btn btn-sm btn-outline-primary">
+                <i class="fa fa-download"></i> {{ selectedPalo.fichierOriginalName || 'Télécharger' }}
+              </a>
+            </span>
+          </div>
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-actions">
+            <button class="btn btn-sm btn-warning" (click)="desapprouve(selectedPalo.paloId)" title="Désexpirer">
+              <i class="fas fa-times-circle"></i> Désexpirer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

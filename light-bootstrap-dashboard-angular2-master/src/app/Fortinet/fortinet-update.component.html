@@ -1,54 +1,48 @@
-﻿<form [formGroup]="updateForm" (ngSubmit)="onSubmit()" class="form-wrapper">
+<form [formGroup]="updateForm" (ngSubmit)="onSubmit()" class="form-wrapper">
   <h5 class="form-title mb-4">Modifier Fortinet</h5>
 
   <!-- Client -->
   <div class="form-group">
     <label for="client" class="form-label">Client</label>
     <app-searchable-client-select formControlName="client" [clients]="clients"></app-searchable-client-select>
-    <div *ngIf="updateForm.get('client')?.touched && updateForm.get('client')?.invalid" class="text-danger">
-      Ce champ est obligatoire.
-    </div>
+    <app-field-error [control]="updateForm.get('client')"></app-field-error>
   </div>
 
-  <!-- Nom du Boîtier -->
+  <!-- Nom du bo&#238;tier -->
   <div class="form-group">
-    <label for="nomDuBoitier" class="form-label">Nom du Boîtier</label>
+    <label for="nomDuBoitier" class="form-label">Nom du bo&#238;tier</label>
     <input
       type="text"
       id="nomDuBoitier"
       class="form-control"
       formControlName="nomDuBoitier"
-      placeholder="Nom du boîtier"
+      placeholder="Nom du bo&#238;tier"
     />
-    <div *ngIf="updateForm.get('nomDuBoitier')?.touched && updateForm.get('nomDuBoitier')?.invalid" class="text-danger">
-      Ce champ est obligatoire.
-    </div>
+    <app-field-error [control]="updateForm.get('nomDuBoitier')"></app-field-error>
   </div>
 
-  <!-- Row: Numéro de Série + Durée de la Licence -->
+  <!-- Row: Num&#233;ro de s&#233;rie + Dur&#233;e de la licence -->
   <div class="form-row">
     <div class="form-group">
-      <label for="numeroSerie" class="form-label">Numéro de Série</label>
+      <label for="numeroSerie" class="form-label">Num&#233;ro de s&#233;rie</label>
       <input
         type="text"
         id="numeroSerie"
         class="form-control"
         formControlName="numeroSerie"
-        placeholder="Numéro de série"
+        placeholder="Num&#233;ro de s&#233;rie"
       />
-      <div *ngIf="updateForm.get('numeroSerie')?.touched && updateForm.get('numeroSerie')?.invalid" class="text-danger">
-        Ce champ est obligatoire.
-      </div>
+      <app-field-error [control]="updateForm.get('numeroSerie')"></app-field-error>
     </div>
 
     <div class="form-group">
-      <label for="dureeDeLicence" class="form-label">Durée de la Licence</label>
+      <label for="dureeDeLicence" class="form-label">Dur&#233;e de la licence</label>
       <input
         type="text"
         id="dureeDeLicence"
         class="form-control"
         formControlName="dureeDeLicence"
-        placeholder="Durée de la licence"
+        placeholder="Dur&#233;e de la licence"
       />
     </div>
   </div>
@@ -62,23 +56,25 @@
         [formGroupName]="i"
         class="licence-row"
       >
-        <input
+        <div class="licence-field-stack"><input
           type="text"
           class="form-control"
           placeholder="Nom de licence"
-          formControlName="nomDesLicences"
-        />
+          formControlName="nomDesLicences" [class.is-invalid]="licences.at(i).get('nomDesLicences')?.invalid && (licences.at(i).get('nomDesLicences')?.dirty || licences.at(i).get('nomDesLicences')?.touched)" /><app-field-error [control]="licences.at(i).get('nomDesLicences')"></app-field-error></div>
+        <div class="licence-field-stack">
         <input
           type="text"
           class="form-control"
-          placeholder="Quantité"
+          placeholder="Quantit&#233;"
           formControlName="quantite"
-        />
-        <input
+        [class.is-invalid]="licences.at(i).get('quantite')?.invalid && (licences.at(i).get('quantite')?.dirty || licences.at(i).get('quantite')?.touched)"
+          />
+        <app-field-error [control]="licences.at(i).get('quantite')" field="quantity"></app-field-error>
+        </div>
+        <div class="licence-field-stack"><input
           type="date"
           class="form-control"
-          formControlName="dateEx"
-        />
+          formControlName="dateEx" [class.is-invalid]="licences.at(i).get('dateEx')?.invalid && (licences.at(i).get('dateEx')?.dirty || licences.at(i).get('dateEx')?.touched)" /><app-field-error [control]="licences.at(i).get('dateEx')"></app-field-error></div>
         <button
           type="button"
           class="btn btn-danger"
@@ -94,49 +90,64 @@
     </div>
   </div>
 
-  <!-- Row: Nom du Contact + Email Client -->
+  <!-- Row: Vis-a-vis client + N telephone -->
   <div class="form-row">
     <div class="form-group">
-      <label for="nomDuContact" class="form-label">Contact Client</label>
+      <label for="nomDuContact" class="form-label">
+        Vis-&#224;-vis client
+        <span class="badge-autofill" *ngIf="updateForm.get('nomDuContact')?.value">Auto</span>
+      </label>
       <input
         type="text"
         id="nomDuContact"
         class="form-control"
         formControlName="nomDuContact"
-        placeholder="Nom du contact"
+        placeholder="Auto-rempli depuis le client"
       />
     </div>
 
     <div class="form-group">
-      <label for="adresseEmailContact" class="form-label">Email Client</label>
-      <input
-        type="email"
-        id="adresseEmailContact"
-        class="form-control"
-        formControlName="adresseEmailContact"
-        placeholder="Email du contact"
-      />
-      <div *ngIf="updateForm.get('adresseEmailContact')?.touched && updateForm.get('adresseEmailContact')?.invalid" class="text-danger">
-        Veuillez entrer une adresse email valide.
-      </div>
-    </div>
-  </div>
-
-  <!-- Row: N° Client + Email Commercial -->
-  <div class="form-row">
-    <div class="form-group">
-      <label for="numero" class="form-label">N° Client</label>
+      <label for="numero" class="form-label">
+        Num&#233;ro de t&#233;l&#233;phone
+        <span class="badge-autofill" *ngIf="updateForm.get('numero')?.value">Auto</span>
+      </label>
+      <div class="form-field-stack">
       <input
         type="text"
         id="numero"
         class="form-control"
         formControlName="numero"
-        placeholder="Numéro du contact"
+        placeholder="Auto-rempli depuis le client"
+
+        appNumbersOnly maxlength="8"
+        [class.is-invalid]="updateForm.get('numero')?.invalid && (updateForm.get('numero')?.dirty || updateForm.get('numero')?.touched)"
       />
+      <app-field-error [control]="updateForm.get('numero')" field="phone"></app-field-error>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row: Email client + Email commercial -->
+  <div class="form-row">
+    <div class="form-group">
+      <label for="adresseEmailContact" class="form-label">
+        Email client
+        <span class="badge-autofill" *ngIf="updateForm.get('adresseEmailContact')?.value">Auto</span>
+      </label>
+      <input
+        type="email"
+        id="adresseEmailContact"
+        class="form-control"
+        formControlName="adresseEmailContact"
+        placeholder="Auto-rempli depuis le client"
+      />
+      <div *ngIf="updateForm.get('adresseEmailContact')?.touched && updateForm.get('adresseEmailContact')?.invalid" class="text-danger">
+        Veuillez entrer une adresse email valide.
+      </div>
     </div>
 
     <div class="form-group">
-      <label for="mailAdmin" class="form-label">Email Commercial</label>
+      <label for="mailAdmin" class="form-label">Email commercial</label>
       <input 
         type="email" 
         id="mailAdmin" 
@@ -188,7 +199,7 @@
 
   <!-- Section Upload de Fichier -->
   <div class="form-group">
-    <label class="form-label"><strong>📎 Fichier attaché</strong></label>
+    <label class="form-label"><strong>📎 Fichier attach&#233;</strong></label>
     
     <!-- Fichier existant -->
     <div *ngIf="currentFileName" class="alert alert-info d-flex align-items-center justify-content-between mb-2">
@@ -198,7 +209,7 @@
       </div>
       <div>
         <button type="button" class="btn btn-sm btn-success me-2" (click)="downloadFile()">
-          <i class="fa fa-download"></i> Télécharger
+          <i class="fa fa-download"></i> T&#233;l&#233;charger
         </button>
         <button type="button" class="btn btn-sm btn-danger" (click)="deleteFile()" *ngIf="permissionService.canDeleteProduct('fortinet')">
           <i class="fa fa-trash"></i> Supprimer
@@ -215,7 +226,7 @@
         #fileInput
       />
       <label for="fileUpdate" class="file-input-label">
-        <span><i class="fas fa-cloud-upload-alt"></i> Cliquez ou déposez un fichier</span>
+        <span><i class="fas fa-cloud-upload-alt"></i> Cliquez ou d&#233;posez un fichier</span>
       </label>
     </div>
 
@@ -265,11 +276,11 @@
         {{ option.label }}
       </option>
     </select>
-  </div>
+  <app-field-error [control]="updateForm.get('commandePasserPar')"></app-field-error></div>
 
   <!-- Form Buttons -->
   <div class="form-buttons">
-    <button type="submit" class="btn btn-primary" [disabled]="updateForm.invalid">
+    <button type="submit" class="btn btn-primary">
       <i class="fas fa-save me-2"></i>Mettre à jour
     </button>
     <button type="button" class="btn btn-secondary" (click)="onCancel()">

@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from 'app/Services/api.service';
+import { AuthService } from 'app/auth/AuthService';
 import { PermissionService } from 'app/Services/permission.service';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { environment } from 'environments/environment';
 import { HttpEventType } from '@angular/common/http';
 
@@ -14,6 +16,7 @@ import { HttpEventType } from '@angular/common/http';
 export class ProfileComponent implements OnInit {
   profileForm: FormGroup;
   passwordForm: FormGroup;
+  forgotForm: FormGroup;
   profileImageUrl: string = 'assets/img/avatar.png';
   currentUser: any = null;
   selectedFile: File | null = null;
@@ -26,18 +29,25 @@ export class ProfileComponent implements OnInit {
   passwordChangeMessage: string | null = null;
   passwordChangeSuccess = false;
 
+  forgotOpen = false;
+  forgotStep: 'send' | 'reset' = 'send';
+  forgotMessage: string | null = null;
+  forgotError: string | null = null;
+  isForgotSubmitting = false;
+
   constructor(
     private fb: FormBuilder,
     private apiService: ApiService,
+    private authService: AuthService,
     private router: Router,
     public permissionService: PermissionService
   ) {
     this.profileForm = this.fb.group({
-      firstname: ['', [Validators.required, Validators.minLength(2)]],
-      lastname: ['', [Validators.required, Validators.minLength(2)]],
+      firstname: ['', AppValidators.requiredName],
+      lastname: ['', AppValidators.requiredName],
       dateOfBirth: ['', Validators.required],
       sex: ['', Validators.required],
-      phoneNumber: ['', [Validators.required, Validators.pattern(/^[0-9+]{8,15}$/)]],
+      phoneNumber: ['', AppValidators.requiredPhone],
       email: ['', [Validators.required, Validators.email]],
       role: [{value: '', disabled: true}],
       verified: [{value: false, disabled: true}]
@@ -45,7 +55,14 @@ export class ProfileComponent implements OnInit {
 
     this.passwordForm = this.fb.group({
       currentPassword: ['', Validators.required],
-      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      newPassword: ['', AppValidators.requiredSecurePassword],
+      confirmPassword: ['', Validators.required]
+    }, { validators: this.passwordMatchValidator });
+
+    this.forgotForm = this.fb.group({
+      email: [{ value: '', disabled: true }, [Validators.required, Validators.email]],
+      code: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
+      newPassword: ['', AppValidators.requiredSecurePassword],
       confirmPassword: ['', Validators.required]
     }, { validators: this.passwordMatchValidator });
   }
@@ -55,7 +72,7 @@ export class ProfileComponent implements OnInit {
     const newPassword = control.get('newPassword')?.value;
     const confirmPassword = control.get('confirmPassword')?.value;
     
-    if (newPassword !== confirmPassword) {
+    if (newPassword && confirmPassword && newPassword !== confirmPassword) {
       return { passwordMismatch: true };
     }
     return null;
@@ -108,7 +125,8 @@ export class ProfileComponent implements OnInit {
       this.loading = false;
       return;
     }
-    
+
+    user.role = this.normalizeRole(user.role);
     this.currentUser = user;
     console.log('✅ Utilisateur chargé:', user);
     
@@ -156,6 +174,12 @@ export class ProfileComponent implements OnInit {
       }
     }
 
+    const role = this.normalizeRole(user.role);
+    const roleCtrl = this.profileForm.get('role');
+    const verifiedCtrl = this.profileForm.get('verified');
+    roleCtrl?.enable({ emitEvent: false });
+    verifiedCtrl?.enable({ emitEvent: false });
+
     this.profileForm.patchValue({
       firstname: user.firstname || '',
       lastname: user.lastname || '',
@@ -163,9 +187,48 @@ export class ProfileComponent implements OnInit {
       sex: user.sex || '',
       phoneNumber: user.phoneNumber || '',
       email: user.email || '',
-      role: user.role || '',
+      role,
       verified: user.verified || false
     });
+
+    roleCtrl?.disable({ emitEvent: false });
+    verifiedCtrl?.disable({ emitEvent: false });
+  }
+
+  private normalizeRole(role: unknown): string {
+    if (role != null && role !== '') {
+      if (typeof role === 'string') {
+        return role.includes(',') ? role.split(',')[0].trim() : role;
+      }
+      if (typeof role === 'object' && 'name' in (role as object)) {
+        return String((role as { name: string }).name);
+      }
+      if (typeof role === 'number') {
+        const byOrdinal = [
+          'ROLE_ADMINISTRATEUR',
+          'ROLE_SUPER_ADMIN',
+          'ROLE_ADMIN_COMMERCIAL',
+          'ROLE_ADMIN_TECHNIQUE',
+          'ROLE_COMMERCIAL',
+          'ROLE_TECHNIQUE'
+        ];
+        return byOrdinal[role] || String(role);
+      }
+    }
+    return this.getStoredUserRole();
+  }
+
+  private getStoredUserRole(): string {
+    try {
+      const stored = JSON.parse(localStorage.getItem('user') || '{}');
+      const r = stored?.role || stored?.userRole;
+      if (typeof r === 'string' && r.includes(',')) {
+        return r.split(',')[0].trim();
+      }
+      return r || '';
+    } catch {
+      return '';
+    }
   }
 
   onFileSelected(event: any) {
@@ -320,9 +383,7 @@ export class ProfileComponent implements OnInit {
         dateOfBirth: this.profileForm.get('dateOfBirth')?.value,
         sex: this.profileForm.get('sex')?.value,
         phoneNumber: this.profileForm.get('phoneNumber')?.value,
-        email: this.profileForm.get('email')?.value,
-        // ✅ Include role if user is SUPER_ADMIN
-        role: this.profileForm.get('role')?.value || null
+        email: this.profileForm.get('email')?.value
       };
 
       console.log('📝 Envoi des données au serveur:', updateData);
@@ -330,7 +391,10 @@ export class ProfileComponent implements OnInit {
       this.apiService.put(`/Users/${this.currentUser.id}?t=${new Date().getTime()}`, updateData).subscribe({
         next: (user: any) => {
           console.log('✅ Réponse du serveur:', user);
-          
+
+          if (user) {
+            user.role = this.normalizeRole(user.role ?? this.currentUser?.role);
+          }
           // Mettre à jour currentUser
           this.currentUser = { ...this.currentUser, ...user };
           console.log('✅ currentUser mis à jour:', this.currentUser);
@@ -380,13 +444,20 @@ export class ProfileComponent implements OnInit {
     }
   }
 
-  getRoleDisplayName(role: string): string {
-    const roleMap: { [key: string]: string } = {
-      'ROLE_ADMINISTRATEUR': 'Administrateur',
-      'ROLE_COMMERCIAL': 'Commercial',
-      'ROLE_TECHNIQUE': 'Technique'
+  getRoleDisplayName(role: string | null | undefined): string {
+    const code = this.normalizeRole(role);
+    if (!code) {
+      return '—';
+    }
+    const roleMap: Record<string, string> = {
+      ROLE_SUPER_ADMIN: 'Super Admin',
+      ROLE_ADMIN_COMMERCIAL: 'Admin Commercial',
+      ROLE_ADMIN_TECHNIQUE: 'Admin Technique',
+      ROLE_ADMINISTRATEUR: 'Administrateur',
+      ROLE_COMMERCIAL: 'Commercial',
+      ROLE_TECHNIQUE: 'Technique'
     };
-    return roleMap[role] || role;
+    return roleMap[code] || code;
   }
 
   logout() {
@@ -472,5 +543,96 @@ export class ProfileComponent implements OnInit {
   resetPasswordForm() {
     this.passwordForm.reset();
     this.passwordChangeMessage = null;
+  }
+
+  toggleForgotPassword(): void {
+    if (this.forgotOpen) {
+      this.closeForgotPassword();
+      return;
+    }
+    this.openForgotPassword();
+  }
+
+  openForgotPassword(): void {
+    const email = this.currentUser?.email || this.profileForm.get('email')?.value || '';
+    this.forgotOpen = true;
+    this.forgotStep = 'send';
+    this.forgotMessage = null;
+    this.forgotError = null;
+    this.forgotForm.reset({ code: '', newPassword: '', confirmPassword: '' });
+    this.forgotForm.get('email')?.setValue(email);
+  }
+
+  closeForgotPassword(): void {
+    this.forgotOpen = false;
+    this.forgotStep = 'send';
+    this.forgotMessage = null;
+    this.forgotError = null;
+    this.isForgotSubmitting = false;
+  }
+
+  sendResetCode(): void {
+    this.forgotMessage = null;
+    this.forgotError = null;
+    const email = (this.forgotForm.getRawValue().email || this.currentUser?.email || '').trim();
+    if (!email) {
+      this.forgotError = 'Adresse e-mail introuvable sur le profil.';
+      return;
+    }
+    this.isForgotSubmitting = true;
+    this.authService.requestPasswordReset(email).subscribe({
+      next: (res) => {
+        this.forgotMessage = res.message || 'Code envoyé par e-mail.';
+        this.forgotStep = 'reset';
+        this.isForgotSubmitting = false;
+      },
+      error: (err: string) => {
+        this.forgotError = typeof err === 'string' ? err : 'Impossible d\'envoyer le code.';
+        this.isForgotSubmitting = false;
+      }
+    });
+  }
+
+  submitNewPasswordByCode(): void {
+    this.forgotMessage = null;
+    this.forgotError = null;
+    const raw = this.forgotForm.getRawValue();
+    const email = (raw.email || this.currentUser?.email || '').trim();
+    const code = raw.code?.trim();
+    const newPassword = this.forgotForm.get('newPassword')?.value;
+    const confirmPassword = this.forgotForm.get('confirmPassword')?.value;
+
+    this.forgotForm.markAllAsTouched();
+    if (this.forgotForm.get('code')?.invalid) {
+      this.forgotError = 'Le code doit contenir 6 chiffres.';
+      return;
+    }
+    if (this.forgotForm.get('newPassword')?.invalid) {
+      this.forgotError =
+        'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.';
+      return;
+    }
+    if (this.forgotForm.hasError('passwordMismatch')) {
+      this.forgotError = 'Les mots de passe ne correspondent pas.';
+      return;
+    }
+
+    this.isForgotSubmitting = true;
+    this.authService.resetPasswordWithCode({ email, code, newPassword }).subscribe({
+      next: (res) => {
+        this.isForgotSubmitting = false;
+        this.passwordChangeSuccess = true;
+        this.passwordChangeMessage = res.message || 'Mot de passe réinitialisé avec succès.';
+        this.resetPasswordForm();
+        this.closeForgotPassword();
+        setTimeout(() => {
+          this.passwordChangeMessage = null;
+        }, 6000);
+      },
+      error: (err: string) => {
+        this.forgotError = typeof err === 'string' ? err : 'Réinitialisation impossible.';
+        this.isForgotSubmitting = false;
+      }
+    });
   }
 }

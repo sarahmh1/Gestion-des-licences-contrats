@@ -201,6 +201,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                         .requestMatchers("/Users/me").authenticated()  // ✅ Endpoint pour récupérer l'utilisateur courant (authentifié)
                         .requestMatchers("/Users/**").authenticated()  // ✅ Les autres endpoints Users nécessitent une authentification
                         .requestMatchers("/Eset/download-file/**").permitAll() // Téléchargement fichiers Eset
+                        .requestMatchers(HttpMethod.GET, "/Eset/import/ping").permitAll() // Vérif que la route import est déployée
                         .requestMatchers(HttpMethod.GET, "/Eset/{id}/download").permitAll() // Téléchargement fichiers
                                                                                             // Eset par ID
                         .requestMatchers(HttpMethod.GET, "/Fortinet/{id}/download").permitAll() // Téléchargement

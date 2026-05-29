@@ -22,9 +22,9 @@
           <div class="md-item-info">
             <div class="md-item-client">{{ f.client }}</div>
             <div class="md-item-fields">
-              <span class="md-field"><strong>Boîtier :</strong> {{ f.nomDuBoitier || '-' }}</span>
-              <span class="md-field"><strong>N° Série :</strong> {{ f.numeroSerie || '-' }}</span>
-              <span class="md-field"><strong>Durée :</strong> {{ f.dureeDeLicence || '-' }}</span>
+              <span class="md-field"><strong>Bo&#238;tier :</strong> {{ f.nomDuBoitier || '-' }}</span>
+              <span class="md-field"><strong>N&#176; s&#233;rie :</strong> {{ f.numeroSerie || '-' }}</span>
+              <span class="md-field"><strong>Dur&#233;e :</strong> {{ f.dureeDeLicence || '-' }}</span>
               <span *ngFor="let lic of f.licences" class="md-field">
                 <strong>{{ lic.nomDesLicences }} :</strong> expire {{ lic.dateEx | date:'dd/MM/yyyy' }}
               </span>
@@ -33,12 +33,12 @@
           <div class="md-item-actions" (click)="$event.stopPropagation()">
             <button class="md-btn-icon md-btn-view" (click)="selectFortinet(f)" title="Voir details"><i class="fas fa-eye"></i></button>
             <button class="md-btn-icon md-btn-edit" (click)="updateFortinet(f)" title="Modifier" *ngIf="permissionService.canEditProduct('fortinet')"><i class="fas fa-pen"></i></button>
-            <button class="md-btn-icon md-btn-delete" (click)="deleteFortinet(f.fortinetId)" title="Supprimer" *ngIf="permissionService.canDeleteProduct('fortinet')"><i class="fas fa-trash"></i></button>
+            <button class="md-btn-icon md-btn-delete" (click)="requestDeleteFortinet(f)" title="Supprimer" *ngIf="permissionService.canDeleteProduct('fortinet')"><i class="fas fa-trash"></i></button>
             <button class="md-btn-icon md-btn-approve" (click)="approveFortinet(f.fortinetId)" title="Approuver" *ngIf="permissionService.canEditProduct('fortinet')"><i class="fas fa-check"></i></button>
           </div>
         </div>
         <div *ngIf="pagedFortinets.length === 0" class="md-empty">
-          <i class="fas fa-folder-open"></i><p>Aucun Fortinet trouvé.</p>
+          <i class="fas fa-folder-open"></i><p>Aucun Fortinet trouv&#233;.</p>
         </div>
       </div>
       <div class="md-pagination" *ngIf="totalPages > 1">
@@ -57,23 +57,23 @@
           <button class="md-detail-close" (click)="closeDetail()">&times;</button>
         </div>
         <div class="md-detail-body">
-          <div class="md-detail-section-title">Équipement</div>
-          <div class="md-detail-row"><span class="md-label">Nom du Boîtier</span><span class="md-value">{{ selectedFortinet.nomDuBoitier || '-' }}</span></div>
-          <div class="md-detail-row"><span class="md-label">Numéro de Série</span><span class="md-value">{{ selectedFortinet.numeroSerie || '-' }}</span></div>
-          <div class="md-detail-row"><span class="md-label">Durée de Licence</span><span class="md-value">{{ selectedFortinet.dureeDeLicence || '-' }}</span></div>
+          <div class="md-detail-section-title">&#201;quipement</div>
+          <div class="md-detail-row"><span class="md-label">Nom du bo&#238;tier</span><span class="md-value">{{ selectedFortinet.nomDuBoitier || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Num&#233;ro de s&#233;rie</span><span class="md-value">{{ selectedFortinet.numeroSerie || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Dur&#233;e de licence</span><span class="md-value">{{ selectedFortinet.dureeDeLicence || '-' }}</span></div>
 
           <div class="md-detail-divider"></div>
           <div class="md-detail-section-title">Licences</div>
           <div *ngFor="let lic of selectedFortinet.licences" class="licence-block">
             <div class="md-detail-row"><span class="md-label">Licence</span><span class="md-value">{{ lic.nomDesLicences }}</span></div>
-            <div class="md-detail-row"><span class="md-label">Quantité</span><span class="md-value">{{ lic.quantite }}</span></div>
+            <div class="md-detail-row"><span class="md-label">Quantit&#233;</span><span class="md-value">{{ lic.quantite }}</span></div>
             <div class="md-detail-row"><span class="md-label">Expiration</span><span class="md-value">{{ lic.dateEx | date:'dd/MM/yyyy' }}</span></div>
           </div>
 
           <div class="md-detail-divider"></div>
-          <div class="md-detail-section-title">Contact Client</div>
-          <div class="md-detail-row"><span class="md-label">Nom contact</span><span class="md-value">{{ selectedFortinet.nomDuContact || '-' }}</span></div>
-          <div class="md-detail-row"><span class="md-label">N° Téléphone</span><span class="md-value">{{ selectedFortinet.numero || '-' }}</span></div>
+          <div class="md-detail-section-title">Vis-&#224;-vis client</div>
+          <div class="md-detail-row"><span class="md-label">Vis-&#224;-vis client</span><span class="md-value">{{ selectedFortinet.nomDuContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Num&#233;ro de t&#233;l&#233;phone</span><span class="md-value">{{ selectedFortinet.numero || '-' }}</span></div>
           <div class="md-detail-row"><span class="md-label">Email client</span><span class="md-value">{{ selectedFortinet.adresseEmailContact || '-' }}</span></div>
           <div class="md-detail-row"><span class="md-label">Email Commercial</span><span class="md-value">{{ selectedFortinet.mailAdmin || '-' }}</span></div>
           <div class="md-detail-row"><span class="md-label">CC Mail</span><span class="md-value">{{ selectedFortinet.ccMail || '-' }}</span></div>
@@ -87,7 +87,7 @@
             <span class="md-label">Fichier</span>
             <span class="md-value">
               <a [href]="getFileDownloadUrlById(selectedFortinet.fortinetId)" target="_blank" class="btn btn-sm btn-outline-primary">
-                <i class="fa fa-download"></i> {{ selectedFortinet.fichierOriginalName || 'Télécharger' }}
+                <i class="fa fa-download"></i> {{ selectedFortinet.fichierOriginalName || 'T&#233;l&#233;charger' }}
               </a>
             </span>
           </div>
@@ -95,7 +95,7 @@
           <div class="md-detail-divider"></div>
           <div class="md-detail-actions">
             <button (click)="updateFortinet(selectedFortinet)" class="btn btn-sm btn-primary" *ngIf="permissionService.canEditProduct('fortinet')"><i class="fas fa-pen"></i> Modifier</button>
-            <button (click)="deleteFortinet(selectedFortinet.fortinetId)" class="btn btn-sm btn-danger" *ngIf="permissionService.canDeleteProduct('fortinet')"><i class="fas fa-trash"></i> Supprimer</button>
+            <button (click)="requestDeleteFortinet(selectedFortinet)" class="btn btn-sm btn-danger" *ngIf="permissionService.canDeleteProduct('fortinet')"><i class="fas fa-trash"></i> Supprimer</button>
             <button (click)="approveFortinet(selectedFortinet.fortinetId)" class="btn btn-sm btn-success" *ngIf="permissionService.canEditProduct('fortinet')"><i class="fas fa-check"></i> Approuver</button>
           </div>
         </div>
@@ -104,7 +104,7 @@
   </div>
 </div>
 
-<!-- ════════════════════ MODAL AJOUTER FORTINET ════════════════════ -->
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• MODAL AJOUTER FORTINET â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div class="modal-overlay" *ngIf="showAddModal" (click)="closeAddModal()">
   <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
     <div class="modal-header">
@@ -124,7 +124,7 @@
   </div>
 </div>
 
-<!-- ════════════════════ MODAL MODIFIER FORTINET ════════════════════ -->
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• MODAL MODIFIER FORTINET â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div class="modal-overlay" *ngIf="showUpdateModal" (click)="onUpdateCancelled()">
   <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
     <div class="modal-header">
@@ -263,3 +263,12 @@
     width: 100%;
   }
 </style>
+
+<app-confirm-delete-modal
+  [visible]="showDeleteModal"
+  message="&#202;tes-vous s&#251;r de vouloir supprimer cette licence Fortinet ?"
+  [detail]="deleteModalDetail"
+  [canConfirm]="permissionService.canDeleteProduct('fortinet')"
+  (cancel)="closeDeleteModal()"
+  (confirm)="confirmDeleteFortinet()">
+</app-confirm-delete-modal>

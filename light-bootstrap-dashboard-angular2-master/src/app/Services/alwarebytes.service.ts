@@ -12,7 +12,7 @@ export class AlwarebytesService {
 
   constructor(private http: HttpClient) {}
 
-  uploadFile(id: number, file: File) {
+  uploadFile(id: number, file: File): Observable<Alwarebytes> {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.put<Alwarebytes>(`${this.baseUrl}/${id}/upload-file`, formData);
@@ -22,7 +22,7 @@ export class AlwarebytesService {
     return `${this.baseUrl}/${id}/download`;
   }
 
-  deleteFile(id: number) {
+  deleteFile(id: number): Observable<Alwarebytes> {
     return this.http.delete<Alwarebytes>(`${this.baseUrl}/${id}/delete-file`);
   }
 
@@ -30,8 +30,8 @@ export class AlwarebytesService {
     return this.http.get<Alwarebytes[]>(`${this.baseUrl}/allAlwarebytes`);
   }
 
-  addAlwarebytes(alwarebytes: Alwarebytes): Observable<Object> {
-    return this.http.post(`${this.baseUrl}/addAlwarebytes`, alwarebytes);
+  addAlwarebytes(alwarebytes: Alwarebytes): Observable<Alwarebytes> {
+    return this.http.post<Alwarebytes>(`${this.baseUrl}/addAlwarebytes`, alwarebytes);
   }
 
   getAlwarebytesById(id: number): Observable<Alwarebytes> {

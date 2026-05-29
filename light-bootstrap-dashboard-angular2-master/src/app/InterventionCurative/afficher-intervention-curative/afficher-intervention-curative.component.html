@@ -169,7 +169,7 @@
               <i class="fas fa-pen"></i>
             </button>
             <button class="md-btn-icon md-btn-delete"
-              (click)="deleteIntervention(intervention.interventionCurativeId)" title="Supprimer"
+              (click)="requestDeleteIntervention(intervention)" title="Supprimer"
               *ngIf="permissionService.canDelete('curative_interventions')">
               <i class="fas fa-trash"></i>
             </button>
@@ -775,3 +775,12 @@
     </div>
   </div>
 </div>
+
+<app-confirm-delete-modal
+  [visible]="showDeleteModal"
+  message="Êtes-vous sûr de vouloir supprimer cette intervention curative ?"
+  [detail]="deleteModalDetail"
+  [canConfirm]="permissionService.canDelete('curative_interventions')"
+  (cancel)="closeDeleteModal()"
+  (confirm)="confirmDeleteIntervention()">
+</app-confirm-delete-modal>

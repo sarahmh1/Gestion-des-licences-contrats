@@ -20,7 +20,7 @@ h2.text-center {
   letter-spacing: 1px;
   position: relative;
   padding-bottom: 15px;
-
+  
   &::after {
     content: '';
     position: absolute;
@@ -29,7 +29,7 @@ h2.text-center {
     transform: translateX(-50%);
     width: 80px;
     height: 4px;
-    background: linear-gradient(90deg, #f36e24, #ff8c42);
+    background: linear-gradient(90deg, #667eea, #764ba2);
     border-radius: 2px;
   }
 }
@@ -53,10 +53,10 @@ h2.text-center {
   margin-top: 20px;
   border-top: 2px solid #f8f9fa;
   z-index: 10;
-
+  
   .btn {
     margin-right: 10px;
-
+    
     &:last-child {
       margin-right: 0;
     }
@@ -66,7 +66,7 @@ h2.text-center {
 .form-group {
   margin-bottom: 25px;
   position: relative;
-
+  
   label {
     display: block;
     margin-bottom: 8px;
@@ -75,7 +75,7 @@ h2.text-center {
     font-size: 0.95rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-
+    
     &::after {
       content: ':';
     }
@@ -90,14 +90,14 @@ h2.text-center {
   font-size: 1rem;
   transition: all 0.3s ease;
   background: #f8f9fa;
-
+  
   &:focus {
-    border-color: #f36e24;
+    border-color: #667eea;
     background: white;
-    box-shadow: 0 0 0 3px rgba(243, 110, 36, 0.1);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     outline: none;
   }
-
+  
   &:disabled {
     background: #e9ecef;
     color: #6c757d;
@@ -113,8 +113,8 @@ textarea.form-control {
 // Styles pour les FormArrays (Licences et CC Mails)
 div[formArrayName] {
   margin-bottom: 25px;
-
-  >label {
+  
+  > label {
     display: block;
     margin-bottom: 15px;
     font-weight: 600;
@@ -129,19 +129,18 @@ div[formArrayName] {
   padding: 15px;
   background: #f8f9fa;
   border-radius: 8px;
-  border-left: 4px solid #f36e24;
-
-  .col-md-4,
-  .col-md-3 {
+  border-left: 4px solid #667eea;
+  
+  .col-md-4, .col-md-3 {
     margin-bottom: 10px;
-
+    
     label {
       font-size: 0.85rem;
       color: #6c757d;
       margin-bottom: 5px;
       text-transform: none;
       font-weight: 500;
-
+      
       &::after {
         content: '';
       }
@@ -153,11 +152,11 @@ div[formArrayName] {
 .d-flex.mb-2 {
   margin-bottom: 10px;
   align-items: center;
-
+  
   .form-control {
     flex: 1;
   }
-
+  
   .btn-danger {
     margin-left: 10px;
     white-space: nowrap;
@@ -174,26 +173,26 @@ div[formArrayName] {
   transition: all 0.3s ease;
   border: none;
   font-size: 0.9rem;
-
+  
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   }
-
+  
   &:active {
     transform: translateY(0);
   }
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #f36e24, #ff8c42);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
-
+  
   &:hover {
-    background: linear-gradient(135deg, #e55d1a, #f57c32);
-    box-shadow: 0 5px 15px rgba(243, 110, 36, 0.3);
+    background: linear-gradient(135deg, #5568d3, #653a8f);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
   }
-
+  
   &:disabled {
     background: #ced4da;
     transform: none;
@@ -203,19 +202,20 @@ div[formArrayName] {
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, #6c757d, #868e96);
-  color: white;
+  background: linear-gradient(135deg, #e8eef7, #f0f3f7);
+  color: #667eea;
   margin-left: 10px;
-
+  font-weight: 600;
+  
   &:hover {
-    background: linear-gradient(135deg, #5a6268, #727b84);
+    background: linear-gradient(135deg, #dce4f0, #e8eef7);
   }
 }
 
 .btn-success {
   background: linear-gradient(135deg, #28a745, #34ce57);
   color: white;
-
+  
   &:hover {
     background: linear-gradient(135deg, #218838, #2ca84c);
   }
@@ -226,7 +226,7 @@ div[formArrayName] {
   color: white;
   padding: 8px 16px;
   font-size: 0.8rem;
-
+  
   &:hover {
     background: linear-gradient(135deg, #c82333, #d94553);
   }
@@ -235,29 +235,29 @@ div[formArrayName] {
 // Checkbox personnalisé
 .form-check {
   margin-bottom: 20px;
-
+  
   .form-check-input {
     width: 20px;
     height: 20px;
     margin-right: 10px;
     border: 2px solid #e1e5eb;
-
+    
     &:checked {
-      background-color: #f36e24;
-      border-color: #f36e24;
+      background-color: #667eea;
+      border-color: #667eea;
     }
-
+    
     &:focus {
-      box-shadow: 0 0 0 3px rgba(243, 110, 36, 0.25);
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
     }
   }
-
+  
   .form-check-label {
     color: #1a204c;
     font-weight: 500;
     text-transform: none;
     letter-spacing: normal;
-
+    
     &::after {
       content: '';
     }
@@ -270,7 +270,7 @@ div[formArrayName] {
   font-size: 0.85rem;
   margin-top: 5px;
   font-weight: 500;
-
+  
   &::before {
     content: '⚠ ';
   }
@@ -282,30 +282,28 @@ div[formArrayName] {
     margin: 15px;
     padding: 15px;
   }
-
+  
   h2.text-center {
     font-size: 1.8rem;
   }
-
+  
   .form-wrapper {
     padding: 20px;
     max-height: 65vh; // Ajustement pour mobile
   }
-
+  
   .row.align-items-end {
-
-    .col-md-4,
-    .col-md-3 {
+    .col-md-4, .col-md-3 {
       margin-bottom: 15px;
     }
   }
-
+  
   .form-buttons {
     .btn {
       width: 100%;
       margin-bottom: 10px;
       margin-right: 0;
-
+      
       &.ms-2 {
         margin-left: 0 !important;
       }
@@ -323,7 +321,6 @@ div[formArrayName] {
     opacity: 0;
     transform: translateY(10px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -341,12 +338,12 @@ div[formArrayName] {
 }
 
 .form-wrapper::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #f36e24, #ff8c42);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   border-radius: 4px;
 }
 
 .form-wrapper::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #e55d1a, #f57c32);
+  background: linear-gradient(135deg, #5568d3, #653a8f);
 }
 
 // Effet de profondeur lors du défilement
@@ -362,7 +359,7 @@ div[formArrayName] {
     pointer-events: none;
     z-index: 2;
   }
-
+  
   &::after {
     content: '';
     position: absolute;
@@ -374,4 +371,107 @@ div[formArrayName] {
     pointer-events: none;
     z-index: 2;
   }
+}
+
+.form-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #667eea;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.licence-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.5fr auto;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #667eea;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cc-email-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+
+  input {
+    flex: 1;
+  }
+}
+
+.badge-autofill {
+  display: inline-block;
+  background-color: #17a2b8;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+.md-btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: opacity 0.2s;
+
+  i {
+    font-size: 0.9rem;
+    line-height: 1;
+  }
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.md-btn-add {
+  background: #28a745;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #218838;
+  }
+}
+
+.md-btn-remove {
+  background: #dc3545;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #c82333;
+  }
+}
+
+.client-select-wrapper {
+  position: relative;
+  z-index: 10000;
 }

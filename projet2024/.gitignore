@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# ID Google OAuth local (copiez application-google.local.properties.example)
+src/main/resources/application-google.local.properties
+src/main/resources/application-mail.local.properties

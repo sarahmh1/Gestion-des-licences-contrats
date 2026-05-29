@@ -150,15 +150,24 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
     return true;
   }
 
+  /** Statuts où la saisie technique (sous-popup) est autorisée */
+  private isStatutAllowingTechSaisie(): boolean {
+    return this.currentEditingStatut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION
+      || this.currentEditingStatut === StatutInterventionPreventive.EN_COURS;
+  }
+
+  /** Bouton 🔧 à côté de chaque période → ouvre la 2e popup (technique) */
+  canShowTechSubPopupButton(): boolean {
+    if (!this.isStatutAllowingTechSaisie()) return false;
+    return this.isTechnique() || this.isSuperAdmin();
+  }
+
   canEditTechFields(): boolean {
-    // L'admin ne peut JAMAIS modifier les champs techniques
+    // L'admin classique ne modifie pas les champs techniques
     if (this.isAdmin()) return false;
-    // Si statut TERMINE, personne ne peut modifier
     if (this.currentEditingStatut === StatutInterventionPreventive.TERMINE) return false;
-    // Le technique peut modifier ses champs si le statut est EN_ATTENTE_INTERVENTION ou EN_COURS
-    if (this.isTechnique()) {
-      return this.currentEditingStatut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION
-        || this.currentEditingStatut === StatutInterventionPreventive.EN_COURS;
+    if (this.isTechnique() || this.isSuperAdmin()) {
+      return this.isStatutAllowingTechSaisie();
     }
     return false;
   }
@@ -626,9 +635,7 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
 
     if ((this.isAdmin() || this.isSuperAdmin()) && !this.isEditMode) {
       newStatut = StatutInterventionPreventive.EN_ATTENTE_INTERVENTION;
-    } else if (this.isTechnique() &&
-      (this.currentEditingStatut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION ||
-        this.currentEditingStatut === StatutInterventionPreventive.EN_COURS)) {
+    } else if ((this.isTechnique() || this.isSuperAdmin()) && this.isStatutAllowingTechSaisie()) {
       newStatut = this.computeTechStatut();
     }
 
@@ -847,10 +854,7 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
     if ((this.isAdmin() || this.isSuperAdmin()) && !this.isEditMode) {
       // Admin ou Super Admin crée une nouvelle intervention -> statut EN_ATTENTE_INTERVENTION
       newStatut = StatutInterventionPreventive.EN_ATTENTE_INTERVENTION;
-    } else if (this.isTechnique() &&
-      (this.currentEditingStatut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION ||
-        this.currentEditingStatut === StatutInterventionPreventive.EN_COURS)) {
-      // Technique remplit des lignes -> calcul automatique du statut
+    } else if ((this.isTechnique() || this.isSuperAdmin()) && this.isStatutAllowingTechSaisie()) {
       newStatut = this.computeTechStatut();
     }
 

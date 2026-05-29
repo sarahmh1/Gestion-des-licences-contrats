@@ -116,6 +116,7 @@ import { AfficherInterventionCurativeComponent } from '../../InterventionCurativ
 import { AfficherInterventionPreventiveComponent } from '../../intervention-preventive/afficher-intervention-preventive/afficher-intervention-preventive.component';
 import { ClientStatsComponent } from '../../client-stats/client-stats/client-stats.component';
 import { HistoriqueContratComponent } from '../../Contrat/historique-contrat/historique-contrat.component';
+import { AssistantChatComponent } from '../../assistant/assistant-chat.component';
 
 export const AdminLayoutRoutes: Routes = [
   { path: 'dashboard', component: HomeComponent },
@@ -128,6 +129,7 @@ export const AdminLayoutRoutes: Routes = [
   { path: 'upgrade', component: UpgradeComponent },
   { path: 'messaging', component: MessagingComponent },
   //{ path: 'fortinet',        component: FortinetComponent },
+  { path: 'assistant', component: AssistantChatComponent },
   { path: 'profile', component: ProfileComponent },
   { path: 'Afficherfortinet', component: AfficherComponent },
   { path: 'AjouterFortinet', component: AjouterComponent },
@@ -324,26 +326,18 @@ export const AdminLayoutRoutes: Routes = [
   },
   { path: 'edit-f5/:id', component: UpdateF5Component },
 
-  {
-    path: 'Ajouterc',
-    component: AjoutercComponent
-
-  },
+  { path: 'Ajouterc', redirectTo: 'Afficherc', pathMatch: 'full' },
+  { path: 'edit-cisco/:id', redirectTo: 'Afficherc', pathMatch: 'full' },
   {
     path: 'Afficherc',
     component: AffichercComponent
   },
-  { path: 'edit-cisco/:id', component: UpdateCiscoComponent },
-  {
-    path: 'Ajouterim',
-    component: AjouterimComponent
-
-  },
+  { path: 'Ajouterim', redirectTo: 'Afficherim', pathMatch: 'full' },
+  { path: 'edit-imperva/:id', redirectTo: 'Afficherim', pathMatch: 'full' },
   {
     path: 'Afficherim',
     component: AfficherimComponent
   },
-  { path: 'edit-imperva/:id', component: UpdateImpervaComponent },
 
   {
     path: 'Ajouterfortra',
@@ -433,17 +427,12 @@ export const AdminLayoutRoutes: Routes = [
     component: AfficherSplunkComponent
   },
   { path: 'edit-splunk/:id', component: UpdateSplunkComponent },
-  {
-    path: 'Ajoutermicro',
-    component: AjoutermComponent
-
-  },
+  { path: 'Ajoutermicro', redirectTo: 'Affichermicro', pathMatch: 'full' },
+  { path: 'edit-micro/:id', redirectTo: 'Affichermicro', pathMatch: 'full' },
   {
     path: 'Affichermicro',
     component: AffichermComponent
-
   },
-  { path: 'edit-micro/:id', component: UpdateMicrosoftComponent },
 
 
   {

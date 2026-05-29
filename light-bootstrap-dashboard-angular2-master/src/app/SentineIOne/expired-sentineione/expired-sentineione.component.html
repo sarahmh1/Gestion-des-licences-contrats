@@ -1,103 +1,96 @@
-<div class="container">
-  <!-- En-tête avec titre et boutons alignés -->
+﻿<div class="master-detail-container">
   <div class="header-row">
-    <h2>Licences Expirées SentineIOne</h2>
+    <h2>Licences Expirées SentinelOne</h2>
     <div class="action-group">
       <div class="input-group search-box">
-        <input 
-          type="text" 
-          class="form-control" 
-          placeholder="Rechercher..." 
-          [(ngModel)]="searchTerm" 
-          (input)="onSearch()" 
-        />
+        <input type="text" class="form-control" placeholder="Rechercher..."
+          [(ngModel)]="searchTerm" (input)="onSearch()" />
       </div>
     </div>
   </div>
 
-  <!-- Show a message if no approved products are found -->
-  <div *ngIf="filteredExpiredSentineIOnes.length === 0" class="text-center mt-4">
-    <p>Aucune licence SentineIOne approuvée trouvée.</p>
-  </div>
-
-  <!-- Tableau responsive -->
-  <div *ngIf="filteredExpiredSentineIOnes.length > 0" class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Client</th>
-          <th>Licences</th>
-          <th>Durée</th>
-          <th>Contact client</th>
-          <th>N° client</th>
-          <th>Email client</th>
-          <th>Email Commercial</th>
-          <th>Cc mail</th>
-          <th>Remarque</th>
-          <th>Sous Contrat</th>
-          <th>Commande Passer Par</th>
-          <th>Fichier</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let sentineIOne of pagedExpiredSentineIOnes">
-          <td>{{ sentineIOne.client || 'N/A' }}</td>
-
-          <!-- LICENCES (affichage groupé) -->
-          <td>
-            <div *ngFor="let lic of sentineIOne.licences" class="licence-block d-flex align-items-center gap-3 mb-2">
-              <div><strong>Licence:</strong> {{ lic.nomDesLicences || 'N/A' }}</div>
-              <div><strong>Quantité:</strong> {{ lic.quantite || 'N/A' }}</div>
-              <div><strong>Expire le:</strong> {{ lic.dateEx ? (lic.dateEx | date: 'dd/MM/yyyy') : 'N/A' }}</div>
+  <div class="md-layout" [class.detail-open]="selectedSentineIOne">
+    <div class="md-master">
+      <div class="md-list">
+        <div *ngFor="let sentineIOne of pagedExpiredSentineIOnes" class="md-item"
+          [class.md-item-active]="selectedSentineIOne?.sentineIOneId === sentineIOne.sentineIOneId"
+          (click)="selectSentineIOne(sentineIOne)">
+          <div class="md-item-info">
+            <div class="md-item-client">{{ sentineIOne.client }}</div>
+            <div class="md-item-fields">
+              <span class="md-field"><strong>Durée :</strong> {{ sentineIOne.dureeDeLicence || '-' }}</span>
+              <span *ngFor="let lic of sentineIOne.licences" class="md-field">
+                <strong>{{ lic.nomDesLicences }} :</strong> expire {{ lic.dateEx | date:'dd/MM/yyyy' }}
+              </span>
             </div>
-          </td>
+          </div>
+          <div class="md-item-actions" (click)="$event.stopPropagation()">
+            <button class="md-btn-icon md-btn-view" (click)="selectSentineIOne(sentineIOne)" title="Voir détails">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button class="md-btn-icon md-btn-unapprove" (click)="desapprouve(sentineIOne.sentineIOneId)" title="Désexpirer">
+              <i class="fas fa-times-circle"></i>
+            </button>
+          </div>
+        </div>
+        <div *ngIf="pagedExpiredSentineIOnes.length === 0" class="md-empty">
+          <i class="fas fa-folder-open"></i>
+          <p>Aucune licence SentinelOne approuvée trouvée.</p>
+        </div>
+      </div>
+      <div class="md-pagination" *ngIf="totalPages > 1">
+        <button *ngFor="let page of pageNumbers; let i = index" (click)="changePage(i)"
+          [class.active]="i === currentPage" class="btn btn-sm btn-outline-primary mx-1">
+          {{ i + 1 }}
+        </button>
+      </div>
+    </div>
 
-          <td>{{ sentineIOne.dureeDeLicence || 'N/A' }}</td>
-          <td>{{ sentineIOne.nomDuContact || 'N/A' }}</td>
-          <td>{{ sentineIOne.numero || 'N/A' }}</td>
-          <td>{{ sentineIOne.adresseEmailContact || 'N/A' }}</td>
-          <td>{{ sentineIOne.mailAdmin || 'N/A' }}</td>
-          <td>
-            <span *ngIf="sentineIOne.ccMail && sentineIOne.ccMail.length > 0">
-              {{ sentineIOne.ccMail.join(', ') }}
+    <div class="md-detail" *ngIf="selectedSentineIOne">
+      <div class="md-detail-card">
+        <div class="md-detail-header">
+          <h4>{{ selectedSentineIOne.client }}</h4>
+          <button class="md-detail-close" (click)="closeDetail()">&times;</button>
+        </div>
+        <div class="md-detail-body">
+          <div class="md-detail-section-title">Licence</div>
+          <div class="md-detail-row"><span class="md-label">Durée</span><span class="md-value">{{ selectedSentineIOne.dureeDeLicence || '-' }}</span></div>
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-section-title">Licences</div>
+          <div *ngFor="let lic of selectedSentineIOne.licences" class="licence-block">
+            <div class="md-detail-row"><span class="md-label">Licence</span><span class="md-value">{{ lic.nomDesLicences }}</span></div>
+            <div class="md-detail-row"><span class="md-label">Quantité</span><span class="md-value">{{ lic.quantite }}</span></div>
+            <div class="md-detail-row"><span class="md-label">Expiration</span><span class="md-value">{{ lic.dateEx | date:'dd/MM/yyyy' }}</span></div>
+          </div>
+          <div class="md-detail-divider"></div>
+          
+          <div class="md-detail-section-title">Vis-à-vis client</div>
+          <div class="md-detail-row"><span class="md-label">Vis-à-vis client</span><span class="md-value">{{ selectedSentineIOne.nomDuContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">N° téléphone</span><span class="md-value">{{ selectedSentineIOne.numero || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Email client</span><span class="md-value">{{ selectedSentineIOne.adresseEmailContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Email commercial</span><span class="md-value">{{ selectedSentineIOne.mailAdmin || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">CC Mail</span><span class="md-value">{{ selectedSentineIOne.ccMail || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Sous contrat</span>
+            <span class="md-value"><span [class]="selectedSentineIOne.sousContrat ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">{{ selectedSentineIOne.sousContrat ? 'Oui' : 'Non' }}</span></span>
+          </div>
+          <div class="md-detail-row"><span class="md-label">Remarque</span><span class="md-value">{{ selectedSentineIOne.remarque || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Commande par</span><span class="md-value">{{ getCommandePasserParLabel(selectedSentineIOne.commandePasserPar) || '-' }}</span></div>
+          <div class="md-detail-row" *ngIf="selectedSentineIOne.fichier">
+            <span class="md-label">Fichier</span>
+            <span class="md-value">
+              <a [href]="getFileDownloadUrl(selectedSentineIOne.sentineIOneId)" target="_blank" class="btn btn-sm btn-outline-primary">
+                <i class="fa fa-download"></i> {{ selectedSentineIOne.fichierOriginalName || 'Télécharger' }}
+              </a>
             </span>
-            <span *ngIf="!sentineIOne.ccMail || sentineIOne.ccMail.length === 0">N/A</span>
-          </td>
-          <td>{{ sentineIOne.remarque || 'N/A' }}</td>
-          <td>{{ sentineIOne.sousContrat ? 'Oui' : 'Non' }}</td>
-          <td>{{ getCommandePasserParLabel(sentineIOne.commandePasserPar) }}</td>
-
-          <td>
-            <a *ngIf="sentineIOne.fichier" [href]="getFileDownloadUrl(sentineIOne.sentineIOneId)" target="_blank" class="btn btn-sm btn-info">
-              <i class="fas fa-download"></i> {{ sentineIOne.fichierOriginalName || 'Télécharger' }}
-            </a>
-            <span *ngIf="!sentineIOne.fichier">-</span>
-          </td>
-
-          <td>
-            <div class="d-flex flex-column gap-1">
-              <button class="btn btn-sm btn-warning" (click)="desapprouve(sentineIOne.sentineIOneId)"
-                      title="Désapprouver">
-                <i class="fas fa-times-circle"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Pagination -->
-  <div *ngIf="filteredExpiredSentineIOnes.length > 0" class="text-center mt-3">
-    <ng-container *ngIf="totalPages > 1">
-      <button 
-        *ngFor="let page of pageNumbers; let i = index"
-        (click)="changePage(i)"
-        [class.active]="i === currentPage"
-        class="btn btn-sm btn-outline-primary mx-1">
-        {{ i + 1 }}
-      </button>
-    </ng-container>
+          </div>
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-actions">
+            <button class="btn btn-sm btn-warning" (click)="desapprouve(selectedSentineIOne.sentineIOneId)" title="Désexpirer">
+              <i class="fas fa-times-circle"></i> Désexpirer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

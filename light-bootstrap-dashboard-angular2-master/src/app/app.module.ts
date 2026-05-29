@@ -16,6 +16,7 @@ import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.compon
 import { AuthModule } from './auth/auth.module';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './auth/auth.interceptor';
+import { AssistantUiModule } from './assistant/assistant-ui.module';
 
 @NgModule({
   imports: [
@@ -28,6 +29,7 @@ import { AuthInterceptor } from './auth/auth.interceptor';
     NavbarModule,
     FooterModule,
     SidebarModule,
+    AssistantUiModule,
     AppRoutingModule,
     ReactiveFormsModule
     

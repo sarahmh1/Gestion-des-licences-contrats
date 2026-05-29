@@ -1,106 +1,96 @@
-<div class="container">
-  <!-- En-tête avec titre et boutons alignés -->
+﻿<div class="master-detail-container">
   <div class="header-row">
     <h2>Licences Expirées ESET</h2>
     <div class="action-group">
       <div class="input-group search-box">
-        <input 
-          type="text" 
-          class="form-control" 
-          placeholder="Rechercher..." 
-          [(ngModel)]="searchTerm" 
-          (input)="onSearch()" 
-        />
+        <input type="text" class="form-control" placeholder="Rechercher..."
+          [(ngModel)]="searchTerm" (input)="onSearch()" />
       </div>
     </div>
   </div>
 
-  <!-- Show a message if no approved products are found -->
-  <div *ngIf="filteredExpiredProducts.length === 0" class="text-center mt-4">
-    <p>Aucune licence ESET approuvée trouvée.</p>
-    <p *ngIf="allEsets.length > 0" class="text-muted">
-      ({{allEsets.length}} licences ESET au total dans le système)
-    </p>
-  </div>
-
-  <!-- Tableau responsive -->
-  <div *ngIf="filteredExpiredProducts.length > 0" class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Client</th>
-          <th>Identifiant</th>
-          <th>Clé de Licence</th>
-          <th>Nom du Produit</th>
-          <th>Durée de licence</th>
-          <th>Date d'Expiration</th>
-          <th>Type d'Achat</th>
-          <th>Nombre</th>
-          <th>Vis-a-Vis Client</th>
-          <th>N° Telephone Client</th>
-          <th>Adresse Mail Client</th>
-          <th>Email Commercial</th>
-          <th>Cc mail</th>
-          <th>Remarque</th>
-          <th>Sous Contrat</th>
-          <th>Commande Passer Par</th>
-          <th>Fichier</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- CORRECTION: Utiliser pagedExpiredProducts au lieu de pagedExpiredEsets -->
-        <tr *ngFor="let eset of pagedExpiredProducts; let i = index">
-          <td>{{ eset.client || 'N/A' }}</td>
-          <td>{{ eset.identifiant || 'N/A' }}</td>
-          <td>{{ eset.cle_de_Licence || 'N/A' }}</td>
-          <td>{{ getProductName(eset.nom_produit) }}</td>
-          <td>{{ eset.dureeDeLicence || 'N/A' }}</td>
-          <td>{{ eset.dateEx ? (eset.dateEx | date:'dd/MM/yyyy') : 'N/A' }}</td>
-          <td>{{ getTypeAchatName(eset.typeAchat) }}</td>
-          <td>{{ eset.nombre || 'N/A' }}</td>
-          <td>{{ eset.nom_contact || 'N/A' }}</td>
-          <td>{{ eset.nmb_tlf || 'N/A' }}</td>
-          <td>{{ eset.mail || 'N/A' }}</td>
-          <td>{{ eset.mailAdmin || 'N/A' }}</td>
-          <td>
-            <span *ngIf="eset.ccMail && eset.ccMail.length > 0">
-              {{ eset.ccMail.join(', ') }}
-            </span>
-            <span *ngIf="!eset.ccMail || eset.ccMail.length === 0">N/A</span>
-          </td>
-          <td>{{ eset.remarque || 'N/A' }}</td>
-          <td>{{ eset.sousContrat ? 'Oui' : 'Non' }}</td>
-          <td>{{ getCommandePasserParLabel(eset.commandePasserPar) }}</td>
-          <td>
-            <a *ngIf="eset.fichier" [href]="getFileDownloadUrl(eset.esetid)" target="_blank" class="btn btn-sm btn-info">
-              <i class="fas fa-download"></i> {{ eset.fichierOriginalName || 'Télécharger' }}
-            </a>
-            <span *ngIf="!eset.fichier">-</span>
-          </td>
-          <td>
-            <div class="d-flex flex-column gap-1">
-              <button class="btn btn-sm btn-warning" (click)="desapprouve(eset.esetid)"
-                      title="Désapprouver">
-                <i class="fas fa-times-circle"></i>
-              </button>
+  <div class="md-layout" [class.detail-open]="selectedEset">
+    <div class="md-master">
+      <div class="md-list">
+        <div *ngFor="let eset of pagedExpiredProducts" class="md-item"
+          [class.md-item-active]="selectedEset?.esetid === eset.esetid"
+          (click)="selectEset(eset)">
+          <div class="md-item-info">
+            <div class="md-item-client">{{ eset.client }}</div>
+            <div class="md-item-fields">
+              <span class="md-field"><strong>Identifiant :</strong> {{ eset.identifiant || '-' }}</span>
+              <span class="md-field"><strong>Clé :</strong> {{ eset.cle_de_Licence || '-' }}</span>
+              <span class="md-field"><strong>Produit :</strong> {{ getProductName(eset.nom_produit) }}</span>
+              <span class="md-field"><strong>Expiration :</strong> {{ eset.dateEx | date:'dd/MM/yyyy' }}</span>
             </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+          </div>
+          <div class="md-item-actions" (click)="$event.stopPropagation()">
+            <button class="md-btn-icon md-btn-view" (click)="selectEset(eset)" title="Voir détails">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button class="md-btn-icon md-btn-unapprove" (click)="desapprouve(eset.esetid)" title="Désexpirer">
+              <i class="fas fa-times-circle"></i>
+            </button>
+          </div>
+        </div>
+        <div *ngIf="pagedExpiredProducts.length === 0" class="md-empty">
+          <i class="fas fa-folder-open"></i>
+          <p>Aucune licence ESET approuvée trouvée.</p>
+        </div>
+      </div>
+      <div class="md-pagination" *ngIf="totalPages > 1">
+        <button *ngFor="let page of pageNumbers; let i = index" (click)="changePage(i)"
+          [class.active]="i === currentPage" class="btn btn-sm btn-outline-primary mx-1">
+          {{ i + 1 }}
+        </button>
+      </div>
+    </div>
 
-  <!-- Pagination -->
-  <div *ngIf="filteredExpiredProducts.length > 0" class="text-center mt-3">
-    <ng-container *ngIf="totalPages > 1">
-      <button 
-        *ngFor="let page of pageNumbers; let i = index"
-        (click)="changePage(i)"
-        [class.active]="i === currentPage"
-        class="btn btn-sm btn-outline-primary mx-1">
-        {{ i + 1 }}
-      </button>
-    </ng-container>
+    <div class="md-detail" *ngIf="selectedEset">
+      <div class="md-detail-card">
+        <div class="md-detail-header">
+          <h4>{{ selectedEset.client }}</h4>
+          <button class="md-detail-close" (click)="closeDetail()">&times;</button>
+        </div>
+        <div class="md-detail-body">
+          <div class="md-detail-section-title">Informations licence</div>
+          <div class="md-detail-row"><span class="md-label">Produit</span>
+            <span class="md-value"><span class="md-badge md-badge-orange">{{ getProductName(selectedEset.nom_produit) }}</span></span>
+          </div>
+          <div class="md-detail-row"><span class="md-label">Identifiant</span><span class="md-value">{{ selectedEset.identifiant || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Clé de licence</span><span class="md-value">{{ selectedEset.cle_de_Licence || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Durée</span><span class="md-value">{{ selectedEset.dureeDeLicence || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Date d'expiration</span><span class="md-value">{{ selectedEset.dateEx | date:'dd/MM/yyyy' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Type d'achat</span><span class="md-value">{{ getTypeAchatName(selectedEset.typeAchat) }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Nombre</span><span class="md-value">{{ selectedEset.nombre }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Sous contrat</span>
+            <span class="md-value"><span [class]="selectedEset.sousContrat ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">{{ selectedEset.sousContrat ? 'Oui' : 'Non' }}</span></span>
+          </div>
+          <div class="md-detail-row"><span class="md-label">Commande par</span><span class="md-value">{{ getCommandePasserParLabel(selectedEset.commandePasserPar) || '-' }}</span></div>
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-section-title">Vis-à-vis client</div>
+          <div class="md-detail-row"><span class="md-label">Vis-à-vis client</span><span class="md-value">{{ selectedEset.nom_contact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">N° téléphone</span><span class="md-value">{{ selectedEset.nmb_tlf || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Email client</span><span class="md-value">{{ selectedEset.mail || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Email commercial</span><span class="md-value">{{ selectedEset.mailAdmin || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">CC Mail</span><span class="md-value">{{ selectedEset.ccMail?.join(', ') || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Remarque</span><span class="md-value">{{ selectedEset.remarque || '-' }}</span></div>
+          <div class="md-detail-row" *ngIf="selectedEset.fichier">
+            <span class="md-label">Fichier</span>
+            <span class="md-value">
+              <a [href]="getFileDownloadUrl(selectedEset.esetid)" target="_blank" class="btn btn-sm btn-outline-primary">
+                <i class="fa fa-download"></i> {{ selectedEset.fichierOriginalName || 'Télécharger' }}
+              </a>
+            </span>
+          </div>
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-actions">
+            <button class="btn btn-sm btn-warning" (click)="desapprouve(selectedEset.esetid)" title="Désexpirer">
+              <i class="fas fa-times-circle"></i> Désexpirer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

@@ -5,6 +5,7 @@ import com.example.projet2024.DTO.UserDTO;
 import com.example.projet2024.DTO.UserUpdateRequest;
 import com.example.projet2024.Enum.Role_Enum;
 import com.example.projet2024.Security.Jwt.JwtUtils;
+import com.example.projet2024.Security.RoleAuthorization;
 import com.example.projet2024.entite.User;
 import com.example.projet2024.mapper.UserMapper;
 import com.example.projet2024.repository.UserRepository;
@@ -92,16 +93,14 @@ public class UserServiceImp implements IUserService {
                 user.setDateOfBirth(updatedUser.getDateOfBirth());
             }
             
-            // ✅ Allow role update ONLY if current user is SUPER_ADMIN
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            boolean isSuperAdmin = authentication != null && authentication.getAuthorities().stream()
-                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_SUPER_ADMIN"));
-            
-            if (isSuperAdmin && updatedUser.getRole() != null) {
-                user.setRole(updatedUser.getRole());
-                System.out.println("✅ Role updated by SUPER_ADMIN: " + updatedUser.getRole());
-            } else if (updatedUser.getRole() != null) {
-                System.out.println("⚠️  Role update denied: user is not SUPER_ADMIN");
+            if (updatedUser.getRole() != null) {
+                if (RoleAuthorization.canManageUserRoles(authentication)) {
+                    user.setRole(updatedUser.getRole());
+                    System.out.println("✅ Role updated: " + updatedUser.getRole());
+                } else {
+                    System.out.println("⚠️  Role update denied: droits insuffisants");
+                }
             }
 
             return userRepository.save(user);
@@ -159,6 +158,11 @@ public class UserServiceImp implements IUserService {
 
     @Override
     public User assignUserRole(Long id, Role_Enum newRole) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!RoleAuthorization.canManageUserRoles(authentication)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Seuls Super Admin et Administrateur peuvent modifier les rôles.");
+        }
         return userRepository.findById(id).map(user -> {
             user.setRole(newRole);
             return userRepository.save(user);
@@ -223,5 +227,20 @@ public class UserServiceImp implements IUserService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         return true;
+    }
+
+    @Override
+    public void requestPasswordReset(String email) {
+        throw new UnsupportedOperationException("Utiliser UserService");
+    }
+
+    @Override
+    public boolean resetPasswordWithCode(String email, String code, String newPassword) {
+        throw new UnsupportedOperationException("Utiliser UserService");
+    }
+
+    @Override
+    public void resendVerificationEmail(String email) {
+        throw new UnsupportedOperationException("Utiliser UserService");
     }
 }

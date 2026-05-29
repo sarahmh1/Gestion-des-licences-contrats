@@ -13,6 +13,7 @@ export class ExpiredImpervaComponent implements OnInit {
   filteredExpiredImpervas: Imperva[] = [];
   pagedExpiredImpervas: Imperva[] = [];
   searchTerm: string = '';
+  selectedImperva: Imperva | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -92,8 +93,19 @@ export class ExpiredImpervaComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectImperva(item: Imperva): void {
+    this.selectedImperva = item;
+  }
+
+  closeDetail(): void {
+    this.selectedImperva = null;
+  }
+
   desapprouve(id: number): void {
     this.impervaService.activate(id).subscribe(() => {
+      if (this.selectedImperva?.impervaId === id) {
+        this.selectedImperva = null;
+      }
       // Après désapprobation, retirer le Imperva de la liste approuvée locale
       this.expiredImpervas = this.expiredImpervas.filter(imperva => imperva.impervaId !== id);
       this.filteredExpiredImpervas = this.filteredExpiredImpervas.filter(imperva => imperva.impervaId !== id);

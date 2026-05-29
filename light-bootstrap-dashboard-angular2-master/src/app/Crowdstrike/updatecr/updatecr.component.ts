@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Crowdstrike } from 'app/Model/Crowdstrike';
@@ -42,7 +43,7 @@ export class UpdateCrowdstrikeComponent implements OnInit {
       mailAdmin: ['', Validators.email],
       ccMail: this.fb.array([]),
       commandePasserPar: ['', Validators.required],
-      numero: [''],
+      numero: ['', AppValidators.optionalPhone],
       remarques: [''],
       sousContrat: [false],
       licences: this.fb.array([])
@@ -62,7 +63,7 @@ export class UpdateCrowdstrikeComponent implements OnInit {
 
   // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par dï¿½faut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -75,14 +76,14 @@ export class UpdateCrowdstrikeComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par défaut
+        return CommandePasserPar.GI_TN; // Valeur par dï¿½faut
     }
   }
 
   createLicenceGroup(): FormGroup {
     return this.fb.group({
       nomDesLicences: ['', Validators.required],
-      quantite: ['', Validators.required],
+      quantite: ['', AppValidators.requiredQuantity],
       dateEx: ['', Validators.required]
     });
   }
@@ -118,7 +119,7 @@ export class UpdateCrowdstrikeComponent implements OnInit {
           data.licences.forEach(lic => {
             this.licences.push(this.fb.group({
               nomDesLicences: [lic.nomDesLicences, Validators.required],
-              quantite: [lic.quantite, Validators.required],
+              quantite: [lic.quantite, AppValidators.requiredQuantity],
               dateEx: [this.formatDate(lic.dateEx), Validators.required]
             }));
           });
@@ -137,7 +138,7 @@ export class UpdateCrowdstrikeComponent implements OnInit {
         }
       },
       error => {
-        console.error('Erreur récupération CrowdStrike:', error);
+        console.error('Erreur rï¿½cupï¿½ration CrowdStrike:', error);
       }
     );
   }
@@ -148,8 +149,12 @@ export class UpdateCrowdstrikeComponent implements OnInit {
   }
 
   updateCrowdstrike(): void {
-    if (this.updateForm.valid) {
-      const updatedCrowdstrike: Crowdstrike = {
+    if (!this.updateForm.valid) {
+      this.updateForm.markAllAsTouched();
+      return;
+    }
+
+          const updatedCrowdstrike: Crowdstrike = {
         crowdstrikeid: this.crowdstrikeid,
         ...this.updateForm.value,
         fichier: this.crowdstrike?.fichier,
@@ -158,16 +163,14 @@ export class UpdateCrowdstrikeComponent implements OnInit {
 
       this.crowdstrikeService.updateCrowdstrike(updatedCrowdstrike).subscribe(
         () => {
-          console.log('CrowdStrike mis à jour avec succès');
+          console.log('CrowdStrike mis ï¿½ jour avec succï¿½s');
           this.router.navigate(['/AfficherCrowsdstrike']);
         },
         error => {
-          console.error('Erreur mise à jour CrowdStrike:', error);
+          console.error('Erreur mise ï¿½ jour CrowdStrike:', error);
         }
       );
-    } else {
-      console.error('Formulaire invalide', this.updateForm);
-    }
+    
   }
 
   onFileSelected(event: any): void {
@@ -179,11 +182,11 @@ export class UpdateCrowdstrikeComponent implements OnInit {
           this.crowdstrike.fichier = response.fichier;
           this.crowdstrike.fichierOriginalName = response.fichierOriginalName;
           this.cdr.detectChanges();
-          window.alert('Fichier uploadé avec succès');
+          window.alert('Fichier uploadï¿½ avec succï¿½s');
         },
         (error) => {
           console.error('Erreur upload fichier', error);
-          window.alert('Échec de l\'upload du fichier');
+          window.alert('ï¿½chec de l\'upload du fichier');
         }
       );
     }
@@ -200,11 +203,11 @@ export class UpdateCrowdstrikeComponent implements OnInit {
           this.crowdstrike.fichier = undefined;
           this.crowdstrike.fichierOriginalName = undefined;
           this.cdr.detectChanges();
-          window.alert('Fichier supprimé');
+          window.alert('Fichier supprimï¿½');
         },
         (error) => {
           console.error('Erreur suppression fichier', error);
-          window.alert('Échec de la suppression');
+          window.alert('ï¿½chec de la suppression');
         }
       );
     }

@@ -5,29 +5,44 @@ import com.example.projet2024.DTO.UserUpdateRequest;
 import com.example.projet2024.DTO.PasswordChangeRequest;
 import com.example.projet2024.Enum.Role_Enum;
 import com.example.projet2024.Security.Jwt.JwtUtils;
+import com.example.projet2024.Security.RoleAuthorization;
+import com.example.projet2024.Security.Services.UserDetailsImpl;
 import com.example.projet2024.entite.User;
 import com.example.projet2024.mapper.UserMapper;
 import com.example.projet2024.repository.UserRepository;
+import com.example.projet2024.util.PasswordPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
+import java.util.UUID;
 
+@Primary
 @Service
 public class UserService implements IUserService {
+
+    private static final int RESET_CODE_EXPIRY_MINUTES = 15;
+    private static final SecureRandom RESET_CODE_RANDOM = new SecureRandom();
+
     @Autowired
     AuthenticationManager authenticationManager;
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -88,6 +103,11 @@ public class UserService implements IUserService {
 
     public User createUser(User user) {
         System.out.println("🔐 [UserService] createUser() called for email: " + user.getEmail());
+
+        if (user.getPassword() != null && !user.getPassword().isEmpty()
+                && !PasswordPolicy.isValid(user.getPassword())) {
+            throw new IllegalArgumentException(PasswordPolicy.MESSAGE);
+        }
         
         // Crypter le mot de passe avec BCrypt
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
@@ -148,16 +168,14 @@ public class UserService implements IUserService {
                         user.setDateOfBirth(updatedUser.getDateOfBirth());
                     }
                     
-                    // ✅ Allow role update ONLY if current user is SUPER_ADMIN
                     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                    boolean isSuperAdmin = authentication != null && authentication.getAuthorities().stream()
-                            .anyMatch(auth -> auth.getAuthority().equals("ROLE_SUPER_ADMIN"));
-                    
-                    if (isSuperAdmin && updatedUser.getRole() != null) {
-                        user.setRole(updatedUser.getRole());
-                        System.out.println("✅ Role updated by SUPER_ADMIN: " + updatedUser.getRole());
-                    } else if (updatedUser.getRole() != null) {
-                        System.out.println("⚠️  Role update denied: user is not SUPER_ADMIN");
+                    if (updatedUser.getRole() != null) {
+                        if (RoleAuthorization.canManageUserRoles(authentication)) {
+                            user.setRole(updatedUser.getRole());
+                            System.out.println("✅ Role updated: " + updatedUser.getRole());
+                        } else {
+                            System.out.println("⚠️  Role update denied: droits insuffisants (Super Admin ou Administrateur requis)");
+                        }
                     }
                     
                     // ❌ NEVER update password from updateUser() endpoint
@@ -214,6 +232,11 @@ public class UserService implements IUserService {
     }
 
     public User assignUserRole(Long id, Role_Enum newRole) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!RoleAuthorization.canManageUserRoles(authentication)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Seuls Super Admin et Administrateur peuvent modifier les rôles.");
+        }
         Optional<User> optionalUser = userRepository.findById(id);
         if (optionalUser.isEmpty()) {
             throw new IllegalArgumentException("Utilisateur non trouvé.");
@@ -285,9 +308,119 @@ public class UserService implements IUserService {
         if (user == null) {
             return false;
         }
+        if (!PasswordPolicy.isValid(request.getNewPassword())) {
+            throw new IllegalArgumentException(PasswordPolicy.MESSAGE);
+        }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         return true;
+    }
+
+    /**
+     * Connexion / inscription via Google : crée un compte ROLE_COMMERCIAL vérifié si l’email n’existe pas encore.
+     */
+    @Transactional
+    public String loginOrRegisterGoogle(String email, String givenName, String familyName) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email manquant");
+        }
+        String emailAddr = email.trim();
+        User user = findByEmail(emailAddr);
+        if (user == null) {
+            User u = new User();
+            u.setEmail(emailAddr);
+            u.setFirstname((givenName != null && !givenName.isBlank()) ? givenName.trim() : "—");
+            u.setLastname((familyName != null && !familyName.isBlank()) ? familyName.trim() : "—");
+            u.setPassword(UUID.randomUUID().toString());
+            u.setSex("MALE");
+            u.setPhoneNumber("00000000");
+            u.setDateOfBirth("2000-01-01");
+            u.setRole(Role_Enum.ROLE_COMMERCIAL);
+            u.setVerified(true);
+            u.setVerificationToken(null);
+            saveUser(u);
+            user = findByEmail(emailAddr);
+            if (user == null) {
+                throw new IllegalStateException("Création utilisateur Google impossible");
+            }
+        } else {
+            user.setVerified(true);
+            if (givenName != null && !givenName.isBlank()) {
+                user.setFirstname(givenName.trim());
+            }
+            if (familyName != null && !familyName.isBlank()) {
+                user.setLastname(familyName.trim());
+            }
+            userRepository.save(user);
+        }
+        UserDetailsImpl principal = UserDetailsImpl.build(user);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return jwtUtils.generateJwtToken(authentication);
+    }
+
+    @Override
+    @Transactional
+    public void requestPasswordReset(String email) {
+        if (email == null || email.isBlank()) {
+            return;
+        }
+        String normalized = email.trim();
+        User user = findByEmail(normalized);
+        if (user == null) {
+            return;
+        }
+        String code = String.format("%06d", RESET_CODE_RANDOM.nextInt(1_000_000));
+        user.setResetPasswordCode(code);
+        user.setResetPasswordExpiresAt(LocalDateTime.now().plusMinutes(RESET_CODE_EXPIRY_MINUTES));
+        userRepository.save(user);
+        emailService.sendPasswordResetCodeEmail(user.getEmail(), code);
+    }
+
+    @Override
+    @Transactional
+    public boolean resetPasswordWithCode(String email, String code, String newPassword) {
+        if (email == null || email.isBlank() || code == null || code.isBlank()
+                || newPassword == null || !PasswordPolicy.isValid(newPassword)) {
+            return false;
+        }
+        User user = findByEmail(email.trim());
+        if (user == null || user.getResetPasswordCode() == null || user.getResetPasswordExpiresAt() == null) {
+            return false;
+        }
+        if (LocalDateTime.now().isAfter(user.getResetPasswordExpiresAt())) {
+            return false;
+        }
+        if (!user.getResetPasswordCode().equals(code.trim())) {
+            return false;
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetPasswordCode(null);
+        user.setResetPasswordExpiresAt(null);
+        userRepository.save(user);
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public void resendVerificationEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("L'adresse e-mail est requise.");
+        }
+        User user = findByEmail(email.trim());
+        if (user == null) {
+            return;
+        }
+        if (user.isVerified()) {
+            throw new IllegalStateException("Ce compte est déjà vérifié. Connectez-vous avec votre mot de passe.");
+        }
+        String token = user.getVerificationToken();
+        if (token == null || token.isBlank()) {
+            token = UUID.randomUUID().toString();
+            user.setVerificationToken(token);
+            userRepository.save(user);
+        }
+        emailService.sendVerificationEmail(user.getEmail(), token);
     }
 
 }

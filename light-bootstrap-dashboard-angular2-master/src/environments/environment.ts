@@ -5,6 +5,8 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8089'
+  apiUrl: 'http://localhost:8089',
+  /** ID client Web (prioritaire sur l’API). Sinon le front appelle GET /api/auth/google-client-id. */
+  googleClientId: ''
 };
 

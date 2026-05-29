@@ -1,6 +1,6 @@
 ﻿<div class="master-detail-container">
   <div class="header-row">
-    <h2>Licences MicrosoftO365</h2>
+    <h2>Licences Microsoft O365</h2>
     <div class="action-group">
       <button (click)="goToAddmicrosoftO365()" class="btn btn-sm action-button" *ngIf="permissionService.canAddProduct('microsofto365')"><i class="fa fa-plus"></i></button>
       <div class="input-group search-box">
@@ -21,13 +21,13 @@
             </div>
           </div>
           <div class="md-item-actions" (click)="$event.stopPropagation()">
-            <button class="md-btn-icon md-btn-view" (click)="selectMicrosoftO365(x)" title="Voir details"><i class="fas fa-eye"></i></button>
+            <button class="md-btn-icon md-btn-view" (click)="selectMicrosoftO365(x)" title="Voir détails"><i class="fas fa-eye"></i></button>
             <button class="md-btn-icon md-btn-edit" (click)="updateMicrosoftO365(x)" *ngIf="permissionService.canEditProduct('microsofto365')"><i class="fas fa-pen"></i></button>
-            <button class="md-btn-icon md-btn-delete" (click)="deleteMicrosoftO365(x.microsoftO365Id)" *ngIf="permissionService.canDeleteProduct('microsofto365')"><i class="fas fa-trash"></i></button>
+            <button class="md-btn-icon md-btn-delete" (click)="requestDeleteMicrosoftO365(x)" *ngIf="permissionService.canDeleteProduct('microsofto365')"><i class="fas fa-trash"></i></button>
             <button class="md-btn-icon md-btn-approve" (click)="approveMicrosoftO365(x.microsoftO365Id)" *ngIf="permissionService.canEditProduct('microsofto365')"><i class="fas fa-check"></i></button>
           </div>
         </div>
-        <div *ngIf="pagedMicrosoftO365s.length === 0" class="md-empty"><i class="fas fa-folder-open"></i><p>Aucun MicrosoftO365 trouvé.</p></div>
+        <div *ngIf="pagedMicrosoftO365s.length === 0" class="md-empty"><i class="fas fa-folder-open"></i><p>Aucune licence Microsoft O365 trouvée.</p></div>
       </div>
       <div class="md-pagination" *ngIf="totalPages > 1">
         <button *ngFor="let page of pageNumbers; let i = index" (click)="changePage(i)" [class.active]="i === currentPage" class="btn btn-sm btn-outline-primary mx-1">{{ i + 1 }}</button>
@@ -39,7 +39,7 @@
         <div class="md-detail-body">
           <div class="md-detail-section-title">Licence</div>
           <div class="md-detail-row"><span class="md-label">Durée</span><span class="md-value">{{ selectedMicrosoftO365.dureeDeLicence || '-' }}</span></div>
-          
+
           <div class="md-detail-divider"></div>
           <div class="md-detail-section-title">Licences</div>
           <div *ngFor="let lic of selectedMicrosoftO365.licences" class="licence-block">
@@ -48,13 +48,13 @@
             <div class="md-detail-row"><span class="md-label">Expiration</span><span class="md-value">{{ lic.dateEx | date:'dd/MM/yyyy' }}</span></div>
           </div>
           <div class="md-detail-divider"></div>
-          <div class="md-detail-section-title">Contact Client</div>
-          <div class="md-detail-row"><span class="md-label">Nom contact</span><span class="md-value">{{ selectedMicrosoftO365.nomDuContact || '-' }}</span></div>
-          <div class="md-detail-row"><span class="md-label">N° Téléphone</span><span class="md-value">{{ selectedMicrosoftO365.numero || '-' }}</span></div>
+          <div class="md-detail-section-title">Vis-à-vis client</div>
+          <div class="md-detail-row"><span class="md-label">Vis-à-vis client</span><span class="md-value">{{ selectedMicrosoftO365.nomDuContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Numéro de téléphone</span><span class="md-value">{{ selectedMicrosoftO365.numero || '-' }}</span></div>
           <div class="md-detail-row"><span class="md-label">Email client</span><span class="md-value">{{ selectedMicrosoftO365.adresseEmailContact || '-' }}</span></div>
-          <div class="md-detail-row"><span class="md-label">Email Commercial</span><span class="md-value">{{ selectedMicrosoftO365.mailAdmin || '-' }}</span></div>
-          <div class="md-detail-row"><span class="md-label">CC Mail</span><span class="md-value">{{ selectedMicrosoftO365.ccMail || '-' }}</span></div>
-          <div class="md-detail-row"><span class="md-label">Sous Contrat</span><span class="md-value"><span [class]="selectedMicrosoftO365.sousContrat ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">{{ selectedMicrosoftO365.sousContrat ? 'Oui' : 'Non' }}</span></span></div>
+          <div class="md-detail-row"><span class="md-label">Email commercial</span><span class="md-value">{{ selectedMicrosoftO365.mailAdmin || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">CC mail</span><span class="md-value">{{ formatCcMail(selectedMicrosoftO365.ccMail) }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Sous contrat</span><span class="md-value"><span [class]="selectedMicrosoftO365.sousContrat ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">{{ selectedMicrosoftO365.sousContrat ? 'Oui' : 'Non' }}</span></span></div>
           <div class="md-detail-row"><span class="md-label">Remarque</span><span class="md-value">{{ selectedMicrosoftO365.remarque || '-' }}</span></div>
           <div class="md-detail-row"><span class="md-label">Commande par</span><span class="md-value">{{ getCommandePasserParLabel(selectedMicrosoftO365.commandePasserPar) || '-' }}</span></div>
           <div class="md-detail-row" *ngIf="selectedMicrosoftO365.fichierOriginalName">
@@ -63,7 +63,7 @@
           <div class="md-detail-divider"></div>
           <div class="md-detail-actions">
             <button (click)="updateMicrosoftO365(selectedMicrosoftO365)" class="btn btn-sm btn-primary" *ngIf="permissionService.canEditProduct('microsofto365')"><i class="fas fa-pen"></i> Modifier</button>
-            <button (click)="deleteMicrosoftO365(selectedMicrosoftO365.microsoftO365Id)" class="btn btn-sm btn-danger" *ngIf="permissionService.canDeleteProduct('microsofto365')"><i class="fas fa-trash"></i> Supprimer</button>
+            <button (click)="requestDeleteMicrosoftO365(selectedMicrosoftO365)" class="btn btn-sm btn-danger" *ngIf="permissionService.canDeleteProduct('microsofto365')"><i class="fas fa-trash"></i> Supprimer</button>
             <button (click)="approveMicrosoftO365(selectedMicrosoftO365.microsoftO365Id)" class="btn btn-sm btn-success" *ngIf="permissionService.canEditProduct('microsofto365')"><i class="fas fa-check"></i> Approuver</button>
           </div>
         </div>
@@ -72,6 +72,162 @@
   </div>
 </div>
 
+<!-- Modal ajouter -->
+<div class="modal-overlay" *ngIf="showAddModal" (click)="closeAddModal()">
+  <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-section">
+        <i class="fas fa-shield-alt modal-icon"></i>
+        <h4>Ajouter nouveau Microsoft O365</h4>
+      </div>
+      <button type="button" class="close-btn" (click)="closeAddModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" (click)="onModalBodyClick($event)">
+      <app-ajouterm (microsoftAdded)="onMicrosoftAdded()" (cancelled)="onAddCancelled()"></app-ajouterm>
+    </div>
+  </div>
+</div>
 
+<!-- Modal modifier -->
+<div class="modal-overlay" *ngIf="showUpdateModal" (click)="onUpdateCancelled()">
+  <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-section">
+        <i class="fas fa-edit modal-icon"></i>
+        <h4>Modifier Microsoft O365</h4>
+      </div>
+      <button type="button" class="close-btn" (click)="onUpdateCancelled()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" (click)="onModalBodyClick($event)">
+      <app-ajouterm
+        *ngIf="selectedMicrosoftToUpdate"
+        [microsoftToEdit]="selectedMicrosoftToUpdate"
+        (microsoftAdded)="onMicrosoftAdded()"
+        (cancelled)="onUpdateCancelled()">
+      </app-ajouterm>
+    </div>
+  </div>
+</div>
 
+<style>
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7));
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
+  }
 
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    max-height: 90vh;
+    overflow: visible;
+    animation: slideInUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    flex-direction: column;
+  }
+
+  @keyframes slideInUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-content.modal-lg {
+    max-width: 750px;
+    width: 95%;
+  }
+
+  .modal-header {
+    padding: 2rem;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px 12px 0 0;
+  }
+
+  .modal-title-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .modal-icon {
+    font-size: 1.8rem;
+    color: white;
+  }
+
+  .modal-header h4 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: white;
+    letter-spacing: 0.3px;
+  }
+
+  .close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: white;
+    transition: all 0.2s;
+  }
+
+  .close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .modal-body {
+    padding: 2rem;
+    max-height: calc(90vh - 150px);
+    overflow-y: auto;
+    display: block;
+    min-height: 300px;
+    background: #fafbfc;
+  }
+
+  .modal-body > * {
+    width: 100%;
+  }
+
+  .modal-body form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+</style>
+
+<app-confirm-delete-modal
+  [visible]="showDeleteModal"
+  message="Êtes-vous sûr de vouloir supprimer cette licence Microsoft O365 ?"
+  [detail]="deleteModalDetail"
+  [canConfirm]="permissionService.canDeleteProduct('microsofto365')"
+  (cancel)="closeDeleteModal()"
+  (confirm)="confirmDeleteMicrosoftO365()">
+</app-confirm-delete-modal>

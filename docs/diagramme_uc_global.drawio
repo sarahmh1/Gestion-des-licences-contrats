@@ -1,0 +1,182 @@
+<mxfile host="app.diagrams.net" modified="2026-05-26T12:00:00.000Z" agent="Cursor" version="22.1.0" type="device">
+  <diagram id="uc-global-gi" name="Diagramme UC global">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Titre -->
+        <mxCell id="title" value="Diagramme de cas d'utilisation global&#xa;Plateforme Gérance Informatique" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="480" y="20" width="400" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Frontière système (style rapport PFE : grand rectangle) -->
+        <mxCell id="system" value="Plateforme de gestion des licences et contrats" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;align=center;spacingTop=8;fontStyle=1;strokeWidth=2;fillColor=#f5f5f5;strokeColor=#333333;dashed=1;dashPattern=8 8;" vertex="1" parent="1">
+          <mxGeometry x="280" y="80" width="800" height="720" as="geometry" />
+        </mxCell>
+
+        <!-- ========== ACTEURS GAUCHE ========== -->
+        <mxCell id="actor_com" value="Commercial" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="80" y="200" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="actor_tech" value="Utilisateur&#xa;technique" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="60" y="480" width="40" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ========== ACTEURS DROITE ========== -->
+        <mxCell id="actor_sa" value="Super&#xa;administrateur" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="120" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="actor_ac" value="Admin&#xa;commercial" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="320" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="actor_at" value="Admin&#xa;technique" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="520" width="40" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ========== ACTEUR BAS (Système) ========== -->
+        <mxCell id="actor_sys" value="Système" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="660" y="840" width="40" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ========== CAS D'UTILISATION (ovales) - style rapport TEK-UP : vue globale ========== -->
+
+        <!-- Authentification / profil -->
+        <mxCell id="uc_auth" value="S'authentifier" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="320" y="120" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_profil" value="Gérer son profil" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="500" y="120" width="140" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Administration -->
+        <mxCell id="uc_users" value="Gérer les&#xa;utilisateurs" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="700" y="120" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_ref" value="Gérer le référentiel&#xa;produits" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="880" y="120" width="150" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Licences -->
+        <mxCell id="uc_lic" value="Gérer les licences" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="360" y="260" width="150" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_exp" value="Consulter les&#xa;licences expirées" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="560" y="260" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_import" value="Importer un&#xa;export ESET" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="760" y="260" width="140" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Contrats / clients -->
+        <mxCell id="uc_cont" value="Gérer les contrats" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="360" y="400" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_hist" value="Consulter l'historique&#xa;des contrats" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="540" y="400" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_client" value="Gérer les clients" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="740" y="400" width="140" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Interventions -->
+        <mxCell id="uc_prev" value="Gérer les interventions&#xa;préventives" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="360" y="540" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_cur" value="Gérer les interventions&#xa;curatives" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="570" y="540" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_cal" value="Consulter son&#xa;calendrier" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="780" y="540" width="140" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Suivi -->
+        <mxCell id="uc_dash" value="Consulter le&#xa;tableau de bord" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="450" y="680" width="150" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_notif" value="Consulter les&#xa;notifications" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="640" y="680" width="150" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_chat" value="Utiliser le chatbot" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="830" y="680" width="140" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Système -->
+        <mxCell id="uc_alert" value="Envoyer les alertes&#xa;d'expiration (e-mail)" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="600" y="760" width="170" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ========== RELATION <<include>> (pointillés) ========== -->
+        <mxCell id="inc1" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;dashed=1;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#666666;fontSize=10;" edge="1" parent="1" source="uc_lic" target="uc_auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="inc2" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;dashed=1;html=1;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#666666;fontSize=10;" edge="1" parent="1" source="uc_alert" target="uc_lic">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== LIENS ACTEURS (associations) ========== -->
+
+        <!-- Super administrateur : tout -->
+        <mxCell id="l_sa_auth" style="endArrow=none;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="actor_sa" target="uc_auth"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_sa_profil" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_sa" target="uc_profil"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_sa_users" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_sa" target="uc_users"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_sa_ref" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_sa" target="uc_ref"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_sa_lic" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_sa" target="uc_lic"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_sa_exp" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_sa" target="uc_exp"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_sa_import" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_sa" target="uc_import"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_sa_cont" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_sa" target="uc_cont"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_sa_hist" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_sa" target="uc_hist"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_sa_client" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_sa" target="uc_client"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_sa_prev" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_sa" target="uc_prev"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_sa_cur" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_sa" target="uc_cur"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_sa_dash" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_sa" target="uc_dash"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_sa_notif" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_sa" target="uc_notif"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_sa_chat" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_sa" target="uc_chat"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Admin commercial -->
+        <mxCell id="l_ac_auth" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_ac" target="uc_auth"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_ac_lic" style="endArrow=none;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="actor_ac" target="uc_lic"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_ac_exp" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_ac" target="uc_exp"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_ac_cont" style="endArrow=none;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="actor_ac" target="uc_cont"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_ac_dash" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_ac" target="uc_dash"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_ac_notif" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_ac" target="uc_notif"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_ac_chat" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_ac" target="uc_chat"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Admin technique -->
+        <mxCell id="l_at_auth" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_at" target="uc_auth"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_at_lic" style="endArrow=none;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="actor_at" target="uc_lic"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_at_cont" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_at" target="uc_cont"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_at_client" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_at" target="uc_client"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_at_prev" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_at" target="uc_prev"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_at_cur" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_at" target="uc_cur"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_at_dash" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_at" target="uc_dash"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_at_notif" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_at" target="uc_notif"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_at_chat" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_at" target="uc_chat"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Commercial -->
+        <mxCell id="l_com_auth" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_com" target="uc_auth"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_com_lic" style="endArrow=none;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="actor_com" target="uc_lic"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_com_dash" style="endArrow=none;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="actor_com" target="uc_dash"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_com_client" style="endArrow=none;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="actor_com" target="uc_client"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Utilisateur technique -->
+        <mxCell id="l_tech_auth" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_tech" target="uc_auth"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_tech_lic" style="endArrow=none;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="actor_tech" target="uc_lic"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_tech_cont" style="endArrow=none;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="actor_tech" target="uc_cont"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_tech_prev" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_tech" target="uc_prev"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_tech_cur" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_tech" target="uc_cur"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_tech_cal" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_tech" target="uc_cal"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="l_tech_notif" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_tech" target="uc_notif"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Système -->
+        <mxCell id="l_sys_alert" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="actor_sys" target="uc_alert"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Légende -->
+        <mxCell id="legend" value="Légende :&#xa;—— association&#xa;- - - consultation (lecture seule)&#xa;&amp;lt;&amp;lt;include&amp;gt;&amp;gt; dépendance" style="text;html=1;strokeColor=#999999;fillColor=#ffffff;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="680" width="180" height="70" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

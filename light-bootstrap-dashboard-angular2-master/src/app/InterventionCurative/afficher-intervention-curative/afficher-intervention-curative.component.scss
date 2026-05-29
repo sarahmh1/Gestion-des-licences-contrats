@@ -405,14 +405,23 @@ h2 {
 .md-btn-icon {
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 0.82rem;
-  transition: all 0.2s;
+  font-size: 0.9rem;
+  transition: opacity 0.2s;
+
+  i {
+    font-size: 0.9rem;
+    line-height: 1;
+  }
+
+  &:hover {
+    opacity: 0.8;
+  }
 }
 .md-btn-view   { background: #fff3e0; color: #f36e24; &:hover { background: #f36e24; color: #fff; } }
 .md-btn-edit   { background: #e3f2fd; color: #1976d2; &:hover { background: #1976d2; color: #fff; } }

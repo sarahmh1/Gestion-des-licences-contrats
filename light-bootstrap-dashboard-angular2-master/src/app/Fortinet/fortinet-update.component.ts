@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FortinetService } from 'app/Services/fortinet.service';
 import { Fortinet } from 'app/Model/Fortinet';
@@ -55,7 +56,7 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
       this.fortinetId = this.fortinetToEdit.fortinetId!;
       this.loadFortinetIntoForm(this.fortinet);
     } else {
-      // Mode route normal: récupérer l'ID depuis l'URL
+      // Mode route normal: rÃ©cupÃ©rer l'ID depuis l'URL
       this.fortinetId = Number(this.route.snapshot.paramMap.get('id'));
       
       if (this.fortinetId) {
@@ -86,9 +87,24 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
       sousContrat: [false],
       mailAdmin: [''],
       ccMail: this.fb.array([this.fb.control('')]),
-      numero: [''],
+      numero: ['', AppValidators.optionalPhone],
       remarque: [''],
       licences: this.fb.array([this.createLicenceGroup()])
+    });
+    this.watchClientAutoFill();
+  }
+
+  private watchClientAutoFill(): void {
+    this.updateForm.get('client')!.valueChanges.subscribe((selectedName: string) => {
+      if (!selectedName) return;
+      const found = this.clients.find(c => c.nomClient === selectedName);
+      if (found) {
+        this.updateForm.patchValue({
+          nomDuContact: found.nosVisAVis?.[0] || '',
+          numero: found.numTel?.[0] || '',
+          adresseEmailContact: found.adressesMail?.[0] || ''
+        }, { emitEvent: false });
+      }
     });
   }
 
@@ -136,7 +152,7 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
 
   // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -149,13 +165,13 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par défaut
+        return CommandePasserPar.GI_TN; // Valeur par dÃ©faut
     }
   }
 
   loadFortinetIntoForm(fortinet: Fortinet): void {
-    console.log('Fortinet chargé:', fortinet);
-    console.log('Licences reçues:', fortinet.licences);
+    console.log('Fortinet chargÃ©:', fortinet);
+    console.log('Licences reÃ§ues:', fortinet.licences);
     
     // Convertir la valeur en enum
     const commandePasserParValue = this.getCommandePasserParValue(fortinet.commandePasserPar);
@@ -172,7 +188,7 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
       mailAdmin: fortinet.mailAdmin,
       numero: fortinet.numero,
       remarque: fortinet.remarque
-    });
+    }, { emitEvent: false });
 
     // Charger les licences
     if (fortinet.licences && fortinet.licences.length > 0) {
@@ -217,14 +233,14 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
   formatDate(date: string | Date): string {
     if (!date) return '';
     
-    // Si c'est déjà une string au format YYYY-MM-DD, la retourner telle quelle
+    // Si c'est dÃ©jÃ  une string au format YYYY-MM-DD, la retourner telle quelle
     if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return date;
     }
     
     const d = new Date(date);
     
-    // Vérifier si la date est valide
+    // VÃ©rifier si la date est valide
     if (isNaN(d.getTime())) {
       console.warn('Date invalide:', date);
       return '';
@@ -234,8 +250,12 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
   }
 
   updateFortinet(): void {
-    if (this.updateForm.valid) {
-      const updatedFortinet: Fortinet = {
+    if (!this.updateForm.valid) {
+      this.markFormGroupTouched(this.updateForm);
+      return;
+    }
+
+    const updatedFortinet: Fortinet = {
         fortinetId: this.fortinetId,
         client: this.updateForm.value.client,
         nomDuBoitier: this.updateForm.value.nomDuBoitier,
@@ -251,18 +271,18 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
         approuve: this.fortinet?.approuve || false,
         remarque: this.updateForm.value.remarque || '',
         licences: this.licences.value,
-        // Inclure les champs fichier pour ne pas les écraser
+        // Inclure les champs fichier pour ne pas les Ã©craser
         fichier: this.currentFileName || undefined,
         fichierOriginalName: this.currentFileOriginalName || undefined
       };
 
-      console.log('Données à mettre à jour:', updatedFortinet);
+      console.log('DonnÃ©es Ã  mettre Ã  jour:', updatedFortinet);
 
       this.fortinetService.updateFortinet(updatedFortinet).subscribe(
         response => {
-          console.log('Réponse mise à jour:', response);
-          window.alert('Fortinet mis à jour avec succès');
-          // Mode modal: émettre l'événement updated
+          console.log('RÃ©ponse mise Ã  jour:', response);
+          window.alert('Fortinet mis Ã  jour avec succÃ¨s');
+          // Mode modal: Ã©mettre l'Ã©vÃ©nement updated
           if (this.fortinetToEdit) {
             this.updated.emit(updatedFortinet);
           } else {
@@ -271,22 +291,16 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
           }
         },
         error => {
-          console.error('Erreur lors de la mise à jour:', error);
+          console.error('Erreur lors de la mise Ã  jour:', error);
           if (error.error) {
-            console.error('Détails de l\'erreur:', error.error);
+            console.error('DÃ©tails de l\'erreur:', error.error);
           }
-          window.alert('Échec de la mise à jour: ' + (error.error?.message || error.message));
+          window.alert('Ã‰chec de la mise Ã  jour: ' + (error.error?.message || error.message));
         }
       );
-    } else {
-      console.log('Formulaire invalide', this.updateForm.errors);
-      // Marquer tous les champs comme touchés pour afficher les erreurs
-      this.markFormGroupTouched(this.updateForm);
-      window.alert('Le formulaire est invalide. Veuillez corriger les erreurs.');
-    }
   }
 
-  // Méthode pour marquer tous les champs comme touchés
+  // MÃ©thode pour marquer tous les champs comme touchÃ©s
   private markFormGroupTouched(formGroup: FormGroup | FormArray) {
     Object.keys(formGroup.controls).forEach(key => {
       const control = formGroup.controls[key];
@@ -303,7 +317,7 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
   }
 
   onCancel(): void {
-    // Mode modal: émettre l'événement cancelled
+    // Mode modal: Ã©mettre l'Ã©vÃ©nement cancelled
     if (this.fortinetToEdit) {
       this.cancelled.emit();
     } else {
@@ -324,7 +338,7 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
 
   uploadFile(): void {
     if (!this.selectedFile) {
-      this.uploadMessage = 'Veuillez sélectionner un fichier';
+      this.uploadMessage = 'Veuillez sÃ©lectionner un fichier';
       this.uploadSuccess = false;
       return;
     }
@@ -333,7 +347,7 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
     this.uploadProgress = 0;
     this.uploadMessage = null;
 
-    console.log('Début upload fichier:', this.selectedFile.name);
+    console.log('DÃ©but upload fichier:', this.selectedFile.name);
 
     this.fortinetService.uploadFile(this.fortinetId, this.selectedFile).subscribe({
       next: (event: any) => {
@@ -341,20 +355,20 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
           this.uploadProgress = Math.round(100 * event.loaded / event.total);
         } else if (event.type === HttpEventType.Response) {
           this.uploading = false;
-          console.log('Réponse upload:', event.body);
+          console.log('RÃ©ponse upload:', event.body);
           if (event.body.success) {
             this.uploadSuccess = true;
-            this.uploadMessage = 'Fichier uploadé avec succès!';
+            this.uploadMessage = 'Fichier uploadÃ© avec succÃ¨s!';
             this.currentFileName = event.body.fichier;
             this.currentFileOriginalName = event.body.originalName || this.selectedFile?.name;
             console.log('Nouveau fichier:', this.currentFileName, this.currentFileOriginalName);
             this.selectedFile = null;
-            // Réinitialiser l'input file
+            // RÃ©initialiser l'input file
             const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
             if (fileInput) {
               fileInput.value = '';
             }
-            // Forcer la détection de changement
+            // Forcer la dÃ©tection de changement
             this.cdr.detectChanges();
           } else {
             this.uploadSuccess = false;
@@ -379,16 +393,16 @@ export class UpdateFortinetComponent implements OnInit, OnChanges {
   }
 
   deleteFile(): void {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce fichier?')) {
+    if (confirm('ÃŠtes-vous sÃ»r de vouloir supprimer ce fichier?')) {
       this.fortinetService.deleteFile(this.fortinetId).subscribe({
         next: (response: any) => {
-          console.log('Réponse suppression:', response);
+          console.log('RÃ©ponse suppression:', response);
           if (response.success) {
             this.currentFileName = null;
             this.currentFileOriginalName = null;
-            this.uploadMessage = 'Fichier supprimé avec succès';
+            this.uploadMessage = 'Fichier supprimÃ© avec succÃ¨s';
             this.uploadSuccess = true;
-            // Forcer la détection de changement
+            // Forcer la dÃ©tection de changement
             this.cdr.detectChanges();
           } else {
             this.uploadMessage = response.message || 'Erreur lors de la suppression';

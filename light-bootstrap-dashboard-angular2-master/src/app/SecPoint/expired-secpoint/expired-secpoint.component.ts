@@ -13,6 +13,7 @@ export class ExpiredSecPointComponent implements OnInit {
   filteredExpiredSecPoints: SecPoint[] = [];
   pagedExpiredSecPoints: SecPoint[] = [];
   searchTerm: string = '';
+  selectedSecPoint: SecPoint | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -92,8 +93,19 @@ export class ExpiredSecPointComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectSecPoint(item: SecPoint): void {
+    this.selectedSecPoint = item;
+  }
+
+  closeDetail(): void {
+    this.selectedSecPoint = null;
+  }
+
   desapprouve(id: number): void {
     this.secPointService.activate(id).subscribe(() => {
+      if (this.selectedSecPoint?.secPointId === id) {
+        this.selectedSecPoint = null;
+      }
       // Après désapprobation, retirer le SecPoint de la liste approuvée locale
       this.expiredSecPoints = this.expiredSecPoints.filter(secPoint => secPoint.secPointId !== id);
       this.filteredExpiredSecPoints = this.filteredExpiredSecPoints.filter(secPoint => secPoint.secPointId !== id);

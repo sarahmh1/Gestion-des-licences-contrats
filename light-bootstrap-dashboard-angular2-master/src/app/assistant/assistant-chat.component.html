@@ -1,0 +1,61 @@
+<div
+  [ngClass]="variant === 'page' ? 'assistant-page container-fluid' : 'assistant-embedded-root'">
+  <div *ngIf="variant === 'page'" class="panel panel-primary assistant-panel">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <i class="glyphicon glyphicon-comment"></i> Assistant données (ESET, contrats, interventions…)
+      </h4>
+      <p class="assistant-sub">
+        Reformulation Ollama activée par défaut (Ollama + Mistral requis sur le PC). Décochez pour une réponse brute
+        sans attente LLM.
+      </p>
+    </div>
+    <div class="panel-body">
+      <ng-container *ngTemplateOutlet="assistantBody"></ng-container>
+    </div>
+  </div>
+
+  <ng-container *ngIf="variant === 'embedded'">
+    <ng-container *ngTemplateOutlet="assistantBody"></ng-container>
+  </ng-container>
+</div>
+
+<ng-template #assistantBody>
+  <div class="assistant-toolbar">
+    <label class="assistant-ollama-flag">
+      <input
+        type="checkbox"
+        [ngModel]="session.rephraseWithOllama"
+        (ngModelChange)="session.rephraseWithOllama = $event"
+        [disabled]="loading" />
+      Reformuler avec Ollama (plus lent)
+    </label>
+  </div>
+  <div class="assistant-log" [class.assistant-log--embedded]="variant === 'embedded'">
+    <div
+      *ngFor="let line of lines"
+      class="assistant-line"
+      [class.user]="line.role === 'user'"
+      [class.bot]="line.role === 'bot'">
+      <div class="bubble">{{ line.text }}</div>
+      <div class="meta" *ngIf="line.meta">{{ line.meta }}</div>
+    </div>
+    <div class="assistant-loading" *ngIf="loading">
+      <strong>Réponse en cours…</strong>
+      <div class="text-muted assistant-loading-hint" *ngIf="session.rephraseWithOllama">
+        Avec Ollama, prévoir jusqu’à 1–3 minutes selon votre PC.
+      </div>
+    </div>
+  </div>
+  <div class="assistant-input-row">
+    <textarea
+      [(ngModel)]="inputText"
+      (keydown)="onKey($event)"
+      class="form-control"
+      rows="2"
+      placeholder="Tapez aide, puis votre question…"></textarea>
+    <button class="btn btn-primary btn-send-assistant" type="button" (click)="send()" [disabled]="loading">
+      Envoyer
+    </button>
+  </div>
+</ng-template>

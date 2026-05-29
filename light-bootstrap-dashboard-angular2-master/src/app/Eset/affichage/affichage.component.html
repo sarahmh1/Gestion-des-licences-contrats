@@ -44,7 +44,7 @@
             <button class="md-btn-icon md-btn-edit" (click)="updateEset(eset)" title="Modifier" *ngIf="permissionService.canEditProduct('eset')">
               <i class="fas fa-pen"></i>
             </button>
-            <button class="md-btn-icon md-btn-delete" (click)="deleteEset(eset.esetid)" title="Supprimer" *ngIf="permissionService.canDeleteProduct('eset')">
+            <button class="md-btn-icon md-btn-delete" (click)="requestDeleteEset(eset)" title="Supprimer" *ngIf="permissionService.canDeleteProduct('eset')">
               <i class="fas fa-trash"></i>
             </button>
             <button class="md-btn-icon md-btn-approve" (click)="aprouve(eset.esetid)" title="Expirer" *ngIf="permissionService.canEditProduct('eset')">
@@ -175,7 +175,7 @@
             <button (click)="updateEset(selectedEset)" class="btn btn-sm btn-primary" *ngIf="permissionService.canEdit('licenses')">
               <i class="fas fa-pen"></i> Modifier
             </button>
-            <button (click)="deleteEset(selectedEset.esetid)" class="btn btn-sm btn-danger" *ngIf="permissionService.canDelete('licenses')">
+            <button (click)="requestDeleteEset(selectedEset)" class="btn btn-sm btn-danger" *ngIf="permissionService.canDelete('licenses')">
               <i class="fas fa-trash"></i> Supprimer
             </button>
             <button (click)="aprouve(selectedEset.esetid)" class="btn btn-sm btn-success" *ngIf="permissionService.canEdit('licenses')">
@@ -611,3 +611,12 @@
     background: linear-gradient(135deg, #5568d3 0%, #64398a 100%);
   }
 </style>
+
+<app-confirm-delete-modal
+  [visible]="showDeleteModal"
+  message="Êtes-vous sûr de vouloir supprimer cette licence ESET ?"
+  [detail]="deleteModalDetail"
+  [canConfirm]="permissionService.canDeleteProduct('eset')"
+  (cancel)="closeDeleteModal()"
+  (confirm)="confirmDeleteEset()">
+</app-confirm-delete-modal>

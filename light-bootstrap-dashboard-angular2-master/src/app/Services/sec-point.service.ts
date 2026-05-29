@@ -18,8 +18,8 @@ export class SecPointService {
   }
 
   // Ajouter un nouveau SecPoint
-  addSecPoint(secPoint: SecPoint): Observable<Object> {
-    return this.http.post(`${this.baseUrl}/addSecPoint`, secPoint);
+  addSecPoint(secPoint: SecPoint): Observable<SecPoint> {
+    return this.http.post<SecPoint>(`${this.baseUrl}/addSecPoint`, secPoint);
   }
 
   // Récupérer un SecPoint par ID

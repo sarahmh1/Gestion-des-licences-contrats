@@ -1154,19 +1154,38 @@ export class AfficherInterventionCurativeComponent implements OnInit {
     }
   }
 
-  deleteIntervention(id: number | undefined): void {
-    if (id != null && confirm('Confirmer la suppression ?')) {
-      this.interventionCurativeService.deleteInterventionCurative(id).subscribe(
-        () => {
-          this.getAllInterventions();
-          alert('Intervention supprimée avec succès');
-        },
-        error => {
-          console.error('Erreur suppression', error);
-          alert('Échec suppression');
-        }
-      );
-    }
+  showDeleteModal = false;
+  deleteModalDetail = '';
+  private pendingDeleteId: number | null = null;
+
+  requestDeleteIntervention(intervention: { interventionCurativeId?: number; nomClient?: string }): void {
+    const id = intervention?.interventionCurativeId;
+    if (id == null) return;
+    this.pendingDeleteId = id;
+    this.deleteModalDetail = intervention.nomClient ? 'Client : ' + intervention.nomClient : '';
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.pendingDeleteId = null;
+    this.deleteModalDetail = '';
+  }
+
+  confirmDeleteIntervention(): void {
+    const id = this.pendingDeleteId;
+    if (id == null) return;
+    this.interventionCurativeService.deleteInterventionCurative(id).subscribe(
+      () => {
+        this.closeDeleteModal();
+        this.getAllInterventions();
+        alert('Intervention supprimée avec succès');
+      },
+      error => {
+        console.error('Erreur suppression', error);
+        alert('Échec suppression');
+      }
+    );
   }
 
   getCriticiteClass(criticite: string): string {

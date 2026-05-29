@@ -135,6 +135,11 @@
   font-size: 0.9rem;
   transition: opacity 0.2s;
 
+  i {
+    font-size: 0.9rem;
+    line-height: 1;
+  }
+
   &:hover {
     opacity: 0.8;
   }

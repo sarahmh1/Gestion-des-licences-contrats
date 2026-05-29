@@ -35,6 +35,7 @@ export class PermissionService {
       'view_products',
       'view_preventive_interventions',
       'view_curative_interventions',
+      'view_assistant',
       'delete_notification',
       'delete_message'
     ],
@@ -55,7 +56,8 @@ export class PermissionService {
       'edit_curative_interventions',
       'add_curative_interventions',
       'delete_notification',
-      'delete_message'
+      'delete_message',
+      'view_assistant'
     ],
 
     // Super Admin: tout faire - accès complet à TOUT
@@ -134,7 +136,8 @@ export class PermissionService {
       'view_curative_interventions',
       'add_curative_interventions',
       'edit_curative_interventions',
-      'delete_curative_interventions'
+      'delete_curative_interventions',
+      'view_assistant'
     ],
 
     // Admin (ancien rôle, garanti pour compatibilité) - idem Super Admin: accès complet à TOUT
@@ -213,7 +216,8 @@ export class PermissionService {
       'view_curative_interventions',
       'add_curative_interventions',
       'edit_curative_interventions',
-      'delete_curative_interventions'
+      'delete_curative_interventions',
+      'view_assistant'
     ]
   };
 
@@ -285,6 +289,11 @@ export class PermissionService {
    */
   canView(resource: string): boolean {
     return this.hasPermission(`view_${resource}`);
+  }
+
+  /** Assistant IA (Ollama) : SUPER_ADMIN, ADMIN_TECHNIQUE, ADMIN_COMMERCIAL uniquement */
+  canUseAssistant(): boolean {
+    return this.hasPermission('view_assistant');
   }
 
   /**

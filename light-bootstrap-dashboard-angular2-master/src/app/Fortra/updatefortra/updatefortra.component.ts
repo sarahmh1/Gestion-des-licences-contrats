@@ -1,9 +1,11 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Fortra } from 'app/Model/Fortra';
 import { FortraService } from 'app/Services/fortra.service';
-import { CommandePasserPar } from "app/Model/CommandePasserPar";
+import { Fortra } from 'app/Model/Fortra';
+import { CommandePasserPar } from 'app/Model/CommandePasserPar';
+import { PermissionService } from 'app/Services/permission.service';
 import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
@@ -13,73 +15,66 @@ import { ClientService, Client } from '../../Services/client.service';
 })
 export class UpdateFortraComponent implements OnInit {
   clients: Client[] = [];
-   updateForm!: FormGroup;
-    fortraId!: number;
-    fortra!: Fortra;
-    selectedFile: File | null = null;
-    public Validators = Validators;
+  updateForm!: FormGroup;
+  fortraId!: number;
+  fortra: Fortra | null = null;
+  selectedFile: File | null = null;
+
   commandePasserParOptions = [
-      { label: 'GI_TN', value: CommandePasserPar.GI_TN },
-      { label: 'GI_FR', value: CommandePasserPar.GI_FR },
-      { label: 'GI_CI', value: CommandePasserPar.GI_CI }
-    ];
-    constructor(
-      public fb: FormBuilder,
-      private fortraService: FortraService,
-      private route: ActivatedRoute,
-      private router: Router,
-      private cdr: ChangeDetectorRef,
-    private clientService: ClientService) {}
-  
-    ngOnInit(): void {
+    { label: 'GI_TN', value: CommandePasserPar.GI_TN },
+    { label: 'GI_FR', value: CommandePasserPar.GI_FR },
+    { label: 'GI_CI', value: CommandePasserPar.GI_CI }
+  ];
+
+  constructor(
+    private fb: FormBuilder,
+    private fortraService: FortraService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private cdr: ChangeDetectorRef,
+    private clientService: ClientService,
+    public permissionService: PermissionService
+  ) {}
+
+  ngOnInit(): void {
     this.clientService.getAllClients().subscribe(data => this.clients = data);
-      this.updateForm = this.fb.group({
-        client: ['', Validators.required],
-        dureeDeLicence: [''],
-        nomDuContact: [''],
-        adresseEmailContact: ['', [Validators.required, Validators.email]],
-        mailAdmin: ['', Validators.email],
-        commandePasserPar: ['', Validators.required],
-        ccMail: this.fb.array([]),
-        numero: [''],
-        remarque: [''],
-        sousContrat: [false],
-        licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
-      });
-  
-      this.fortraId = Number(this.route.snapshot.paramMap.get('id'));
-      this.loadFortra(this.fortraId);
-    }
-  
-    get ccMail(): FormArray {
-      return this.updateForm.get('ccMail') as FormArray;
-    }
-  
-    get licences(): FormArray {
-      return this.updateForm.get('licences') as FormArray;
-    }
-  
-    createLicenceGroup(): FormGroup {
-      return this.fb.group({
-        nomDesLicences: ['', Validators.required],
-        quantite: ['', Validators.required],
-        dateEx: ['', Validators.required]
-      });
-    }
-  
-    addLicence(): void {
-      this.licences.push(this.createLicenceGroup());
-    }
-  
-    removeLicence(index: number): void {
-      this.licences.removeAt(index);
-    }
-    // Fonction pour convertir la valeur en enum CommandePasserPar
-  private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
-    
+
+    this.updateForm = this.fb.group({
+      client: ['', Validators.required],
+      dureeDeLicence: [''],
+      nomDuContact: [''],
+      commandePasserPar: ['', Validators.required],
+      adresseEmailContact: ['', Validators.email],
+      mailAdmin: ['', Validators.email],
+      ccMail: this.fb.array([this.fb.control('', Validators.email)]),
+      numero: ['', AppValidators.optionalPhone],
+      remarque: [''],
+      sousContrat: [false],
+      licences: this.fb.array([])
+    });
+
+    this.fortraId = Number(this.route.snapshot.paramMap.get('id'));
+    this.watchClientAutoFill();
+    this.loadFortra(this.fortraId);
+  }
+
+  private watchClientAutoFill(): void {
+    this.updateForm.get('client')!.valueChanges.subscribe((selectedName: string) => {
+      if (!selectedName) return;
+      const found = this.clients.find(c => c.nomClient === selectedName);
+      if (found) {
+        this.updateForm.patchValue({
+          nomDuContact: found.nosVisAVis?.[0] || '',
+          numero: found.numTel?.[0] || '',
+          adresseEmailContact: found.adressesMail?.[0] || ''
+        }, { emitEvent: false });
+      }
+    });
+  }
+
+  private getCommandePasserParValue(value: unknown): CommandePasserPar {
+    if (value === null || value === undefined) return CommandePasserPar.GI_TN;
     const stringValue = String(value).toUpperCase().trim();
-    
     switch (stringValue) {
       case 'GI_TN':
         return CommandePasserPar.GI_TN;
@@ -88,134 +83,170 @@ export class UpdateFortraComponent implements OnInit {
       case 'GI_CI':
         return CommandePasserPar.GI_CI;
       default:
-        console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par défaut
+        return CommandePasserPar.GI_TN;
     }
   }
-  
-    loadFortra(id: number): void {
-      this.fortraService.getFortraById(id).subscribe(
-        (data: Fortra) => {
-          this.fortra = data;
-  
-          this.updateForm.patchValue({
-            client: data.client ?? '',
-            dureeDeLicence: data.dureeDeLicence ?? '',
-            nomDuContact: data.nomDuContact ?? '',
-            adresseEmailContact: data.adresseEmailContact ?? '',
-            mailAdmin: data.mailAdmin ?? '',
-            commandePasserPar: this.getCommandePasserParValue(data.commandePasserPar),
-            numero: data.numero ?? '',
-            remarque: data.remarque ?? '',
-            sousContrat: data.sousContrat ?? false
+
+  get ccMail(): FormArray {
+    return this.updateForm.get('ccMail') as FormArray;
+  }
+
+  get licences(): FormArray {
+    return this.updateForm.get('licences') as FormArray;
+  }
+
+  createLicenceGroup(): FormGroup {
+    return this.fb.group({
+      nomDesLicences: ['', Validators.required],
+      quantite: ['', AppValidators.requiredQuantity],
+      dateEx: ['', Validators.required]
+    });
+  }
+
+  addLicence(): void {
+    this.licences.push(this.createLicenceGroup());
+  }
+
+  removeLicence(index: number): void {
+    this.licences.removeAt(index);
+  }
+
+  addCcMail(): void {
+    this.ccMail.push(this.fb.control('', Validators.email));
+  }
+
+  removeCcMail(index: number): void {
+    if (this.ccMail.length <= 1) return;
+    this.ccMail.removeAt(index);
+  }
+
+  formatDate(date: string | Date): string {
+    if (!date) return '';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '';
+    return d.toISOString().substring(0, 10);
+  }
+
+  loadFortra(id: number): void {
+    this.fortraService.getFortraById(id).subscribe({
+      next: (data: Fortra) => {
+        this.fortra = data;
+        this.updateForm.patchValue({
+          client: data.client ?? '',
+          dureeDeLicence: data.dureeDeLicence ?? '',
+          nomDuContact: data.nomDuContact ?? '',
+          commandePasserPar: this.getCommandePasserParValue(data.commandePasserPar),
+          adresseEmailContact: data.adresseEmailContact ?? '',
+          mailAdmin: data.mailAdmin ?? '',
+          numero: data.numero ?? '',
+          remarque: data.remarque ?? '',
+          sousContrat: data.sousContrat ?? false
+        }, { emitEvent: false });
+
+        this.licences.clear();
+        if (data.licences?.length) {
+          data.licences.forEach(lic => {
+            this.licences.push(this.fb.group({
+              nomDesLicences: [lic.nomDesLicences, Validators.required],
+              quantite: [lic.quantite, AppValidators.requiredQuantity],
+              dateEx: [this.formatDate(lic.dateEx), Validators.required]
+            }));
           });
-  
-          // Remplir les licences
-          this.licences.clear();
-          if (data.licences && data.licences.length > 0) {
-            data.licences.forEach(lic => {
-              this.licences.push(this.fb.group({
-                nomDesLicences: [lic.nomDesLicences, Validators.required],
-                quantite: [lic.quantite, Validators.required],
-                dateEx: [this.formatDate(lic.dateEx), Validators.required]
-              }));
-            });
-          } else {
-            this.addLicence();
-          }
-  
-          // CC mails
-          this.ccMail.clear();
-          if (data.ccMail && data.ccMail.length > 0) {
-            data.ccMail.forEach(email => {
-              this.ccMail.push(this.fb.control(email, Validators.email));
-            });
-          } else {
-            this.ccMail.push(this.fb.control('', Validators.email));
-          }
-        },
-        error => {
-          console.error('Erreur récupération Fortra:', error);
+        } else {
+          this.addLicence();
         }
-      );
-    }
-  
-    formatDate(date: string | Date): string {
-      const d = new Date(date);
-      return d.toISOString().substring(0, 10); // yyyy-MM-dd
-    }
-  
-    updateFortra(): void {
-      if (this.updateForm.valid) {
-        const updatedFortra: Fortra = {
-          fortraId: this.fortraId,
-          ...this.updateForm.value,
-          fichier: this.fortra.fichier,
-          fichierOriginalName: this.fortra.fichierOriginalName
-        };
-  
-        this.fortraService.updateFortra(updatedFortra).subscribe(
-          () => {
-            console.log('Fortra mis à jour avec succès');
-            this.router.navigate(['/Afficherfortra']);
-          },
-          error => {
-            console.error('Erreur mise à jour fortra:', error);
-          }
-        );
-      } else {
-        console.error('Formulaire invalide', this.updateForm);
-      }
-    }
 
-    onFileSelected(event: any): void {
-      const file = event.target.files[0];
-      if (file) {
-        this.selectedFile = file;
-        // Upload immédiat du fichier
-        this.fortraService.uploadFile(this.fortraId, file).subscribe(
-          (response: Fortra) => {
-            this.fortra.fichier = response.fichier;
-            this.fortra.fichierOriginalName = response.fichierOriginalName;
-            this.selectedFile = null;
-            this.cdr.detectChanges();
-            window.alert('Fichier uploadé avec succès');
-          },
-          (error) => {
-            console.error('Erreur upload fichier:', error);
-            window.alert('Erreur lors de l\'upload du fichier');
-          }
-        );
-      }
-    }
-
-    deleteFile(): void {
-      if (confirm('Voulez-vous vraiment supprimer ce fichier ?')) {
-        this.fortraService.deleteFile(this.fortraId).subscribe(
-          (response: Fortra) => {
-            this.fortra.fichier = undefined;
-            this.fortra.fichierOriginalName = undefined;
-            this.cdr.detectChanges();
-            window.alert('Fichier supprimé avec succès');
-          },
-          (error) => {
-            console.error('Erreur suppression fichier:', error);
-            window.alert('Erreur lors de la suppression du fichier');
-          }
-        );
-      }
-    }
-
-    getFileDownloadUrl(): string {
-      return this.fortraService.getFileDownloadUrl(this.fortraId);
-    }
-  
-    onSubmit(): void {
-      this.updateFortra();
-    }
-  
-    onCancel(): void {
-      this.router.navigate(['/Afficherfortra']);
-    }
+        this.ccMail.clear();
+        if (data.ccMail?.length) {
+          data.ccMail.forEach(email => this.ccMail.push(this.fb.control(email, Validators.email)));
+        } else {
+          this.ccMail.push(this.fb.control('', Validators.email));
+        }
+        this.cdr.detectChanges();
+      },
+      error: err => console.error('Erreur rÃ©cupÃ©ration Fortra:', err)
+    });
   }
-  
+
+  onSubmit(): void {
+    if (!this.updateForm.valid || !this.fortra) {
+      this.updateForm.markAllAsTouched();
+      return;
+    }
+
+    const updated: Fortra = {
+      fortraId: this.fortraId,
+      client: this.updateForm.value.client,
+      dureeDeLicence: this.updateForm.value.dureeDeLicence,
+      nomDuContact: this.updateForm.value.nomDuContact,
+      adresseEmailContact: this.updateForm.value.adresseEmailContact,
+      mailAdmin: this.updateForm.value.mailAdmin || '',
+      ccMail: this.ccMail.value.filter((e: string) => e?.trim()),
+      commandePasserPar: this.updateForm.value.commandePasserPar,
+      sousContrat: this.updateForm.value.sousContrat,
+      numero: this.updateForm.value.numero,
+      approuve: this.fortra.approuve ?? false,
+      remarque: this.updateForm.value.remarque || '',
+      licences: this.licences.value,
+      fichier: this.fortra.fichier,
+      fichierOriginalName: this.fortra.fichierOriginalName
+    };
+
+    this.fortraService.updateFortra(updated).subscribe({
+      next: () => {
+        if (this.selectedFile) {
+          this.fortraService.uploadFile(this.fortraId, this.selectedFile!).subscribe({
+            next: () => {
+              alert('Fortra et fichier mis Ã  jour');
+              this.router.navigate(['/Afficherfortra']);
+            },
+            error: () => {
+              alert('Fortra mis Ã  jour mais erreur upload fichier');
+              this.router.navigate(['/Afficherfortra']);
+            }
+          });
+        } else {
+          alert('Fortra mis Ã  jour avec succÃ¨s');
+          this.router.navigate(['/Afficherfortra']);
+        }
+      },
+      error: err => {
+        console.error('Erreur mise Ã  jour Fortra:', err);
+        alert('Ã‰chec de la mise Ã  jour');
+      }
+    });
+  }
+
+  onCancel(): void {
+    this.router.navigate(['/Afficherfortra']);
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    this.selectedFile = file ?? null;
+  }
+
+  getFileDownloadUrl(): string {
+    return this.fortraService.getFileDownloadUrl(this.fortraId);
+  }
+
+  deleteFile(): void {
+    if (!confirm('ÃŠtes-vous sÃ»r de vouloir supprimer ce fichier ?')) return;
+    this.fortraService.deleteFile(this.fortraId).subscribe({
+      next: res => {
+        this.fortra = res ?? this.fortra;
+        if (this.fortra) {
+          this.fortra.fichier = undefined;
+          this.fortra.fichierOriginalName = undefined;
+        }
+        alert('Fichier supprimÃ©');
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        console.error(err);
+        alert('Erreur lors de la suppression du fichier');
+      }
+    });
+  }
+}

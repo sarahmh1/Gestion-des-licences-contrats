@@ -13,6 +13,7 @@ export class ExpiredAlwarebytesComponent implements OnInit {
   filteredExpiredAlwarebytess: Alwarebytes[] = [];
   pagedExpiredAlwarebytess: Alwarebytes[] = [];
   searchTerm: string = '';
+  selectedAlwarebytes: Alwarebytes | null = null;
 
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -92,8 +93,19 @@ export class ExpiredAlwarebytesComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectAlwarebytes(item: Alwarebytes): void {
+    this.selectedAlwarebytes = item;
+  }
+
+  closeDetail(): void {
+    this.selectedAlwarebytes = null;
+  }
+
   desapprouve(id: number): void {
     this.alwarebytesService.activate(id).subscribe(() => {
+      if (this.selectedAlwarebytes?.alwarebytesId === id) {
+        this.selectedAlwarebytes = null;
+      }
       // Après désapprobation, retirer le Alwarebytes de la liste approuvée locale
       this.expiredAlwarebytess = this.expiredAlwarebytess.filter(alwarebytes => alwarebytes.alwarebytesId !== id);
       this.filteredExpiredAlwarebytess = this.filteredExpiredAlwarebytess.filter(alwarebytes => alwarebytes.alwarebytesId !== id);

@@ -13,6 +13,7 @@ export class ExpiredMicrosoftO365Component implements OnInit {
   filteredExpiredMicrosoftO365s: MicrosoftO365[] = [];
   pagedExpiredMicrosoftO365s: MicrosoftO365[] = [];
   searchTerm: string = '';
+  selectedMicrosoftO365: MicrosoftO365 | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -92,8 +93,19 @@ export class ExpiredMicrosoftO365Component implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectMicrosoftO365(item: MicrosoftO365): void {
+    this.selectedMicrosoftO365 = item;
+  }
+
+  closeDetail(): void {
+    this.selectedMicrosoftO365 = null;
+  }
+
   desapprouve(id: number): void {
     this.microsoftO365Service.activate(id).subscribe(() => {
+      if (this.selectedMicrosoftO365?.microsoftO365Id === id) {
+        this.selectedMicrosoftO365 = null;
+      }
       // Après désapprobation, retirer le MicrosoftO365 de la liste approuvée locale
       this.expiredMicrosoftO365s = this.expiredMicrosoftO365s.filter(microsoftO365 => microsoftO365.microsoftO365Id !== id);
       this.filteredExpiredMicrosoftO365s = this.filteredExpiredMicrosoftO365s.filter(microsoftO365 => microsoftO365.microsoftO365Id !== id);

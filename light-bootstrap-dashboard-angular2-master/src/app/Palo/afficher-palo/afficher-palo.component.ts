@@ -50,7 +50,7 @@ export class AfficherPaloComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération Fortinets', error);
+          console.error('Erreur rï¿½cupï¿½ration Fortinets', error);
         }
       );
     }
@@ -90,31 +90,86 @@ export class AfficherPaloComponent implements OnInit {
   
     approvePalo(id: number): void {
       this.paloService.activate(id).subscribe(() => {
-      // Retirer l'ESET approuvé de la liste des non approuvés
+      // Retirer l'ESET approuvï¿½ de la liste des non approuvï¿½s
       this.unapprovedPalos = this.unapprovedPalos.filter(palo => palo.paloId !== id);
       this.filteredPalos = this.filteredPalos.filter(palo => palo.paloId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuvï¿½ et retirï¿½ de la liste');
     });
   }
   
-    deletePalo(id: number | undefined | null): void {
-      if (id != null && confirm('Confirmer la suppression ?')) {
-        this.paloService.deletePalo(id).subscribe(
+    showDeleteModal = false;
+
+  
+    deleteModalDetail = '';
+
+  
+    private pendingDeleteId: number | null = null;
+
+
+  
+    requestDeletePalo(item: { paloId?: number; client?: string }): void {
+
+  
+      const id = item?.paloId;
+
+  
+      if (id == null) return;
+
+  
+      this.pendingDeleteId = id;
+
+  
+      this.deleteModalDetail = item.client ? 'Client : ' + item.client : '';
+
+  
+      this.showDeleteModal = true;
+
+  
+    }
+
+
+  
+    closeDeleteModal(): void {
+
+  
+      this.showDeleteModal = false;
+
+  
+      this.pendingDeleteId = null;
+
+  
+      this.deleteModalDetail = '';
+
+  
+    }
+
+
+  
+    confirmDeletePalo(): void {
+
+  
+      const id = this.pendingDeleteId;
+
+  
+      if (id == null) return;
+
+  
+      this.paloService.deletePalo(id).subscribe(
           () => {
+        this.closeDeleteModal();
             this.getAllPalos();
-            alert('Palo supprimé avec succès');
+            alert('Palo supprimï¿½ avec succï¿½s');
           },
           error => {
             console.error('Erreur suppression Palo', error);
-            alert('Échec suppression');
+            alert('ï¿½chec suppression');
           }
         );
-      }
-    }
+
   
-    updatePalo(palo: Palo): void {
+    }updatePalo(palo: Palo): void {
       this.selectedPaloToUpdate = palo;
       this.showUpdateModal = true;
     }

@@ -1,182 +1,280 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, Output, EventEmitter, Input, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { Router } from '@angular/router';
+import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { F5 } from 'app/Model/F5';
 import { F5Service } from 'app/Services/f5.service';
-import { CommandePasserPar } from "app/Model/CommandePasserPar";
 import { ClientService, Client } from '../../Services/client.service';
+import { SearchableClientSelectComponent } from '../../shared/searchable-client-select/searchable-client-select.component';
+
 @Component({
-  selector: 'app-ajouterf',
+  selector: 'app-ajouter-f5',
   templateUrl: './ajouterf.component.html',
   styleUrls: ['./ajouterf.component.scss']
 })
-export class AjouterfComponent implements OnInit {
-  clients: Client[] = [];
-   f5Form!: FormGroup;
-   selectedFile: File | null = null;
-    commandePasserParOptions = [
-     { label: 'GI_TN', value: CommandePasserPar.GI_TN },
-     { label: 'GI_FR', value: CommandePasserPar.GI_FR },
-     { label: 'GI_CI', value: CommandePasserPar.GI_CI }
-   ];
-    constructor(
-      private fb: FormBuilder,
-      private router: Router,
-      private f5Service: F5Service,
-    private clientService: ClientService) {}
-  
-     ngOnInit(): void {
-    this.clientService.getAllClients().subscribe(data => this.clients = data);
-        this.f5Form= this.fb.group({
-          client: ['', Validators.required],
-          dureeDeLicence: [''],
-          nomDuContact: [''],
-          adresseEmailContact: [''],
-          sousContrat: [false],
-          mailAdmin: ['', [Validators.email]],
-          ccMail: this.fb.array([this.fb.control('', [Validators.email])]),
-          commandePasserPar: ['', Validators.required],
-          numero: [''],
-          remarque: [''],
-          licences: this.fb.array([
-            this.createLicenceGroup()
-          ])
-        });
-      }
-    
-      get ccMail(): FormArray {
-        return this.f5Form.get('ccMail') as FormArray;
-      }
-    
-      get licences(): FormArray {
-        return this.f5Form.get('licences') as FormArray;
-      }
-    
-      createLicenceGroup(): FormGroup {
-        return this.fb.group({
-          nomDesLicences: ['', Validators.required],
-          quantite: ['', Validators.required],
-          dateEx: ['', Validators.required]
-        });
-      }
-    
-      addLicence() {
-        this.licences.push(this.createLicenceGroup());
-      }
-    
-      removeLicence(index: number) {
-        this.licences.removeAt(index);
-      }
-    
-      addCcMail() {
-        this.ccMail.push(this.fb.control('', [Validators.email]));
-      }
-    
-      removeCcMail(index: number) {
-        this.ccMail.removeAt(index);
-      }
-    
-      setCcMail(ccMails: string[]) {
-        const ccMailFormArray = this.f5Form.get('ccMail') as FormArray;
-        ccMailFormArray.clear();
-        if (ccMails && ccMails.length > 0) {
-          ccMails.forEach(email => ccMailFormArray.push(this.fb.control(email, Validators.email)));
-        } else {
-          ccMailFormArray.push(this.fb.control('', Validators.email));
-        }
-      }
-    
-      loadF5(id: number) {
-        this.f5Service.getF5ById(id).subscribe(f5 => {
-          this.f5Form.patchValue({
-            client: f5.client,
-            dureeDeLicence: f5.dureeDeLicence,
-            nomDuContact: f5.nomDuContact,
-             sousContrat: f5.sousContrat,
-             commandePasserPar: f5.commandePasserPar,
-            adresseEmailContact: f5.adresseEmailContact,
-            mailAdmin: f5.mailAdmin,
-            numero: f5.numero,
-            remarque: f5.remarque
-          });
-    
-          // Set licences (clear + patch)
-          this.licences.clear();
-          if (f5.licences && f5.licences.length > 0) {
-            f5.licences.forEach(lic => {
-              this.licences.push(this.fb.group({
-                nomDesLicences: [lic.nomDesLicences, Validators.required],
-                quantite: [lic.quantite, Validators.required],
-                dateEx: [this.formatDate(lic.dateEx), Validators.required]
-              }));
-            });
-          }
-    
-          this.setCcMail(f5.ccMail);
-        });
-      }
+export class AjouterfComponent implements OnInit, OnChanges {
+  @Output() f5Added = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
+  @Input() f5ToEdit: F5 | null = null;
 
-      onFileSelected(event: any): void {
-        const file = event.target.files[0];
-        if (file) {
-          this.selectedFile = file;
-        }
+  clients: Client[] = [];
+  f5Form!: FormGroup;
+  selectedFile: File | null = null;
+  isEditing = false;
+  currentF5Id: number | null = null;
+
+  @ViewChild('clientSelect') clientSelect?: SearchableClientSelectComponent;
+
+  commandePasserParOptions = [
+    { label: 'GI_TN', value: CommandePasserPar.GI_TN },
+    { label: 'GI_FR', value: CommandePasserPar.GI_FR },
+    { label: 'GI_CI', value: CommandePasserPar.GI_CI }
+  ];
+
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private f5Service: F5Service,
+    private clientService: ClientService) {}
+
+  ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
+    this.initializeForm();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['f5ToEdit']?.currentValue && this.f5Form) {
+      this.f5ToEdit = changes['f5ToEdit'].currentValue;
+      this.loadF5IntoForm();
+    }
+  }
+
+  initializeForm(): void {
+    this.f5Form = this.fb.group({
+      client: ['', Validators.required],
+      dureeDeLicence: [''],
+      nomDuContact: [''],
+      adresseEmailContact: ['', Validators.email],
+      sousContrat: [false],
+      mailAdmin: ['', Validators.email],
+      commandePasserPar: ['', Validators.required],
+      ccMail: this.fb.array([this.fb.control('', Validators.email)]),
+      numero: ['', AppValidators.optionalPhone],
+      remarque: [''],
+      licences: this.fb.array([this.createLicenceGroup()])
+    });
+    this.watchClientAutoFill();
+    if (this.f5ToEdit) {
+      this.loadF5IntoForm();
+    }
+  }
+
+  private watchClientAutoFill(): void {
+    this.f5Form.get('client')!.valueChanges.subscribe((selectedName: string) => {
+      if (!selectedName) return;
+      const found = this.clients.find(c => c.nomClient === selectedName);
+      if (found) {
+        this.f5Form.patchValue({
+          nomDuContact: found.nosVisAVis?.[0] || '',
+          numero: found.numTel?.[0] || '',
+          adresseEmailContact: found.adressesMail?.[0] || ''
+        }, { emitEvent: false });
       }
-    
-      formatDate(date: string | Date): string {
-        const d = new Date(date);
-        return d.toISOString().substring(0, 10); // 'yyyy-MM-dd'
-      }
-    
-      addF5() {
-        if (this.f5Form.valid) {
-          const newF5: F5 = {
-            f5Id: null!,
-            client: this.f5Form.value.client,
-            dureeDeLicence: this.f5Form.value.dureeDeLicence,
-            nomDuContact: this.f5Form.value.nomDuContact,
-            adresseEmailContact: this.f5Form.value.adresseEmailContact,
-            mailAdmin: this.f5Form.value.mailAdmin || '',
-            ccMail: this.ccMail.value,
-            sousContrat: this.f5Form.value.sousContrat,
-            commandePasserPar: this.f5Form.value.commandePasserPar,
-            numero: this.f5Form.value.numero,
-            approuve: false,
-            remarque: this.f5Form.value.remarque || '',
-            licences: this.licences.value
-          };
-    
-          this.f5Service.addF5(newF5).subscribe(
-            (response: F5) => {
-              // Upload du fichier si sÈlectionnÈ
-              if (this.selectedFile && response.f5Id) {
-                this.f5Service.uploadFile(response.f5Id, this.selectedFile).subscribe(
-                  () => {
-                    window.alert('F5 ajoutÈ avec succËs');
-                    this.router.navigate(['/Afficherf']);
-                  },
-                  (error) => {
-                    console.error('Erreur upload fichier:', error);
-                    window.alert('F5 ajoutÈ mais erreur lors de l\'upload du fichier');
-                    this.router.navigate(['/Afficherf']);
-                  }
-                );
-              } else {
-                window.alert('F5 ajoutÈ avec succËs');
-                this.router.navigate(['/Afficherf']);
-              }
-            },
-            error => {
-              console.error('Erreur lors de l\'ajout du f5', error);
-              window.alert('…chec de l\'ajout');
+    });
+  }
+
+  loadF5IntoForm(): void {
+    if (!this.f5ToEdit) return;
+
+    this.isEditing = true;
+    this.currentF5Id = this.f5ToEdit.f5Id;
+
+    this.f5Form.patchValue({
+      client: this.f5ToEdit.client,
+      dureeDeLicence: this.f5ToEdit.dureeDeLicence,
+      nomDuContact: this.f5ToEdit.nomDuContact,
+      commandePasserPar: this.f5ToEdit.commandePasserPar,
+      sousContrat: this.f5ToEdit.sousContrat,
+      adresseEmailContact: this.f5ToEdit.adresseEmailContact,
+      mailAdmin: this.f5ToEdit.mailAdmin,
+      numero: this.f5ToEdit.numero,
+      remarque: this.f5ToEdit.remarque
+    }, { emitEvent: false });
+
+    this.licences.clear();
+    if (this.f5ToEdit.licences?.length) {
+      this.f5ToEdit.licences.forEach(lic => {
+        this.licences.push(this.fb.group({
+          nomDesLicences: [lic.nomDesLicences, Validators.required],
+          quantite: [lic.quantite, AppValidators.requiredQuantity],
+          dateEx: [this.formatDate(lic.dateEx), Validators.required]
+        }));
+      });
+    } else {
+      this.licences.push(this.createLicenceGroup());
+    }
+
+    this.setCcMail(this.f5ToEdit.ccMail);
+  }
+
+  get ccMail(): FormArray {
+    return this.f5Form.get('ccMail') as FormArray;
+  }
+
+  get licences(): FormArray {
+    return this.f5Form.get('licences') as FormArray;
+  }
+
+  createLicenceGroup(): FormGroup {
+    return this.fb.group({
+      nomDesLicences: ['', Validators.required],
+      quantite: ['', AppValidators.requiredQuantity],
+      dateEx: ['', Validators.required]
+    });
+  }
+
+  addLicence(): void {
+    this.licences.push(this.createLicenceGroup());
+  }
+
+  removeLicence(index: number): void {
+    this.licences.removeAt(index);
+  }
+
+  addCcMail(): void {
+    this.ccMail.push(this.fb.control('', Validators.email));
+  }
+
+  removeCcMail(index: number): void {
+    this.ccMail.removeAt(index);
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) {
+      this.selectedFile = file;
+    }
+  }
+
+  setCcMail(ccMails: string[]): void {
+    this.ccMail.clear();
+    if (ccMails?.length) {
+      ccMails.forEach(email => this.ccMail.push(this.fb.control(email, Validators.email)));
+    } else {
+      this.ccMail.push(this.fb.control('', Validators.email));
+    }
+  }
+
+  formatDate(date: string | Date): string {
+    if (!date) return '';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '';
+    return d.toISOString().substring(0, 10);
+  }
+
+  addF5(): void {
+    if (!this.f5Form.valid) {
+      this.f5Form.markAllAsTouched();
+      return;
+    }
+
+    const payload: F5 = {
+      f5Id: this.isEditing ? this.currentF5Id! : 0,
+      client: this.f5Form.value.client,
+      dureeDeLicence: this.f5Form.value.dureeDeLicence,
+      nomDuContact: this.f5Form.value.nomDuContact,
+      adresseEmailContact: this.f5Form.value.adresseEmailContact,
+      mailAdmin: this.f5Form.value.mailAdmin || '',
+      ccMail: this.ccMail.value.filter((e: string) => e?.trim()),
+      commandePasserPar: this.f5Form.value.commandePasserPar,
+      sousContrat: this.f5Form.value.sousContrat,
+      numero: this.f5Form.value.numero,
+      approuve: this.isEditing ? (this.f5ToEdit?.approuve ?? false) : false,
+      remarque: this.f5Form.value.remarque || '',
+      licences: this.licences.value,
+      fichier: this.isEditing ? this.f5ToEdit?.fichier : undefined,
+      fichierOriginalName: this.isEditing ? this.f5ToEdit?.fichierOriginalName : undefined
+    };
+
+    const request$ = this.isEditing
+      ? this.f5Service.updateF5(payload)
+      : this.f5Service.addF5(payload);
+
+    request$.subscribe({
+      next: (response: F5) => {
+        const id = this.isEditing ? this.currentF5Id! : response?.f5Id;
+        if (this.selectedFile && id != null) {
+          this.f5Service.uploadFile(id, this.selectedFile).subscribe({
+            next: () => this.finishSave(true),
+            error: () => {
+              window.alert(this.isEditing
+                ? 'F5 mis √† jour mais erreur upload fichier'
+                : 'F5 ajout√© mais erreur upload fichier');
+              this.finishSave(true);
             }
-          );
+          });
         } else {
-          window.alert('Le formulaire est invalide. Veuillez corriger les erreurs.');
+          this.finishSave(false);
         }
+      },
+      error: err => {
+        console.error('Erreur enregistrement F5', err);
+        window.alert(this.isEditing ? '√âchec de la mise √† jour' : '√âchec de l\'ajout');
       }
-      onCancel(): void {
+    });
+  }
+
+  private finishSave(fromUpload: boolean): void {
+    const msg = this.isEditing
+      ? (fromUpload ? 'F5 et fichier mis √† jour' : 'F5 mis √† jour avec succ√®s')
+      : (fromUpload ? 'F5 et fichier ajout√©s' : 'F5 ajout√© avec succ√®s');
+    window.alert(msg);
+    if (this.f5Added.observers.length) {
+      this.f5Added.emit();
+    } else {
       this.router.navigate(['/Afficherf']);
     }
+  }
+
+  onReinitialiser(): void {
+    this.selectedFile = null;
+    const fileInput = document.getElementById('fichier-f5') as HTMLInputElement | null;
+    if (fileInput) fileInput.value = '';
+
+    if (this.isEditing && this.f5ToEdit) {
+      this.loadF5IntoForm();
+    } else {
+      this.isEditing = false;
+      this.currentF5Id = null;
+      this.f5Form.reset({
+        client: '',
+        dureeDeLicence: '',
+        nomDuContact: '',
+        adresseEmailContact: '',
+        sousContrat: false,
+        mailAdmin: '',
+        commandePasserPar: '',
+        numero: '',
+        remarque: ''
+      });
+      this.licences.clear();
+      this.licences.push(this.createLicenceGroup());
+      this.ccMail.clear();
+      this.ccMail.push(this.fb.control('', Validators.email));
     }
-    
+  }
+
+  onCancel(): void {
+    if (this.cancelled.observers.length) {
+      this.cancelled.emit();
+    } else {
+      this.router.navigate(['/Afficherf']);
+    }
+  }
+
+  closeClientDropdown(): void {
+    this.clientSelect?.closeDropdown();
+  }
+}

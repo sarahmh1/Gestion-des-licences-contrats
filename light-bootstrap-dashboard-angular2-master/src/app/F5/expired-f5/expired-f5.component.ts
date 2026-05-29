@@ -13,6 +13,7 @@ export class ExpiredF5Component implements OnInit {
   filteredExpiredF5s: F5[] = [];
   pagedExpiredF5s: F5[] = [];
   searchTerm: string = '';
+  selectedF5: F5 | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -92,8 +93,19 @@ export class ExpiredF5Component implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectF5(item: F5): void {
+    this.selectedF5 = item;
+  }
+
+  closeDetail(): void {
+    this.selectedF5 = null;
+  }
+
   desapprouve(id: number): void {
     this.f5Service.activate(id).subscribe(() => {
+      if (this.selectedF5?.f5Id === id) {
+        this.selectedF5 = null;
+      }
       // Après désapprobation, retirer le F5 de la liste approuvée locale
       this.expiredF5s = this.expiredF5s.filter(f5 => f5.f5Id !== id);
       this.filteredExpiredF5s = this.filteredExpiredF5s.filter(f5 => f5.f5Id !== id);

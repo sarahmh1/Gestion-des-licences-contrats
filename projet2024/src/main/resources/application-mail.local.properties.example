@@ -1,0 +1,9 @@
+# Copiez vers application-mail.local.properties (mvn spring-boot:run sur le PC).
+# Expéditeur = gerinfo2025@gmail.com | Destinataires = @geranceinformatique.com
+
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=gerinfo2025@gmail.com
+spring.mail.password=mot_de_passe_application_16_caracteres_sans_espaces
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.starttls.required=true

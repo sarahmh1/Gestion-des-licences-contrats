@@ -13,6 +13,7 @@ export class ExpiredSentineIOneComponent implements OnInit {
   filteredExpiredSentineIOnes: SentineIOne[] = [];
   pagedExpiredSentineIOnes: SentineIOne[] = [];
   searchTerm: string = '';
+  selectedSentineIOne: SentineIOne | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -92,8 +93,19 @@ export class ExpiredSentineIOneComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectSentineIOne(item: SentineIOne): void {
+    this.selectedSentineIOne = item;
+  }
+
+  closeDetail(): void {
+    this.selectedSentineIOne = null;
+  }
+
   desapprouve(id: number): void {
     this.sentineIOneService.activate(id).subscribe(() => {
+      if (this.selectedSentineIOne?.sentineIOneId === id) {
+        this.selectedSentineIOne = null;
+      }
       // Après désapprobation, retirer le SentineIOne de la liste approuvée locale
       this.expiredSentineIOnes = this.expiredSentineIOnes.filter(sentineIOne => sentineIOne.sentineIOneId !== id);
       this.filteredExpiredSentineIOnes = this.filteredExpiredSentineIOnes.filter(sentineIOne => sentineIOne.sentineIOneId !== id);

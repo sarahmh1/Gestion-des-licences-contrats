@@ -1,53 +1,121 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, Output, EventEmitter, Input, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { Router } from '@angular/router';
+import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Alwarebytes } from 'app/Model/Alwarebytes';
 import { AlwarebytesService } from 'app/Services/alwarebytes.service';
-import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { ClientService, Client } from '../../Services/client.service';
+import { SearchableClientSelectComponent } from '../../shared/searchable-client-select/searchable-client-select.component';
+
 @Component({
-  selector: 'app-ajoutera',
+  selector: 'app-ajouter-alwarebytes',
   templateUrl: './ajoutera.component.html',
   styleUrls: ['./ajoutera.component.scss']
 })
-export class AjouteraComponent implements OnInit {
+export class AjouteraComponent implements OnInit, OnChanges {
+  @Output() alwarebytesAdded = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
+  @Input() alwarebytesToEdit: Alwarebytes | null = null;
+
   clients: Client[] = [];
   alwarebytesForm!: FormGroup;
   selectedFile: File | null = null;
+  isEditing = false;
+  currentAlwarebytesId: number | null = null;
+
+  @ViewChild('clientSelect') clientSelect?: SearchableClientSelectComponent;
+
   commandePasserParOptions = [
     { label: 'GI_TN', value: CommandePasserPar.GI_TN },
     { label: 'GI_FR', value: CommandePasserPar.GI_FR },
     { label: 'GI_CI', value: CommandePasserPar.GI_CI }
   ];
-  onFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      this.selectedFile = file;
-    }
-  }
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private alwarebytesService: AlwarebytesService,
-    private clientService: ClientService) { }
+    private clientService: ClientService) {}
 
   ngOnInit(): void {
     this.clientService.getAllClients().subscribe(data => this.clients = data);
+    this.initializeForm();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['alwarebytesToEdit']?.currentValue && this.alwarebytesForm) {
+      this.alwarebytesToEdit = changes['alwarebytesToEdit'].currentValue;
+      this.loadAlwarebytesIntoForm();
+    }
+  }
+
+  initializeForm(): void {
     this.alwarebytesForm = this.fb.group({
       client: ['', Validators.required],
       dureeDeLicence: [''],
       nomDuContact: [''],
-      adresseEmailContact: [''],
+      adresseEmailContact: ['', Validators.email],
       sousContrat: [false],
+      mailAdmin: ['', Validators.email],
       commandePasserPar: ['', Validators.required],
-      mailAdmin: ['', [Validators.email]],
-      ccMail: this.fb.array([this.fb.control('', [Validators.email])]),
-      numero: [''],
+      ccMail: this.fb.array([this.fb.control('', Validators.email)]),
+      numero: ['', AppValidators.optionalPhone],
       remarque: [''],
-      licences: this.fb.array([
-        this.createLicenceGroup()
-      ])
+      licences: this.fb.array([this.createLicenceGroup()])
     });
+    this.watchClientAutoFill();
+    if (this.alwarebytesToEdit) {
+      this.loadAlwarebytesIntoForm();
+    }
+  }
+
+  private watchClientAutoFill(): void {
+    this.alwarebytesForm.get('client')!.valueChanges.subscribe((selectedName: string) => {
+      if (!selectedName) return;
+      const found = this.clients.find(c => c.nomClient === selectedName);
+      if (found) {
+        this.alwarebytesForm.patchValue({
+          nomDuContact: found.nosVisAVis?.[0] || '',
+          numero: found.numTel?.[0] || '',
+          adresseEmailContact: found.adressesMail?.[0] || ''
+        }, { emitEvent: false });
+      }
+    });
+  }
+
+  loadAlwarebytesIntoForm(): void {
+    if (!this.alwarebytesToEdit) return;
+
+    this.isEditing = true;
+    this.currentAlwarebytesId = this.alwarebytesToEdit.alwarebytesId;
+
+    this.alwarebytesForm.patchValue({
+      client: this.alwarebytesToEdit.client,
+      dureeDeLicence: this.alwarebytesToEdit.dureeDeLicence,
+      nomDuContact: this.alwarebytesToEdit.nomDuContact,
+      commandePasserPar: this.alwarebytesToEdit.commandePasserPar,
+      sousContrat: this.alwarebytesToEdit.sousContrat,
+      adresseEmailContact: this.alwarebytesToEdit.adresseEmailContact,
+      mailAdmin: this.alwarebytesToEdit.mailAdmin,
+      numero: this.alwarebytesToEdit.numero,
+      remarque: this.alwarebytesToEdit.remarque
+    }, { emitEvent: false });
+
+    this.licences.clear();
+    if (this.alwarebytesToEdit.licences?.length) {
+      this.alwarebytesToEdit.licences.forEach(lic => {
+        this.licences.push(this.fb.group({
+          nomDesLicences: [lic.nomDesLicences, Validators.required],
+          quantite: [lic.quantite, AppValidators.requiredQuantity],
+          dateEx: [this.formatDate(lic.dateEx), Validators.required]
+        }));
+      });
+    } else {
+      this.licences.push(this.createLicenceGroup());
+    }
+
+    this.setCcMail(this.alwarebytesToEdit.ccMail);
   }
 
   get ccMail(): FormArray {
@@ -61,125 +129,152 @@ export class AjouteraComponent implements OnInit {
   createLicenceGroup(): FormGroup {
     return this.fb.group({
       nomDesLicences: ['', Validators.required],
-      quantite: ['', Validators.required],
+      quantite: ['', AppValidators.requiredQuantity],
       dateEx: ['', Validators.required]
     });
   }
 
-  addLicence() {
+  addLicence(): void {
     this.licences.push(this.createLicenceGroup());
   }
 
-  removeLicence(index: number) {
+  removeLicence(index: number): void {
     this.licences.removeAt(index);
   }
 
-  addCcMail() {
-    this.ccMail.push(this.fb.control('', [Validators.email]));
+  addCcMail(): void {
+    this.ccMail.push(this.fb.control('', Validators.email));
   }
 
-  removeCcMail(index: number) {
+  removeCcMail(index: number): void {
     this.ccMail.removeAt(index);
   }
 
-  setCcMail(ccMails: string[]) {
-    const ccMailFormArray = this.alwarebytesForm.get('ccMail') as FormArray;
-    ccMailFormArray.clear();
-    if (ccMails && ccMails.length > 0) {
-      ccMails.forEach(email => ccMailFormArray.push(this.fb.control(email, Validators.email)));
-    } else {
-      ccMailFormArray.push(this.fb.control('', Validators.email));
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) {
+      this.selectedFile = file;
     }
   }
 
-  loadAlwarebytes(id: number) {
-    this.alwarebytesService.getAlwarebytesById(id).subscribe(alwarebytes => {
-      this.alwarebytesForm.patchValue({
-        client: alwarebytes.client,
-        dureeDeLicence: alwarebytes.dureeDeLicence,
-        nomDuContact: alwarebytes.nomDuContact,
-        sousContrat: alwarebytes.sousContrat,
-        commandePasserPar: alwarebytes.commandePasserPar,
-        adresseEmailContact: alwarebytes.adresseEmailContact,
-        mailAdmin: alwarebytes.mailAdmin,
-        numero: alwarebytes.numero,
-        remarque: alwarebytes.remarque
-      });
-
-      // Set licences (clear + patch)
-      this.licences.clear();
-      if (alwarebytes.licences && alwarebytes.licences.length > 0) {
-        alwarebytes.licences.forEach(lic => {
-          this.licences.push(this.fb.group({
-            nomDesLicences: [lic.nomDesLicences, Validators.required],
-            quantite: [lic.quantite, Validators.required],
-            dateEx: [this.formatDate(lic.dateEx), Validators.required]
-          }));
-        });
-      }
-
-      this.setCcMail(alwarebytes.ccMail);
-    });
+  setCcMail(ccMails: string[]): void {
+    this.ccMail.clear();
+    if (ccMails?.length) {
+      ccMails.forEach(email => this.ccMail.push(this.fb.control(email, Validators.email)));
+    } else {
+      this.ccMail.push(this.fb.control('', Validators.email));
+    }
   }
 
   formatDate(date: string | Date): string {
+    if (!date) return '';
     const d = new Date(date);
-    return d.toISOString().substring(0, 10); // 'yyyy-MM-dd'
+    if (isNaN(d.getTime())) return '';
+    return d.toISOString().substring(0, 10);
   }
 
-  addAlwarebytes() {
-    if (this.alwarebytesForm.valid) {
-      const newAlwarebytes: Alwarebytes = {
-        alwarebytesId: null!,
-        client: this.alwarebytesForm.value.client,
-        dureeDeLicence: this.alwarebytesForm.value.dureeDeLicence,
-        nomDuContact: this.alwarebytesForm.value.nomDuContact,
-        commandePasserPar: this.alwarebytesForm.value.commandePasserPar,
-        adresseEmailContact: this.alwarebytesForm.value.adresseEmailContact,
-        mailAdmin: this.alwarebytesForm.value.mailAdmin || '',
-        ccMail: this.ccMail.value,
-        sousContrat: this.alwarebytesForm.value.sousContrat,
-        numero: this.alwarebytesForm.value.numero,
-        approuve: false,
-        remarque: this.alwarebytesForm.value.remarque || '',
-        licences: this.licences.value
-      };
+  addAlwarebytes(): void {
+    if (!this.alwarebytesForm.valid) {
+      this.alwarebytesForm.markAllAsTouched();
+      return;
+    }
 
-      this.alwarebytesService.addAlwarebytes(newAlwarebytes).subscribe(
-        (response: any) => {
-          console.log('RÈponse serveur Alwarebytes:', response);
-          const alwarebytesId = response.alwarebytesId || response.id;
+    const payload: Alwarebytes = {
+      alwarebytesId: this.isEditing ? this.currentAlwarebytesId! : 0,
+      client: this.alwarebytesForm.value.client,
+      dureeDeLicence: this.alwarebytesForm.value.dureeDeLicence,
+      nomDuContact: this.alwarebytesForm.value.nomDuContact,
+      adresseEmailContact: this.alwarebytesForm.value.adresseEmailContact,
+      mailAdmin: this.alwarebytesForm.value.mailAdmin || '',
+      ccMail: this.ccMail.value.filter((e: string) => e?.trim()),
+      commandePasserPar: this.alwarebytesForm.value.commandePasserPar,
+      sousContrat: this.alwarebytesForm.value.sousContrat,
+      numero: this.alwarebytesForm.value.numero,
+      approuve: this.isEditing ? (this.alwarebytesToEdit?.approuve ?? false) : false,
+      remarque: this.alwarebytesForm.value.remarque || '',
+      licences: this.licences.value,
+      fichier: this.isEditing ? this.alwarebytesToEdit?.fichier : undefined,
+      fichierOriginalName: this.isEditing ? this.alwarebytesToEdit?.fichierOriginalName : undefined
+    };
 
-          if (this.selectedFile && alwarebytesId) {
-            this.alwarebytesService.uploadFile(alwarebytesId, this.selectedFile).subscribe(
-              (uploadResponse) => {
-                console.log('Upload rÈussi:', uploadResponse);
-                window.alert('Alwarebytes et fichier ajoutÈs avec succËs');
-                this.router.navigate(['/Affichera']);
-              },
-              error => {
-                console.error('Erreur lors de l\'upload du fichier:', error);
-                console.error('Status:', error.status);
-                console.error('Error body:', error.error);
-                window.alert('Alwarebytes ajoutÈ, mais erreur lors de l\'upload du fichier');
-                this.router.navigate(['/Affichera']);
-              }
-            );
-          } else {
-            window.alert('Alwarebytes ajoutÈ avec succËs');
-            this.router.navigate(['/Affichera']);
-          }
-        },
-        error => {
-          console.error('Erreur lors de l\'ajout du Alwarebytes:', error);
-          window.alert('…chec de l\'ajout');
+    const request$ = this.isEditing
+      ? this.alwarebytesService.updateAlwarebytes(payload)
+      : this.alwarebytesService.addAlwarebytes(payload);
+
+    request$.subscribe({
+      next: (response: Alwarebytes) => {
+        const id = this.isEditing ? this.currentAlwarebytesId! : response?.alwarebytesId;
+        if (this.selectedFile && id != null) {
+          this.alwarebytesService.uploadFile(id, this.selectedFile).subscribe({
+            next: () => this.finishSave(true),
+            error: () => {
+              window.alert(this.isEditing
+                ? 'Malwarebytes mis √† jour mais erreur upload fichier'
+                : 'Malwarebytes ajout√© mais erreur upload fichier');
+              this.finishSave(true);
+            }
+          });
+        } else {
+          this.finishSave(false);
         }
-      );
+      },
+      error: err => {
+        console.error('Erreur enregistrement Malwarebytes', err);
+        window.alert(this.isEditing ? '√âchec de la mise √† jour' : '√âchec de l\'ajout');
+      }
+    });
+  }
+
+  private finishSave(fromUpload: boolean): void {
+    const msg = this.isEditing
+      ? (fromUpload ? 'Licence et fichier mis √† jour' : 'Licence mise √† jour avec succ√®s')
+      : (fromUpload ? 'Licence et fichier ajout√©s' : 'Licence ajout√©e avec succ√®s');
+    window.alert(msg);
+    if (this.alwarebytesAdded.observers.length) {
+      this.alwarebytesAdded.emit();
     } else {
-      window.alert('Le formulaire est invalide. Veuillez corriger les erreurs.');
+      this.router.navigate(['/Affichera']);
     }
   }
+
+  onReinitialiser(): void {
+    this.selectedFile = null;
+    const fileInput = document.getElementById('fichier-alwarebytes') as HTMLInputElement | null;
+    if (fileInput) fileInput.value = '';
+
+    if (this.isEditing && this.alwarebytesToEdit) {
+      this.loadAlwarebytesIntoForm();
+    } else {
+      this.isEditing = false;
+      this.currentAlwarebytesId = null;
+      this.alwarebytesForm.reset({
+        client: '',
+        dureeDeLicence: '',
+        nomDuContact: '',
+        adresseEmailContact: '',
+        sousContrat: false,
+        mailAdmin: '',
+        commandePasserPar: '',
+        numero: '',
+        remarque: ''
+      });
+      this.licences.clear();
+      this.licences.push(this.createLicenceGroup());
+      this.ccMail.clear();
+      this.ccMail.push(this.fb.control('', Validators.email));
+    }
+  }
+
   onCancel(): void {
-    this.router.navigate(['/Affichera']);
+    if (this.cancelled.observers.length) {
+      this.cancelled.emit();
+    } else {
+      this.router.navigate(['/Affichera']);
+    }
+  }
+
+  closeClientDropdown(): void {
+    this.clientSelect?.closeDropdown();
   }
 }

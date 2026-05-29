@@ -18,8 +18,8 @@ export class F5Service {
   }
 
   
-  addF5(f5: F5): Observable<Object> {
-    return this.http.post(`${this.baseUrl}/addF5`, f5);
+  addF5(f5: F5): Observable<F5> {
+    return this.http.post<F5>(`${this.baseUrl}/addF5`, f5);
   }
 
  

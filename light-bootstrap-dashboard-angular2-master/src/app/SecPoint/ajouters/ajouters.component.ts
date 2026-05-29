@@ -1,182 +1,280 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, Output, EventEmitter, Input, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { SecPoint } from 'app/Model/SecPoint';
 import { SecPointService } from 'app/Services/sec-point.service';
 import { ClientService, Client } from '../../Services/client.service';
+import { SearchableClientSelectComponent } from '../../shared/searchable-client-select/searchable-client-select.component';
+
 @Component({
-  selector: 'app-ajouters',
+  selector: 'app-ajouter-secpoint',
   templateUrl: './ajouters.component.html',
   styleUrls: ['./ajouters.component.scss']
 })
-export class AjoutersComponent implements OnInit {
-  clients: Client[] = [];
-   secPointForm!: FormGroup;
-   selectedFile: File | null = null;
-   commandePasserParOptions = [
-        { label: 'GI_TN', value: CommandePasserPar.GI_TN },
-        { label: 'GI_FR', value: CommandePasserPar.GI_FR },
-        { label: 'GI_CI', value: CommandePasserPar.GI_CI }
-      ];
-    constructor(
-      private fb: FormBuilder,
-      private router: Router,
-      private secPointService: SecPointService,
-    private clientService: ClientService) {}
-  
-     ngOnInit(): void {
-    this.clientService.getAllClients().subscribe(data => this.clients = data);
-        this.secPointForm= this.fb.group({
-          client: ['', Validators.required],
-          dureeDeLicence: [''],
-          nomDuContact: [''],
-          adresseEmailContact: [''],
-          sousContrat: [false],
-          commandePasserPar: ['', Validators.required],
-          mailAdmin: ['', [Validators.email]],
-          ccMail: this.fb.array([this.fb.control('', [Validators.email])]),
-          numero: [''],
-          remarque: [''],
-          licences: this.fb.array([
-            this.createLicenceGroup()
-          ])
-        });
-      }
-    
-      get ccMail(): FormArray {
-        return this.secPointForm.get('ccMail') as FormArray;
-      }
-    
-      get licences(): FormArray {
-        return this.secPointForm.get('licences') as FormArray;
-      }
-    
-      createLicenceGroup(): FormGroup {
-        return this.fb.group({
-          nomDesLicences: ['', Validators.required],
-          quantite: ['', Validators.required],
-          dateEx: ['', Validators.required]
-        });
-      }
-    
-      addLicence() {
-        this.licences.push(this.createLicenceGroup());
-      }
-    
-      removeLicence(index: number) {
-        this.licences.removeAt(index);
-      }
-    
-      addCcMail() {
-        this.ccMail.push(this.fb.control('', [Validators.email]));
-      }
-    
-      removeCcMail(index: number) {
-        this.ccMail.removeAt(index);
-      }
-    
-      setCcMail(ccMails: string[]) {
-        const ccMailFormArray = this.secPointForm.get('ccMail') as FormArray;
-        ccMailFormArray.clear();
-        if (ccMails && ccMails.length > 0) {
-          ccMails.forEach(email => ccMailFormArray.push(this.fb.control(email, Validators.email)));
-        } else {
-          ccMailFormArray.push(this.fb.control('', Validators.email));
-        }
-      }
-    
-      loadSecPoint(id: number) {
-        this.secPointService.getSecPointById(id).subscribe(secPoint => {
-          this.secPointForm.patchValue({
-            client: secPoint.client,
-            dureeDeLicence: secPoint.dureeDeLicence,
-            nomDuContact: secPoint.nomDuContact,
-             sousContrat: secPoint.sousContrat,
-             commandePasserPar: secPoint.commandePasserPar,
-            adresseEmailContact: secPoint.adresseEmailContact,
-            mailAdmin: secPoint.mailAdmin,
-            numero: secPoint.numero,
-            remarque: secPoint.remarque
-          });
-    
-          // Set licences (clear + patch)
-          this.licences.clear();
-          if (secPoint.licences && secPoint.licences.length > 0) {
-            secPoint.licences.forEach(lic => {
-              this.licences.push(this.fb.group({
-                nomDesLicences: [lic.nomDesLicences, Validators.required],
-                quantite: [lic.quantite, Validators.required],
-                dateEx: [this.formatDate(lic.dateEx), Validators.required]
-              }));
-            });
-          }
-    
-          this.setCcMail(secPoint.ccMail);
-        });
-      }
-    
-      formatDate(date: string | Date): string {
-        const d = new Date(date);
-        return d.toISOString().substring(0, 10); // 'yyyy-MM-dd'
-      }
+export class AjoutersComponent implements OnInit, OnChanges {
+  @Output() secPointAdded = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
+  @Input() secPointToEdit: SecPoint | null = null;
 
-      onFileSelected(event: any): void {
-        const file = event.target.files[0];
-        if (file) {
-          this.selectedFile = file;
-        }
+  clients: Client[] = [];
+  secPointForm!: FormGroup;
+  selectedFile: File | null = null;
+  isEditing = false;
+  currentSecPointId: number | null = null;
+
+  @ViewChild('clientSelect') clientSelect?: SearchableClientSelectComponent;
+
+  commandePasserParOptions = [
+    { label: 'GI_TN', value: CommandePasserPar.GI_TN },
+    { label: 'GI_FR', value: CommandePasserPar.GI_FR },
+    { label: 'GI_CI', value: CommandePasserPar.GI_CI }
+  ];
+
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private secPointService: SecPointService,
+    private clientService: ClientService) {}
+
+  ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
+    this.initializeForm();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['secPointToEdit']?.currentValue && this.secPointForm) {
+      this.secPointToEdit = changes['secPointToEdit'].currentValue;
+      this.loadSecPointIntoForm();
+    }
+  }
+
+  initializeForm(): void {
+    this.secPointForm = this.fb.group({
+      client: ['', Validators.required],
+      dureeDeLicence: [''],
+      nomDuContact: [''],
+      adresseEmailContact: ['', Validators.email],
+      sousContrat: [false],
+      mailAdmin: ['', Validators.email],
+      commandePasserPar: ['', Validators.required],
+      ccMail: this.fb.array([this.fb.control('', Validators.email)]),
+      numero: ['', AppValidators.optionalPhone],
+      remarque: [''],
+      licences: this.fb.array([this.createLicenceGroup()])
+    });
+    this.watchClientAutoFill();
+    if (this.secPointToEdit) {
+      this.loadSecPointIntoForm();
+    }
+  }
+
+  private watchClientAutoFill(): void {
+    this.secPointForm.get('client')!.valueChanges.subscribe((selectedName: string) => {
+      if (!selectedName) return;
+      const found = this.clients.find(c => c.nomClient === selectedName);
+      if (found) {
+        this.secPointForm.patchValue({
+          nomDuContact: found.nosVisAVis?.[0] || '',
+          numero: found.numTel?.[0] || '',
+          adresseEmailContact: found.adressesMail?.[0] || ''
+        }, { emitEvent: false });
       }
-    
-      addSecPoint() {
-        if (this.secPointForm.valid) {
-          const newSecPoint: SecPoint = {
-            secPointId: null!,
-            client: this.secPointForm.value.client,
-            dureeDeLicence: this.secPointForm.value.dureeDeLicence,
-            nomDuContact: this.secPointForm.value.nomDuContact,
-            adresseEmailContact: this.secPointForm.value.adresseEmailContact,
-            mailAdmin: this.secPointForm.value.mailAdmin || '',
-            ccMail: this.ccMail.value,
-            commandePasserPar: this.secPointForm.value.commandePasserPar,
-            sousContrat: this.secPointForm.value.sousContrat,
-            numero: this.secPointForm.value.numero,
-            approuve: false,
-            remarque: this.secPointForm.value.remarque || '',
-            licences: this.licences.value
-          };
-    
-          this.secPointService.addSecPoint(newSecPoint).subscribe(
-            (response: SecPoint) => {
-              // Upload du fichier si sélectionné
-              if (this.selectedFile && response.secPointId) {
-                this.secPointService.uploadFile(response.secPointId, this.selectedFile).subscribe(
-                  () => {
-                    window.alert('SecPoint ajouté avec succès');
-                    this.router.navigate(['/Affichers']);
-                  },
-                  (error) => {
-                    console.error('Erreur upload fichier:', error);
-                    window.alert('SecPoint ajouté mais erreur lors de l\'upload du fichier');
-                    this.router.navigate(['/Affichers']);
-                  }
-                );
-              } else {
-                window.alert('SecPoint ajouté avec succès');
-                this.router.navigate(['/Affichers']);
-              }
-            },
-            error => {
-              console.error('Erreur lors de l\'ajout du secPoint', error);
-              window.alert('Échec de l\'ajout');
+    });
+  }
+
+  loadSecPointIntoForm(): void {
+    if (!this.secPointToEdit) return;
+
+    this.isEditing = true;
+    this.currentSecPointId = this.secPointToEdit.secPointId;
+
+    this.secPointForm.patchValue({
+      client: this.secPointToEdit.client,
+      dureeDeLicence: this.secPointToEdit.dureeDeLicence,
+      nomDuContact: this.secPointToEdit.nomDuContact,
+      commandePasserPar: this.secPointToEdit.commandePasserPar,
+      sousContrat: this.secPointToEdit.sousContrat,
+      adresseEmailContact: this.secPointToEdit.adresseEmailContact,
+      mailAdmin: this.secPointToEdit.mailAdmin,
+      numero: this.secPointToEdit.numero,
+      remarque: this.secPointToEdit.remarque
+    }, { emitEvent: false });
+
+    this.licences.clear();
+    if (this.secPointToEdit.licences?.length) {
+      this.secPointToEdit.licences.forEach(lic => {
+        this.licences.push(this.fb.group({
+          nomDesLicences: [lic.nomDesLicences, Validators.required],
+          quantite: [lic.quantite, AppValidators.requiredQuantity],
+          dateEx: [this.formatDate(lic.dateEx), Validators.required]
+        }));
+      });
+    } else {
+      this.licences.push(this.createLicenceGroup());
+    }
+
+    this.setCcMail(this.secPointToEdit.ccMail);
+  }
+
+  get ccMail(): FormArray {
+    return this.secPointForm.get('ccMail') as FormArray;
+  }
+
+  get licences(): FormArray {
+    return this.secPointForm.get('licences') as FormArray;
+  }
+
+  createLicenceGroup(): FormGroup {
+    return this.fb.group({
+      nomDesLicences: ['', Validators.required],
+      quantite: ['', AppValidators.requiredQuantity],
+      dateEx: ['', Validators.required]
+    });
+  }
+
+  addLicence(): void {
+    this.licences.push(this.createLicenceGroup());
+  }
+
+  removeLicence(index: number): void {
+    this.licences.removeAt(index);
+  }
+
+  addCcMail(): void {
+    this.ccMail.push(this.fb.control('', Validators.email));
+  }
+
+  removeCcMail(index: number): void {
+    this.ccMail.removeAt(index);
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) {
+      this.selectedFile = file;
+    }
+  }
+
+  setCcMail(ccMails: string[]): void {
+    this.ccMail.clear();
+    if (ccMails?.length) {
+      ccMails.forEach(email => this.ccMail.push(this.fb.control(email, Validators.email)));
+    } else {
+      this.ccMail.push(this.fb.control('', Validators.email));
+    }
+  }
+
+  formatDate(date: string | Date): string {
+    if (!date) return '';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '';
+    return d.toISOString().substring(0, 10);
+  }
+
+  addSecPoint(): void {
+    if (!this.secPointForm.valid) {
+      this.secPointForm.markAllAsTouched();
+      return;
+    }
+
+    const payload: SecPoint = {
+      secPointId: this.isEditing ? this.currentSecPointId! : 0,
+      client: this.secPointForm.value.client,
+      dureeDeLicence: this.secPointForm.value.dureeDeLicence,
+      nomDuContact: this.secPointForm.value.nomDuContact,
+      adresseEmailContact: this.secPointForm.value.adresseEmailContact,
+      mailAdmin: this.secPointForm.value.mailAdmin || '',
+      ccMail: this.ccMail.value.filter((e: string) => e?.trim()),
+      commandePasserPar: this.secPointForm.value.commandePasserPar,
+      sousContrat: this.secPointForm.value.sousContrat,
+      numero: this.secPointForm.value.numero,
+      approuve: this.isEditing ? (this.secPointToEdit?.approuve ?? false) : false,
+      remarque: this.secPointForm.value.remarque || '',
+      licences: this.licences.value,
+      fichier: this.isEditing ? this.secPointToEdit?.fichier : undefined,
+      fichierOriginalName: this.isEditing ? this.secPointToEdit?.fichierOriginalName : undefined
+    };
+
+    const request$ = this.isEditing
+      ? this.secPointService.updateSecPoint(payload)
+      : this.secPointService.addSecPoint(payload);
+
+    request$.subscribe({
+      next: (response: SecPoint) => {
+        const id = this.isEditing ? this.currentSecPointId! : response?.secPointId;
+        if (this.selectedFile && id != null) {
+          this.secPointService.uploadFile(id, this.selectedFile).subscribe({
+            next: () => this.finishSave(true),
+            error: () => {
+              window.alert(this.isEditing
+                ? 'SecPoint mis ï¿½ jour mais erreur upload fichier'
+                : 'SecPoint ajoutï¿½ mais erreur upload fichier');
+              this.finishSave(true);
             }
-          );
+          });
         } else {
-          window.alert('Le formulaire est invalide. Veuillez corriger les erreurs.');
+          this.finishSave(false);
         }
+      },
+      error: err => {
+        console.error('Erreur enregistrement SecPoint', err);
+        window.alert(this.isEditing ? 'ï¿½chec de la mise ï¿½ jour' : 'ï¿½chec de l\'ajout');
       }
-      onCancel(): void {
+    });
+  }
+
+  private finishSave(fromUpload: boolean): void {
+    const msg = this.isEditing
+      ? (fromUpload ? 'SecPoint et fichier mis ï¿½ jour' : 'SecPoint mis ï¿½ jour avec succï¿½s')
+      : (fromUpload ? 'SecPoint et fichier ajoutï¿½s' : 'SecPoint ajoutï¿½ avec succï¿½s');
+    window.alert(msg);
+    if (this.secPointAdded.observers.length) {
+      this.secPointAdded.emit();
+    } else {
       this.router.navigate(['/Affichers']);
     }
+  }
+
+  onReinitialiser(): void {
+    this.selectedFile = null;
+    const fileInput = document.getElementById('fichier-secpoint') as HTMLInputElement | null;
+    if (fileInput) fileInput.value = '';
+
+    if (this.isEditing && this.secPointToEdit) {
+      this.loadSecPointIntoForm();
+    } else {
+      this.isEditing = false;
+      this.currentSecPointId = null;
+      this.secPointForm.reset({
+        client: '',
+        dureeDeLicence: '',
+        nomDuContact: '',
+        adresseEmailContact: '',
+        sousContrat: false,
+        mailAdmin: '',
+        commandePasserPar: '',
+        numero: '',
+        remarque: ''
+      });
+      this.licences.clear();
+      this.licences.push(this.createLicenceGroup());
+      this.ccMail.clear();
+      this.ccMail.push(this.fb.control('', Validators.email));
     }
-    
+  }
+
+  onCancel(): void {
+    if (this.cancelled.observers.length) {
+      this.cancelled.emit();
+    } else {
+      this.router.navigate(['/Affichers']);
+    }
+  }
+
+  closeClientDropdown(): void {
+    this.clientSelect?.closeDropdown();
+  }
+}

@@ -1,187 +1,320 @@
-import { Component, OnInit } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnChanges,
+  SimpleChanges,
+  Output,
+  EventEmitter,
+  Input,
+  ViewChild
+} from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { Router } from '@angular/router';
+import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Cisco } from 'app/Model/Cisco';
 import { CiscoService } from 'app/Services/cisco.service';
-import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { ClientService, Client } from '../../Services/client.service';
+import { SearchableClientSelectComponent } from '../../shared/searchable-client-select/searchable-client-select.component';
+
 @Component({
   selector: 'app-ajouterc',
   templateUrl: './ajouterc.component.html',
   styleUrls: ['./ajouterc.component.scss']
 })
-export class AjoutercComponent implements OnInit {
-  clients: Client[] = [];
-   ciscoForm!: FormGroup;
-   selectedFile: File | null = null;
-   commandePasserParOptions = [
-     { label: 'GI_TN', value: CommandePasserPar.GI_TN },
-     { label: 'GI_FR', value: CommandePasserPar.GI_FR },
-     { label: 'GI_CI', value: CommandePasserPar.GI_CI }
-   ];
-    constructor(
-      private fb: FormBuilder,
-      private router: Router,
-      private ciscoService: CiscoService,
-    private clientService: ClientService) {}
-  
-     ngOnInit(): void {
-    this.clientService.getAllClients().subscribe(data => this.clients = data);
-        this.ciscoForm= this.fb.group({
-          client: ['', Validators.required],
-          dureeDeLicence: [''],
-          nomDuContact: [''],
-          adresseEmailContact: [''],
-          commandePasserPar: ['', Validators.required], 
-          sousContrat: [false],
-          mailAdmin: ['', [Validators.email]],
-          ccMail: this.fb.array([this.fb.control('', [Validators.email])]),
-          numero: [''],
-          remarque: [''],
-          licences: this.fb.array([
-            this.createLicenceGroup()
-          ])
-        });
-      }
-    
-      get ccMail(): FormArray {
-        return this.ciscoForm.get('ccMail') as FormArray;
-      }
-    
-      get licences(): FormArray {
-        return this.ciscoForm.get('licences') as FormArray;
-      }
-    
-      createLicenceGroup(): FormGroup {
-        return this.fb.group({
-          nomDesLicences: ['', Validators.required],
-          quantite: ['', Validators.required],
-          dateEx: ['', Validators.required]
-        });
-      }
-    
-      addLicence() {
-        this.licences.push(this.createLicenceGroup());
-      }
-    
-      removeLicence(index: number) {
-        this.licences.removeAt(index);
-      }
-    
-      addCcMail() {
-        this.ccMail.push(this.fb.control('', [Validators.email]));
-      }
-    
-      removeCcMail(index: number) {
-        this.ccMail.removeAt(index);
-      }
-    
-      setCcMail(ccMails: string[]) {
-        const ccMailFormArray = this.ciscoForm.get('ccMail') as FormArray;
-        ccMailFormArray.clear();
-        if (ccMails && ccMails.length > 0) {
-          ccMails.forEach(email => ccMailFormArray.push(this.fb.control(email, Validators.email)));
-        } else {
-          ccMailFormArray.push(this.fb.control('', Validators.email));
-        }
-      }
-    
-      loadCisco(id: number) {
-        this.ciscoService.getCiscoById(id).subscribe(cisco => {
-          this.ciscoForm.patchValue({
-            client: cisco.client,
-            dureeDeLicence: cisco.dureeDeLicence,
-            nomDuContact: cisco.nomDuContact,
-             sousContrat: cisco.sousContrat,
-             commandePasserPar: cisco.commandePasserPar,
-            adresseEmailContact: cisco.adresseEmailContact,
-            mailAdmin: cisco.mailAdmin,
-            numero: cisco.numero,
-            remarque: cisco.remarque
-          });
-    
-          // Set licences (clear + patch)
-          this.licences.clear();
-          if (cisco.licences && cisco.licences.length > 0) {
-           cisco.licences.forEach(lic => {
-              this.licences.push(this.fb.group({
-                nomDesLicences: [lic.nomDesLicences, Validators.required],
-                quantite: [lic.quantite, Validators.required],
-                dateEx: [this.formatDate(lic.dateEx), Validators.required]
-              }));
-            });
-          }
-    
-          this.setCcMail(cisco.ccMail);
-        });
-      }
-    
-      formatDate(date: string | Date): string {
-        const d = new Date(date);
-        return d.toISOString().substring(0, 10); // 'yyyy-MM-dd'
-      }
-    
-      onFileSelected(event: any): void {
-        const file = event.target.files[0];
-        if (file) {
-          this.selectedFile = file;
-        }
-      }
+export class AjoutercComponent implements OnInit, OnChanges {
+  @Output() ciscoAdded = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
+  @Input() ciscoToEdit: Cisco | null = null;
 
-      addCisco() {
-        if (this.ciscoForm.valid) {
-          const newCisco: Cisco = {
-            ciscoId: null!,
-            client: this.ciscoForm.value.client,
-            dureeDeLicence: this.ciscoForm.value.dureeDeLicence,
-            nomDuContact: this.ciscoForm.value.nomDuContact,
-            adresseEmailContact: this.ciscoForm.value.adresseEmailContact,
-            mailAdmin: this.ciscoForm.value.mailAdmin || '',
-            ccMail: this.ccMail.value,
-            commandePasserPar: this.ciscoForm.value.commandePasserPar,
-            sousContrat: this.ciscoForm.value.sousContrat,
-            numero: this.ciscoForm.value.numero,
-            approuve: false,
-            remarque: this.ciscoForm.value.remarque || '',
-            licences: this.licences.value
-          };
-    
-          this.ciscoService.addCisco(newCisco).subscribe(
-            (response: any) => {
-              console.log('Réponse serveur Cisco:', response);
-              const ciscoId = response.ciscoId || response.id;
-              
-              if (this.selectedFile && ciscoId) {
-                this.ciscoService.uploadFile(ciscoId, this.selectedFile).subscribe(
-                  (uploadResponse) => {
-                    console.log('Upload réussi:', uploadResponse);
-                    window.alert('Cisco et fichier ajoutés avec succès');
-                    this.router.navigate(['/Afficherc']);
-                  },
-                  error => {
-                    console.error('Erreur lors de l\'upload du fichier:', error);
-                    console.error('Status:', error.status);
-                    console.error('Error body:', error.error);
-                    window.alert('Cisco ajouté mais échec de l\'upload du fichier');
-                    this.router.navigate(['/Afficherc']);
-                  }
-                );
-              } else {
-                window.alert('Cisco ajouté avec succès');
-                this.router.navigate(['/Afficherc']);
-              }
-            },
-            error => {
-              console.error('Erreur lors de l\'ajout du Cisco:', error);
-              window.alert('Échec de l\'ajout');
-            }
-          );
-        } else {
-          window.alert('Le formulaire est invalide. Veuillez corriger les erreurs.');
-        }
+  clients: Client[] = [];
+  ciscoForm!: FormGroup;
+  selectedFile: File | null = null;
+  isEditing = false;
+  currentCiscoId: number | null = null;
+
+  @ViewChild('clientSelect') clientSelect?: SearchableClientSelectComponent;
+
+  commandePasserParOptions = [
+    { label: 'GI_TN', value: CommandePasserPar.GI_TN },
+    { label: 'GI_FR', value: CommandePasserPar.GI_FR },
+    { label: 'GI_CI', value: CommandePasserPar.GI_CI }
+  ];
+
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private ciscoService: CiscoService,
+    private clientService: ClientService
+  ) {}
+
+  ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => (this.clients = data));
+    this.initializeForm();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['ciscoToEdit']?.currentValue && this.ciscoForm) {
+      this.ciscoToEdit = changes['ciscoToEdit'].currentValue;
+      this.loadCiscoIntoForm();
+    }
+  }
+
+  initializeForm(): void {
+    this.ciscoForm = this.fb.group({
+      client: ['', Validators.required],
+      dureeDeLicence: [''],
+      nomDuContact: [''],
+      adresseEmailContact: ['', Validators.email],
+      sousContrat: [false],
+      mailAdmin: ['', Validators.email],
+      commandePasserPar: ['', Validators.required],
+      ccMail: this.fb.array([this.fb.control('', Validators.email)]),
+      numero: ['', AppValidators.optionalPhone],
+      remarque: [''],
+      licences: this.fb.array([this.createLicenceGroup()])
+    });
+    this.watchClientAutoFill();
+    if (this.ciscoToEdit) {
+      this.loadCiscoIntoForm();
+    }
+  }
+
+  private watchClientAutoFill(): void {
+    this.ciscoForm.get('client')!.valueChanges.subscribe((selectedName: string) => {
+      if (!selectedName) return;
+      const found = this.clients.find(c => c.nomClient === selectedName);
+      if (found) {
+        this.ciscoForm.patchValue(
+          {
+            nomDuContact: found.nosVisAVis?.[0] || '',
+            numero: found.numTel?.[0] || '',
+            adresseEmailContact: found.adressesMail?.[0] || ''
+          },
+          { emitEvent: false }
+        );
       }
-      onCancel(): void {
+    });
+  }
+
+  loadCiscoIntoForm(): void {
+    if (!this.ciscoToEdit) return;
+
+    this.isEditing = true;
+    this.currentCiscoId = this.ciscoToEdit.ciscoId;
+
+    this.ciscoForm.patchValue(
+      {
+        client: this.ciscoToEdit.client,
+        dureeDeLicence: this.ciscoToEdit.dureeDeLicence,
+        nomDuContact: this.ciscoToEdit.nomDuContact,
+        commandePasserPar: this.ciscoToEdit.commandePasserPar,
+        sousContrat: this.ciscoToEdit.sousContrat,
+        adresseEmailContact: this.ciscoToEdit.adresseEmailContact,
+        mailAdmin: this.ciscoToEdit.mailAdmin,
+        numero: this.ciscoToEdit.numero,
+        remarque: this.ciscoToEdit.remarque
+      },
+      { emitEvent: false }
+    );
+
+    this.licences.clear();
+    if (this.ciscoToEdit.licences?.length) {
+      this.ciscoToEdit.licences.forEach(lic => {
+        this.licences.push(
+          this.fb.group({
+            nomDesLicences: [lic.nomDesLicences, Validators.required],
+            quantite: [lic.quantite, AppValidators.requiredQuantity],
+            dateEx: [this.formatDate(lic.dateEx), Validators.required]
+          })
+        );
+      });
+    } else {
+      this.licences.push(this.createLicenceGroup());
+    }
+
+    this.setCcMail(this.ciscoToEdit.ccMail);
+  }
+
+  get ccMail(): FormArray {
+    return this.ciscoForm.get('ccMail') as FormArray;
+  }
+
+  get licences(): FormArray {
+    return this.ciscoForm.get('licences') as FormArray;
+  }
+
+  createLicenceGroup(): FormGroup {
+    return this.fb.group({
+      nomDesLicences: ['', Validators.required],
+      quantite: ['', AppValidators.requiredQuantity],
+      dateEx: ['', Validators.required]
+    });
+  }
+
+  addLicence(): void {
+    this.licences.push(this.createLicenceGroup());
+  }
+
+  removeLicence(index: number): void {
+    this.licences.removeAt(index);
+  }
+
+  addCcMail(): void {
+    this.ccMail.push(this.fb.control('', Validators.email));
+  }
+
+  removeCcMail(index: number): void {
+    this.ccMail.removeAt(index);
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedFile = input.files?.[0] ?? null;
+  }
+
+  setCcMail(ccMails: string[]): void {
+    this.ccMail.clear();
+    if (ccMails?.length) {
+      ccMails.forEach(email => this.ccMail.push(this.fb.control(email, Validators.email)));
+    } else {
+      this.ccMail.push(this.fb.control('', Validators.email));
+    }
+  }
+
+  formatDate(date: string | Date): string {
+    if (!date) return '';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '';
+    return d.toISOString().substring(0, 10);
+  }
+
+  saveCisco(): void {
+    if (!this.ciscoForm.valid) {
+      this.ciscoForm.markAllAsTouched();
+      return;
+    }
+
+    const payload: Cisco = {
+      ciscoId: this.isEditing ? this.currentCiscoId! : 0,
+      client: this.ciscoForm.value.client,
+      dureeDeLicence: this.ciscoForm.value.dureeDeLicence,
+      nomDuContact: this.ciscoForm.value.nomDuContact,
+      adresseEmailContact: this.ciscoForm.value.adresseEmailContact,
+      mailAdmin: this.ciscoForm.value.mailAdmin || '',
+      ccMail: this.ccMail.value.filter((e: string) => e?.trim()),
+      commandePasserPar: this.ciscoForm.value.commandePasserPar,
+      sousContrat: this.ciscoForm.value.sousContrat,
+      numero: this.ciscoForm.value.numero,
+      approuve: this.isEditing ? (this.ciscoToEdit?.approuve ?? false) : false,
+      remarque: this.ciscoForm.value.remarque || '',
+      licences: this.licences.value,
+      fichier: this.isEditing ? this.ciscoToEdit?.fichier : undefined,
+      fichierOriginalName: this.isEditing ? this.ciscoToEdit?.fichierOriginalName : undefined
+    };
+
+    const request$ = this.isEditing
+      ? this.ciscoService.updateCisco(payload)
+      : this.ciscoService.addCisco(payload);
+
+    request$.subscribe({
+      next: (response: any) => {
+        const id = this.isEditing ? this.currentCiscoId! : response?.ciscoId ?? response?.id;
+        if (this.selectedFile && id != null) {
+          this.ciscoService.uploadFile(id, this.selectedFile).subscribe({
+            next: () => this.finishSave(true),
+            error: () => {
+              window.alert(
+                this.isEditing
+                  ? 'Licence mise ï¿½ jour mais erreur upload fichier'
+                  : 'Licence ajoutï¿½e mais erreur upload fichier'
+              );
+              this.finishSave(true);
+            }
+          });
+        } else {
+          this.finishSave(false);
+        }
+      },
+      error: err => {
+        console.error('Erreur enregistrement Cisco', err);
+        window.alert(this.isEditing ? 'ï¿½chec de la mise ï¿½ jour' : "ï¿½chec de l'ajout");
+      }
+    });
+  }
+
+  private finishSave(fromUpload: boolean): void {
+    const msg = this.isEditing
+      ? fromUpload
+        ? 'Licence et fichier mis ï¿½ jour'
+        : 'Licence mise ï¿½ jour avec succï¿½s'
+      : fromUpload
+      ? 'Licence et fichier ajoutï¿½s'
+      : 'Licence ajoutï¿½e avec succï¿½s';
+    window.alert(msg);
+    if (this.ciscoAdded.observers.length) {
+      this.ciscoAdded.emit();
+    } else {
       this.router.navigate(['/Afficherc']);
     }
+  }
+
+  getFileDownloadUrl(): string {
+    if (!this.currentCiscoId) return '#';
+    return this.ciscoService.getFileDownloadUrl(this.currentCiscoId);
+  }
+
+  deleteExistingFile(): void {
+    if (!this.currentCiscoId || !confirm('Supprimer le fichier actuel ?')) return;
+    this.ciscoService.deleteFile(this.currentCiscoId).subscribe({
+      next: () => {
+        if (this.ciscoToEdit) {
+          this.ciscoToEdit.fichier = undefined;
+          this.ciscoToEdit.fichierOriginalName = undefined;
+        }
+        window.alert('Fichier supprimï¿½');
+      },
+      error: err => console.error('Erreur suppression fichier', err)
+    });
+  }
+
+  onReinitialiser(): void {
+    this.selectedFile = null;
+    const fileInput = document.getElementById('fichier-cisco') as HTMLInputElement | null;
+    if (fileInput) fileInput.value = '';
+
+    if (this.isEditing && this.ciscoToEdit) {
+      this.loadCiscoIntoForm();
+    } else {
+      this.isEditing = false;
+      this.currentCiscoId = null;
+      this.ciscoForm.reset({
+        client: '',
+        dureeDeLicence: '',
+        nomDuContact: '',
+        adresseEmailContact: '',
+        sousContrat: false,
+        mailAdmin: '',
+        commandePasserPar: '',
+        numero: '',
+        remarque: ''
+      });
+      this.licences.clear();
+      this.licences.push(this.createLicenceGroup());
+      this.ccMail.clear();
+      this.ccMail.push(this.fb.control('', Validators.email));
     }
-    
+  }
+
+  onCancel(): void {
+    if (this.cancelled.observers.length) {
+      this.cancelled.emit();
+    } else {
+      this.router.navigate(['/Afficherc']);
+    }
+  }
+
+  closeClientDropdown(): void {
+    this.clientSelect?.closeDropdown();
+  }
+}

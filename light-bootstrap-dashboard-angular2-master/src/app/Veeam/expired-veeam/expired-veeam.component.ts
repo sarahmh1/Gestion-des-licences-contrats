@@ -13,6 +13,7 @@ export class ExpiredVeeamComponent implements OnInit {
   filteredExpiredVeeams: Veeam[] = [];
   pagedExpiredVeeams: Veeam[] = [];
   searchTerm: string = '';
+  selectedVeeam: Veeam | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -90,8 +91,19 @@ export class ExpiredVeeamComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectVeeam(item: Veeam): void {
+    this.selectedVeeam = item;
+  }
+
+  closeDetail(): void {
+    this.selectedVeeam = null;
+  }
+
   desapprouve(id: number): void {
     this.veeamService.activate(id).subscribe(() => {
+      if (this.selectedVeeam?.veeamId === id) {
+        this.selectedVeeam = null;
+      }
       // Après désapprobation, retirer le Veeam de la liste approuvée locale
       this.expiredVeeams = this.expiredVeeams.filter(veeam => veeam.veeamId !== id);
       this.filteredExpiredVeeams = this.filteredExpiredVeeams.filter(veeam => veeam.veeamId !== id);

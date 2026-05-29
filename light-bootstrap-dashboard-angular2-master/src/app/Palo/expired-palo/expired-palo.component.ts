@@ -12,6 +12,7 @@ export class ExpiredPaloComponent implements OnInit {
   filteredExpiredPalos: Palo[] = [];
   pagedExpiredPalos: Palo[] = [];
   searchTerm: string = '';
+  selectedPalo: Palo | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -87,8 +88,19 @@ export class ExpiredPaloComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectPalo(item: Palo): void {
+    this.selectedPalo = item;
+  }
+
+  closeDetail(): void {
+    this.selectedPalo = null;
+  }
+
   desapprouve(id: number): void {
     this.paloService.activate(id).subscribe(() => {
+      if (this.selectedPalo?.paloId === id) {
+        this.selectedPalo = null;
+      }
       // Après désapprobation, retirer le Palo de la liste approuvée locale
       this.expiredPalos = this.expiredPalos.filter(palo => palo.paloId !== id);
       this.filteredExpiredPalos = this.filteredExpiredPalos.filter(palo => palo.paloId !== id);

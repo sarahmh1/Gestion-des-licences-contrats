@@ -12,25 +12,52 @@ services:
     volumes:
       - db_data:/var/lib/mysql
 
-  # 2. Backend Service
+  # 2. Ollama — image officielle (pas de push 3 Go sur Docker Hub)
+  # Après le 1er démarrage : scripts\ollama-pull-model.cmd  (ou sur VM : bash scripts/ollama-pull-model.sh)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  # 3. Backend Service (build local = code à jour, ex. POST /Eset/import/analyze)
   backend:
-    image: sarahmhadhbi/gestion-licences-backend:v7
+    build:
+      context: ./projet2024
+      dockerfile: Dockerfile
+    image: gestion-licences-backend:local
     container_name: spring-backend
     restart: always
     ports:
       - "8089:8089"
     environment:
-      # Override the DB URL to point to the docker container named "db"
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/geranceee?createDatabaseIfNotExist=true&useUnicode=true&useLegacyDatetimeCode=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
+      ASSISTANT_OLLAMA_ENABLED: "true"
+      # Backend + Ollama dans le même compose (PC ou VM Linux) :
+      ASSISTANT_OLLAMA_BASE_URL: "http://ollama:11434"
+      ASSISTANT_OLLAMA_MODEL: "mistral:latest"
+      # Délais : VM souvent plus lente que le PC (import ESET / Mistral)
+      ASSISTANT_OLLAMA_CONNECT_TIMEOUT_MS: "30000"
+      # 20 min — VM lente / Mistral (sans rebuild : mêmes variables dans le compose de la VM)
+      ASSISTANT_OLLAMA_READ_TIMEOUT_MS: "1200000"
+      ESET_IMPORT_OLLAMA_READ_TIMEOUT_MS: "1200000"
+      ESET_IMPORT_OLLAMA_MAX_PROMPT_CHARS: "12000"
+      SERVER_TOMCAT_CONNECTION_TIMEOUT: "1200000"
+      # Lien « vérifier mon compte » dans l'e-mail (adapter l'IP VM si besoin)
+      APP_FRONTEND_BASE_URL: "${APP_FRONTEND_BASE_URL:-http://192.168.1.50:4200}"
+      APP_MAIL_LOG_LINK: "${APP_MAIL_LOG_LINK:-true}"
     volumes:
-      # Map your local uploads folder so uploaded files persist between container restarts
       - ./projet2024/uploads:/app/uploads
     depends_on:
       - db
+      - ollama
 
-  # 3. Frontend Service
+  # 4. Frontend Service
   frontend:
     image: sarahmhadhbi/gestion-licences-frontend:v10
     container_name: angular-frontend
@@ -42,3 +69,4 @@ services:
 
 volumes:
   db_data:
+  ollama_data:

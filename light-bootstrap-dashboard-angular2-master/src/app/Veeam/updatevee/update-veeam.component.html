@@ -1,126 +1,136 @@
-﻿<div class="container mt-5">
-  <h2 class="text-center mb-4">Mettre à jour Veeam</h2>
-  <form [formGroup]="updateForm" (ngSubmit)="onSubmit()">
-    <div class="form-group mb-3">
-      <label for="client">Client</label>
-      <app-searchable-client-select formControlName="client" [clients]="clients"></app-searchable-client-select>
-      <div *ngIf="updateForm.get('client')?.touched && updateForm.get('client')?.invalid" class="text-danger">
-        Ce champ est obligatoire.
-      </div>
-    </div>
+<form [formGroup]="updateForm" (ngSubmit)="onSubmit()" class="form-wrapper">
+  <h5 class="form-title mb-4">Modifier licence Veeam</h5>
 
-
-   <div formArrayName="licences" class="mb-3">
-  <label>Licences</label>
-  <div *ngFor="let lic of licences.controls; let i = index" [formGroupName]="i" class="row align-items-end mb-2">
-    <div class="col-md-4">
-      <label>Nom de licence</label>
-      <input type="text" class="form-control" formControlName="nomDesLicences" />
-    </div>
-    <div class="col-md-3">
-      <label>quantité</label>
-      <input type="text" class="form-control" formControlName="quantite" />
-    </div>
-    <div class="col-md-3">
-      <label>Date d'expiration</label>
-      <input type="date" class="form-control" formControlName="dateEx" />
-    </div>
-    <div class="col-md-2 d-flex align-items-end">
-      <button type="button" class="btn btn-danger btn-sm" (click)="removeLicence(i)" *ngIf="licences.length > 1">
-        Supprimer
-      </button>
-    </div>
+  <div class="form-group mb-3">
+    <label for="client" class="form-label">Client <span class="text-danger">*</span></label>
+    <app-searchable-client-select formControlName="client" [clients]="clients"></app-searchable-client-select>
+    <app-field-error [control]="updateForm.get('client')"></app-field-error>
   </div>
-  <button type="button" class="btn btn-primary btn-sm" (click)="addLicence()">Ajouter une licence</button>
-</div>
-    <div class="form-group mb-3">
-      <label for="dureeDeLicence">Durée de la Licence</label>
-      <input id="dureeDeLicence" type="text" class="form-control" formControlName="dureeDeLicence" />
-    </div>
 
-    <div class="form-group mb-3">
-      <label for="nomDuContact">Nom du Contact</label>
-      <input id="nomDuContact" type="text" class="form-control" formControlName="nomDuContact" />
-    </div>
-
-    <div class="form-group mb-3">
-      <label for="adresseEmailContact">Adresse Email du Contact</label>
-      <input id="adresseEmailContact" type="email" class="form-control" formControlName="adresseEmailContact" />
-      <div *ngIf="updateForm.get('adresseEmailContact')?.touched && updateForm.get('adresseEmailContact')?.invalid" class="text-danger">
-        Veuillez entrer une adresse email valide.
+  <div formArrayName="licences" class="mb-3">
+    <label class="form-label">Licences <span class="text-danger">*</span></label>
+    <div *ngFor="let lic of licences.controls; let i = index" [formGroupName]="i" class="row align-items-end mb-2">
+      <div class="col-md-4">
+        <label class="small text-muted">Nom de licence *</label>
+        <div class="licence-field-stack"><input type="text" class="form-control" formControlName="nomDesLicences" [class.is-invalid]="licences.at(i).get('nomDesLicences')?.invalid && (licences.at(i).get('nomDesLicences')?.dirty || licences.at(i).get('nomDesLicences')?.touched)" /><app-field-error [control]="licences.at(i).get('nomDesLicences')"></app-field-error></div>
       </div>
+      <div class="col-md-3">
+        <label class="small text-muted">Quantit&#233; *</label>
+        <div class="licence-field-stack">
+        <input type="text" class="form-control" formControlName="quantite"
+        [class.is-invalid]="licences.at(i).get('quantite')?.invalid && (licences.at(i).get('quantite')?.dirty || licences.at(i).get('quantite')?.touched)"
+          />
+        <app-field-error [control]="licences.at(i).get('quantite')" field="quantity"></app-field-error>
+      </div>
+    </div>
+    <div class="col-md-3">
+        <label class="small text-muted">Date d'expiration</label>
+        <div class="licence-field-stack"><input type="date" class="form-control" formControlName="dateEx" [class.is-invalid]="licences.at(i).get('dateEx')?.invalid && (licences.at(i).get('dateEx')?.dirty || licences.at(i).get('dateEx')?.touched)" /><app-field-error [control]="licences.at(i).get('dateEx')"></app-field-error></div>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button type="button" class="btn btn-danger btn-sm" (click)="removeLicence(i)" *ngIf="licences.length > 1">Supprimer</button>
+      </div>
+    </div>
+    <button type="button" class="btn btn-primary btn-sm" (click)="addLicence()">Ajouter une licence</button>
+  </div>
+
+  <div class="form-group mb-3">
+    <label for="dureeDeLicence" class="form-label">Dur&#233;e de la licence <span class="text-danger">*</span></label>
+    <input id="dureeDeLicence" type="text" class="form-control" formControlName="dureeDeLicence" placeholder="Ex: 12 mois" />
+    <app-field-error [control]="updateForm.get('dureeDeLicence')"></app-field-error>
+  </div>
+
+  <div class="form-check mb-3">
+    <input id="sousContrat" type="checkbox" class="form-check-input" formControlName="sousContrat" />
+    <label class="form-check-label" for="sousContrat">Sous contrat <span class="text-danger">*</span></label>
+  </div>
+
+  <div class="form-group mb-3">
+    <label for="commandePasserPar" class="form-label">Commande pass&#233;e par <span class="text-danger">*</span></label>
+    <select id="commandePasserPar" formControlName="commandePasserPar" class="form-control">
+      <option *ngFor="let option of commandePasserParOptions" [value]="option.value">{{ option.label }}</option>
+    </select>
+  <app-field-error [control]="updateForm.get('commandePasserPar')"></app-field-error></div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="nomDuContact" class="form-label">
+        Vis-&#224;-vis client
+        <span class="badge-autofill" *ngIf="updateForm.get('nomDuContact')?.value">Auto</span>
+      </label>
+      <input id="nomDuContact" type="text" class="form-control" formControlName="nomDuContact" placeholder="Auto-rempli depuis le client" />
     </div>
     <div class="form-group">
-      <label for="mailAdmin">Email Admin</label>
-      <input id="mailAdmin" type="email" class="form-control" formControlName="mailAdmin" />
-      <div *ngIf="updateForm.get('mailAdmin')?.touched && updateForm.get('mailAdmin')?.invalid" class="text-danger">
-        <div *ngIf="updateForm.get('mailAdmin')?.errors?.['email']">Format email invalide</div>
-      </div>
-    </div>
-    <div formArrayName="ccMail" class="form-group">
-    <label>Emails en copie (CC)</label>
-    <div *ngFor="let ccCtrl of ccMail.controls; let i = index">
-      <input [formControlName]="i" type="email" class="form-control mb-2" placeholder="Email CC" />
-      <button type="button" class="btn btn-danger btn-sm mb-2" (click)="ccMail.removeAt(i)" *ngIf="ccMail.length > 1">Supprimer</button>
-    </div>
-    <button type="button" class="btn btn-primary btn-sm" (click)="ccMail.push(fb.control('', Validators.email))">Ajouter un email CC</button>
-    </div>
-    <div class="form-group mb-3">
-      <label for="numero">Numéro</label>
-      <input id="numero" type="text" class="form-control" formControlName="numero" />
-    </div>
-
-    <div class="form-group mb-3">
-      <label for="remarque">Remarque</label>
-      <textarea id="remarque" class="form-control" formControlName="remarque"></textarea>
-    </div>
-    <div class="form-check mb-3">
-      <input id="sousContrat" type="checkbox" class="form-check-input" formControlName="sousContrat" />
-      <label class="form-check-label" for="sousContrat">Sous Contrat</label>
-    </div>
-     <!-- Commande Passer Par -->
-      <div class="form-group mb-3">
-        <label for="commandePasserPar" class="form-label">Commande Passer Par</label>
-        <select id="commandePasserPar" formControlName="commandePasserPar" class="form-control">
-          <option *ngFor="let option of commandePasserParOptions" [value]="option.value">
-            {{ option.label }}
-          </option>
-        </select>
-      </div>
-
-    <!-- Fichier -->
-    <div class="form-group mb-3">
-      <label class="form-label">Fichier</label>
-      <div *ngIf="veeam?.fichier; else noFile">
-        <div class="d-flex align-items-center gap-2 mb-2">
-          <a [href]="getFileDownloadUrl()" target="_blank" class="btn btn-outline-primary btn-sm">
-            <i class="fa fa-download"></i> {{ veeam.fichierOriginalName }}
-          </a>
-          <button type="button" class="btn btn-danger btn-sm" (click)="deleteFile()" *ngIf="permissionService.canDeleteProduct('veeam')">
-            <i class="fa fa-trash"></i> Supprimer
-          </button>
-        </div>
-      </div>
-      <ng-template #noFile>
-        <p class="text-muted">Aucun fichier attaché</p>
-      </ng-template>
-      <input
-        type="file"
-        class="form-control mt-2"
-        (change)="onFileSelected($event)"
-        accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.png,.jpg,.jpeg"
+      <label for="numero" class="form-label">
+        N&#176; t&#233;l&#233;phone
+        <span class="badge-autofill" *ngIf="updateForm.get('numero')?.value">Auto</span>
+      </label>
+      <div class="form-field-stack">
+      <input id="numero" type="text" class="form-control" formControlName="numero" placeholder="Auto-rempli depuis le client"
+        appNumbersOnly maxlength="8"
+        [class.is-invalid]="updateForm.get('numero')?.invalid && (updateForm.get('numero')?.dirty || updateForm.get('numero')?.touched)"
       />
-      <small class="text-muted">Sélectionnez un nouveau fichier pour remplacer l'existant</small>
+      <app-field-error [control]="updateForm.get('numero')" field="phone"></app-field-error>
+      </div>
     </div>
+  </div>
 
-    <!-- À la fin du formulaire, remplacez les boutons par : -->
-<div class="form-buttons">
-  <button type="submit" class="btn btn-primary" [disabled]="updateForm.invalid">
-    Mettre à jour
-  </button>
-  <button type="button" class="btn btn-secondary" (click)="onCancel()">
-    Annuler
-  </button>
-</div>
-  </form>
-</div>
+  <div class="form-group mb-3">
+    <label for="adresseEmailContact" class="form-label">
+      Email client
+      <span class="badge-autofill" *ngIf="updateForm.get('adresseEmailContact')?.value">Auto</span>
+    </label>
+    <input id="adresseEmailContact" type="email" class="form-control" formControlName="adresseEmailContact" placeholder="Auto-rempli depuis le client" />
+    <div *ngIf="updateForm.get('adresseEmailContact')?.touched && updateForm.get('adresseEmailContact')?.invalid" class="text-danger">
+      Veuillez entrer une adresse email valide.
+    </div>
+  </div>
+
+  <div class="form-group mb-3">
+    <label for="mailAdmin" class="form-label">Email commercial</label>
+    <input id="mailAdmin" type="email" class="form-control" formControlName="mailAdmin" />
+    <div *ngIf="updateForm.get('mailAdmin')?.touched && updateForm.get('mailAdmin')?.invalid" class="text-danger">
+      Format email invalide
+    </div>
+  </div>
+
+  <div formArrayName="ccMail" class="form-group mb-3">
+    <label>Emails en copie (CC)</label>
+    <div *ngFor="let ccCtrl of ccMail.controls; let i = index" class="d-flex mb-2 align-items-center">
+      <input [formControlName]="i" type="email" class="form-control me-2" placeholder="Email CC" />
+      <button type="button" class="btn btn-danger btn-sm" (click)="ccMail.removeAt(i)" *ngIf="ccMail.length > 1">Supprimer</button>
+    </div>
+    <button type="button" class="btn btn-primary btn-sm" (click)="addCcMail()">Ajouter un email CC</button>
+  </div>
+
+  <div class="form-group mb-3">
+    <label for="remarque" class="form-label">Remarque</label>
+    <textarea id="remarque" class="form-control" formControlName="remarque"></textarea>
+  </div>
+
+  <div class="form-group mb-3">
+    <label class="form-label">Fichier</label>
+    <div *ngIf="veeam?.fichier; else noFile">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <a [href]="getFileDownloadUrl()" target="_blank" class="btn btn-outline-primary btn-sm">
+          <i class="fa fa-download"></i> {{ veeam.fichierOriginalName }}
+        </a>
+        <button type="button" class="btn btn-danger btn-sm" (click)="deleteFile()" *ngIf="permissionService.canDeleteProduct('veeam')">
+          <i class="fa fa-trash"></i> Supprimer
+        </button>
+      </div>
+    </div>
+    <ng-template #noFile>
+      <p class="text-muted">Aucun fichier attaché</p>
+    </ng-template>
+    <input type="file" class="form-control mt-2" (change)="onFileSelected($event)"
+      accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.png,.jpg,.jpeg" />
+    <small class="text-muted">Sélectionnez un nouveau fichier pour remplacer l'existant</small>
+  </div>
+
+  <div class="form-buttons">
+    <button type="submit" class="btn btn-primary">Mettre à jour</button>
+    <button type="button" class="btn btn-secondary" (click)="onCancel()">Annuler</button>
+  </div>
+</form>
+

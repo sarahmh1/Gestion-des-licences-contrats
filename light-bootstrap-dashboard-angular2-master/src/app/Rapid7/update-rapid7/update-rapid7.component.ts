@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Rapid7 } from 'app/Model/Rapid7';
@@ -43,7 +44,7 @@ export class UpdateRapid7Component implements OnInit {
         adresseEmailContact: ['', [Validators.required, Validators.email]],
         mailAdmin: ['', Validators.email],
         ccMail: this.fb.array([]),
-        numero: [''],
+        numero: ['', AppValidators.optionalPhone],
         remarque: [''],
         sousContrat: [false],
         licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
@@ -62,7 +63,7 @@ export class UpdateRapid7Component implements OnInit {
     }
   // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par dï¿½faut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -75,13 +76,13 @@ export class UpdateRapid7Component implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par défaut
+        return CommandePasserPar.GI_TN; // Valeur par dï¿½faut
     }
   }
     createLicenceGroup(): FormGroup {
       return this.fb.group({
         nomDesLicences: ['', Validators.required],
-        quantite: ['', Validators.required],
+        quantite: ['', AppValidators.requiredQuantity],
         dateEx: ['', Validators.required]
       });
     }
@@ -118,7 +119,7 @@ export class UpdateRapid7Component implements OnInit {
             data.licences.forEach(lic => {
               this.licences.push(this.fb.group({
                 nomDesLicences: [lic.nomDesLicences, Validators.required],
-                quantite: [lic.quantite, Validators.required],
+                quantite: [lic.quantite, AppValidators.requiredQuantity],
                 dateEx: [this.formatDate(lic.dateEx), Validators.required]
               }));
             });
@@ -137,7 +138,7 @@ export class UpdateRapid7Component implements OnInit {
           }
         },
         error => {
-          console.error('Erreur récupération Rapid7:', error);
+          console.error('Erreur rï¿½cupï¿½ration Rapid7:', error);
         }
       );
     }
@@ -148,8 +149,12 @@ export class UpdateRapid7Component implements OnInit {
     }
   
     updateRapid7(): void {
-      if (this.updateForm.valid) {
-        const updatedRapid7: Rapid7 = {
+      if (!this.updateForm.valid) {
+      this.updateForm.markAllAsTouched();
+      return;
+    }
+
+            const updatedRapid7: Rapid7 = {
           rapid7Id: this.rapid7Id,
           ...this.updateForm.value,
           fichier: this.rapid7?.fichier,
@@ -158,16 +163,14 @@ export class UpdateRapid7Component implements OnInit {
   
         this. rapid7Service.updateRapid7(updatedRapid7).subscribe(
           () => {
-            console.log('Rapid7 mis à jour avec succès');
+            console.log('Rapid7 mis ï¿½ jour avec succï¿½s');
             this.router.navigate(['/Afficherrapid7']);
           },
           error => {
-            console.error('Erreur mise à jour Rapid7:', error);
+            console.error('Erreur mise ï¿½ jour Rapid7:', error);
           }
         );
-      } else {
-        console.error('Formulaire invalide', this.updateForm);
-      }
+      
     }
 
     onFileSelected(event: any): void {
@@ -179,11 +182,11 @@ export class UpdateRapid7Component implements OnInit {
             this.rapid7.fichier = response.fichier;
             this.rapid7.fichierOriginalName = response.fichierOriginalName;
             this.cdr.detectChanges();
-            window.alert('Fichier uploadé avec succès');
+            window.alert('Fichier uploadï¿½ avec succï¿½s');
           },
           (error) => {
             console.error('Erreur upload fichier', error);
-            window.alert('Échec de l\'upload du fichier');
+            window.alert('ï¿½chec de l\'upload du fichier');
           }
         );
       }
@@ -200,11 +203,11 @@ export class UpdateRapid7Component implements OnInit {
             this.rapid7.fichier = undefined;
             this.rapid7.fichierOriginalName = undefined;
             this.cdr.detectChanges();
-            window.alert('Fichier supprimé');
+            window.alert('Fichier supprimï¿½');
           },
           (error) => {
             console.error('Erreur suppression fichier', error);
-            window.alert('Échec de la suppression');
+            window.alert('ï¿½chec de la suppression');
           }
         );
       }

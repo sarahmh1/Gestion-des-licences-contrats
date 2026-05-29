@@ -516,3 +516,28 @@ body {
     display: table-cell !important;
   }
 }
+
+/* Messages de validation sous le champ (pas à côté dans la grille licences) */
+.licence-field-stack,
+.form-field-stack {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+}
+
+.licence-field-stack app-field-error,
+.form-field-stack app-field-error {
+  display: block;
+  width: 100%;
+}
+
+.licence-row {
+  align-items: flex-start !important;
+}
+
+.col-md-3:has([formControlName="quantite"]),
+.col-md-4:has([formControlName="quantite"]) {
+  display: flex;
+  flex-direction: column;
+}

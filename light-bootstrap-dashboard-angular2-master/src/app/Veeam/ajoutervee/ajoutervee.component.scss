@@ -371,3 +371,26 @@ div[formArrayName] {
     z-index: 2;
   }
 }
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  .form-group {
+    flex: 1 1 220px;
+    margin-bottom: 0;
+  }
+}
+
+.badge-autofill {
+  display: inline-block;
+  background-color: #17a2b8;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}

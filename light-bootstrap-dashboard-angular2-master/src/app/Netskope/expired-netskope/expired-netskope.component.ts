@@ -13,6 +13,7 @@ export class ExpiredNetskopeComponent implements OnInit {
   filteredExpiredNetskopes: Netskope[] = [];
   pagedExpiredNetskopes: Netskope[] = [];
   searchTerm: string = '';
+  selectedNetskope: Netskope | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -92,8 +93,19 @@ export class ExpiredNetskopeComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectNetskope(item: Netskope): void {
+    this.selectedNetskope = item;
+  }
+
+  closeDetail(): void {
+    this.selectedNetskope = null;
+  }
+
   desapprouve(id: number): void {
     this.netskopeService.activate(id).subscribe(() => {
+      if (this.selectedNetskope?.netskopeId === id) {
+        this.selectedNetskope = null;
+      }
       // Après désapprobation, retirer le Netskope de la liste approuvée locale
       this.expiredNetskopes = this.expiredNetskopes.filter(netskope => netskope.netskopeId !== id);
       this.filteredExpiredNetskopes = this.filteredExpiredNetskopes.filter(netskope => netskope.netskopeId !== id);

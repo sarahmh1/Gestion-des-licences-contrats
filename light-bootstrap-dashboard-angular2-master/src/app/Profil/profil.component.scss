@@ -1,3 +1,33 @@
+.profil-forgot-row {
+  margin: 4px 0 0;
+  text-align: right;
+}
+
+.profil-forgot-link {
+  padding: 0;
+  font-size: 12px;
+  color: #f0ad4e;
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    color: #ec971f;
+    text-decoration: underline;
+  }
+}
+
+.profil-forgot-panel {
+  margin-top: 8px;
+  margin-bottom: 16px;
+  border-color: #f0ad4e;
+
+  .panel-heading {
+    background-color: #fcf8e3;
+    border-color: #f0ad4e;
+    color: #8a6d3b;
+  }
+}
+
 .page-header {
   margin-top: 0;
   padding-bottom: 15px;

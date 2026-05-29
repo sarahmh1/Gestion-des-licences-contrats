@@ -542,9 +542,10 @@
               <div class="period-row period-row-last">
                 <span class="period-label-mini">Date Exigée</span>
                 <input type="date" class="form-control date-input-sm date-exigee"
-                  formControlName="dateInterventionExigee" [attr.disabled]="!canEditAdminFields() ? '' : null" />
+                  formControlName="dateInterventionExigee"
+                  [attr.disabled]="!canEditAdminFields() ? '' : null" />
                 <button type="button" class="btn btn-sm btn-tech-trigger" (click)="openTechSubPopup(i)"
-                  *ngIf="isTechnique() && (currentEditingStatut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION || currentEditingStatut === StatutInterventionPreventive.EN_COURS)"
+                  *ngIf="canShowTechSubPopupButton()"
                   title="Saisir informations techniques">
                   <i class="fas fa-tools"></i>
                 </button>
@@ -606,7 +607,7 @@
 
       <!-- Message technique -->
       <div
-        *ngIf="isTechnique() && (currentEditingStatut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION || currentEditingStatut === StatutInterventionPreventive.EN_COURS)"
+        *ngIf="canShowTechSubPopupButton()"
         class="alert alert-success">
         <i class="fas fa-tools"></i> Cliquez sur le bouton <strong>🔧</strong> à côté de chaque période pour saisir les
         informations techniques.

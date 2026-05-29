@@ -13,6 +13,7 @@ export class ExpiredCiscoComponent implements OnInit {
   filteredExpiredCiscos: Cisco[] = [];
   pagedExpiredCiscos: Cisco[] = [];
   searchTerm: string = '';
+  selectedCisco: Cisco | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -92,8 +93,19 @@ export class ExpiredCiscoComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectCisco(item: Cisco): void {
+    this.selectedCisco = item;
+  }
+
+  closeDetail(): void {
+    this.selectedCisco = null;
+  }
+
   desapprouve(id: number): void {
     this.ciscoService.activate(id).subscribe(() => {
+      if (this.selectedCisco?.ciscoId === id) {
+        this.selectedCisco = null;
+      }
       // Après désapprobation, retirer le Cisco de la liste approuvée locale
       this.expiredCiscos = this.expiredCiscos.filter(cisco => cisco.ciscoId !== id);
       this.filteredExpiredCiscos = this.filteredExpiredCiscos.filter(cisco => cisco.ciscoId !== id);

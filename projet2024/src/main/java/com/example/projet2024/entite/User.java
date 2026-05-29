@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -25,6 +26,7 @@ public class User implements Serializable {
     private String phoneNumber;
     private String dateOfBirth;
     
+    @Enumerated(EnumType.STRING)
     private Role_Enum role;
     
     private String verificationToken;
@@ -32,5 +34,8 @@ public class User implements Serializable {
     private String profilePicture;
     private boolean isDeleted = false;  // Soft delete flag
 
+    /** Code à 6 chiffres pour réinitialisation du mot de passe */
+    private String resetPasswordCode;
+    private LocalDateTime resetPasswordExpiresAt;
 
 }

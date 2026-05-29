@@ -1,0 +1,16 @@
+<div class="modal-overlay" *ngIf="visible" (click)="onOverlayClick()">
+  <div class="modal-content modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>{{ title }}</h4>
+      <button type="button" class="close-btn" (click)="onCancel()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>{{ message }}</p>
+      <p *ngIf="detail"><strong>{{ detail }}</strong></p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="onCancel()">Annuler</button>
+      <button type="button" class="btn btn-danger" (click)="onConfirm()" *ngIf="canConfirm">{{ confirmLabel }}</button>
+    </div>
+  </div>
+</div>

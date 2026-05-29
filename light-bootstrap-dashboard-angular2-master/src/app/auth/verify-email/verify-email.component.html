@@ -1,0 +1,39 @@
+<div class="lc-auth lc-auth--login">
+  <header class="lc-auth__topbar">
+    <a class="lc-auth__brand" routerLink="/login" aria-label="Accueil connexion">
+      <span class="lc-auth__brand-mark">LC</span>
+      <span class="lc-auth__brand-text">
+        <strong>Licences &amp; Contrats</strong>
+        <span>Gestion interne</span>
+      </span>
+    </a>
+  </header>
+
+  <main class="lc-auth__stage">
+    <div class="lc-auth__shell">
+      <article class="lc-auth__panel">
+        <header class="lc-auth__panel-head">
+          <h1 class="lc-auth__hero-title">Vérification du compte</h1>
+          <p class="lc-auth__hero-desc">Activation de votre compte après inscription.</p>
+        </header>
+
+        <div class="lc-auth__panel-body">
+          <div *ngIf="status === 'loading'" class="alert alert-info">{{ message }}</div>
+          <div *ngIf="status === 'success'" class="alert alert-success">
+            {{ message }}
+            <p class="lc-verify-email__hint">Redirection vers la connexion…</p>
+          </div>
+          <div *ngIf="status === 'error'" class="alert alert-danger">{{ message }}</div>
+
+          <button
+            type="button"
+            class="lc-btn lc-btn--primary lc-btn--block"
+            (click)="goToLogin()"
+            *ngIf="status !== 'loading'">
+            Aller à la connexion
+          </button>
+        </div>
+      </article>
+    </div>
+  </main>
+</div>

@@ -5,12 +5,14 @@ import { Component, OnInit, Output, EventEmitter, ViewChild, ElementRef, HostLis
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Eset } from 'app/Model/Eset';
+import { EsetImportAnalyzeResponse } from 'app/Model/EsetImportAnalyzeResponse';
 import { NomProduit } from 'app/Model/NomProduit';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { HttpEventType } from '@angular/common/http';
 import { ClientService, Client } from '../Services/client.service';
 import { SearchableClientSelectComponent } from '../shared/searchable-client-select/searchable-client-select.component';
 import { PermissionService } from '../Services/permission.service';
+import { AppValidators } from '../shared/validators/app-validators';
 
 @Component({
   selector: 'app-products',
@@ -40,6 +42,9 @@ export class ProductsComponent implements OnInit {
   selectedFile: File | null = null;
   uploadMessage: string | null = null;
   uploadSuccess: boolean = false;
+  analyzeImportInProgress = false;
+  /** Indique que la dernière analyse IA n'a pas rempli les champs (Ollama désactivé, erreur JSON, etc.) */
+  lastAnalyzeSkipped = false;
 
   typeAchatOptions = [
     { value: TypeAchat.RENOUVELLEMENT, display: 'Renouvellemnt' },
@@ -149,7 +154,7 @@ export class ProductsComponent implements OnInit {
       nom_produit: ['', Validators.required],
       remarque: [''],
       sousContrat: [false],
-      nombre: ['', [Validators.required, Validators.min(1)]],
+      nombre: ['', AppValidators.requiredQuantity],
       nmb_tlf: [''],
       commandePasserPar: ['', Validators.required],
       dureeDeLicence: [''],
@@ -356,10 +361,14 @@ export class ProductsComponent implements OnInit {
   }
 
   addProduct() {
-    if (this.productForm.valid) {
-      console.log('Valeurs du formulaire:', this.productForm.value);
+    if (!this.productForm.valid) {
+      this.markFormGroupTouched(this.productForm);
+      return;
+    }
 
-      const newProduct: Eset = {
+    console.log('Valeurs du formulaire:', this.productForm.value);
+
+    const newProduct: Eset = {
         esetid: null!,
         client: this.productForm.value.client,
         identifiant: this.productForm.value.identifiant,
@@ -392,6 +401,7 @@ export class ProductsComponent implements OnInit {
             this.uploadFileAfterCreation(esetId);
           } else {
             this.uploadSuccess = true;
+            this.lastAnalyzeSkipped = false;
             this.uploadMessage = 'Eset ajouté avec succès';
             this.productAdded.emit();
           }
@@ -403,10 +413,6 @@ export class ProductsComponent implements OnInit {
           window.alert('Échec de l\'ajout du produit: ' + errorMsg);
         }
       );
-    } else {
-      this.markFormGroupTouched(this.productForm);
-      window.alert('Le formulaire est invalide. Veuillez corriger les erreurs.');
-    }
   }
 
   // Méthode pour marquer tous les champs comme touched
@@ -543,18 +549,119 @@ export class ProductsComponent implements OnInit {
   }
 
   // ==================== GESTION DES FICHIERS ====================
-  
-  onFileSelected(event: any): void {
-    const file: File = event.target.files[0];
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (file) {
       this.selectedFile = file;
       this.uploadMessage = null;
+      this.lastAnalyzeSkipped = false;
+      this.uploadSuccess = false;
+      this.runAnalyzeImport();
+    }
+  }
+
+  private runAnalyzeImport(): void {
+    if (!this.selectedFile) {
+      return;
+    }
+    this.analyzeImportInProgress = true;
+    this.esetService.analyzeImport(this.selectedFile).subscribe({
+      next: (r: EsetImportAnalyzeResponse) => {
+        this.analyzeImportInProgress = false;
+        this.lastAnalyzeSkipped = !!r.extractionSkipped;
+        if (!r.extractionSkipped) {
+          this.applyAnalyzeResponse(r);
+          this.uploadSuccess = true;
+          this.uploadMessage = r.infoMessage || 'Formulaire mis à jour depuis le document.';
+        } else {
+          this.uploadSuccess = false;
+          this.uploadMessage = r.infoMessage || 'Analyse non disponible. Remplissez le formulaire manuellement.';
+        }
+      },
+      error: (error) => {
+        this.analyzeImportInProgress = false;
+        this.lastAnalyzeSkipped = false;
+        this.uploadSuccess = false;
+        const body = error.error;
+        const msg = typeof body === 'string' ? body : (body?.message || error.message || 'Erreur lors de l\'analyse');
+        this.uploadMessage = msg;
+      }
+    });
+  }
+
+  private applyAnalyzeResponse(r: EsetImportAnalyzeResponse): void {
+    const patch: Record<string, unknown> = {};
+    if (r.client) {
+      patch['client'] = r.client;
+    }
+    if (r.identifiant) {
+      patch['identifiant'] = r.identifiant;
+    }
+    if (r.cle_de_Licence) {
+      patch['cle_de_Licence'] = r.cle_de_Licence;
+    }
+    if (r.nombre != null && !Number.isNaN(Number(r.nombre))) {
+      patch['nombre'] = Number(r.nombre);
+    }
+    if (r.nmb_tlf != null && String(r.nmb_tlf).trim() !== '') {
+      patch['nmb_tlf'] = String(r.nmb_tlf).trim();
+    }
+    if (r.nom_contact) {
+      patch['nom_contact'] = r.nom_contact;
+    }
+    if (r.mail) {
+      patch['mail'] = r.mail;
+    }
+    if (r.mailAdmin) {
+      patch['mailAdmin'] = r.mailAdmin;
+    }
+    if (r.dateEx) {
+      patch['dateEx'] = r.dateEx;
+    }
+    if (r.dureeDeLicence) {
+      patch['dureeDeLicence'] = r.dureeDeLicence;
+    }
+    if (r.typeAchat) {
+      patch['typeAchat'] = r.typeAchat;
+    }
+    if (r.commandePasserPar) {
+      patch['commandePasserPar'] = r.commandePasserPar;
+    }
+    if (r.remarque) {
+      patch['remarque'] = r.remarque;
+    }
+    if (r.sousContrat === true || r.sousContrat === false) {
+      patch['sousContrat'] = r.sousContrat;
+    }
+
+    this.productForm.patchValue(patch);
+
+    if (r.nom_produit) {
+      this.selectProduct(r.nom_produit);
+    }
+
+    if (r.ccMail && r.ccMail.length > 0) {
+      while (this.ccMail.length) {
+        this.ccMail.removeAt(0);
+      }
+      r.ccMail.forEach(email => {
+        const trimmed = (email || '').trim();
+        if (trimmed) {
+          this.ccMail.push(this.fb.control(trimmed, [Validators.email]));
+        }
+      });
+      if (this.ccMail.length === 0) {
+        this.ccMail.push(this.fb.control('', [Validators.email]));
+      }
     }
   }
 
   uploadFileAfterCreation(esetId: number): void {
     if (!this.selectedFile) {
       this.uploadSuccess = true;
+      this.lastAnalyzeSkipped = false;
       this.uploadMessage = 'Eset ajouté avec succès';
       this.productAdded.emit();  // Émettre l'événement au lieu de naviguer
       return;
@@ -565,10 +672,12 @@ export class ProductsComponent implements OnInit {
         if (event.type === HttpEventType.Response) {
           if (event.body.success) {
             this.uploadSuccess = true;
+            this.lastAnalyzeSkipped = false;
             this.uploadMessage = 'Fichier uploadé avec succès!';
             this.productAdded.emit();  // Émettre l'événement au lieu de naviguer
           } else {
             this.uploadSuccess = false;
+            this.lastAnalyzeSkipped = false;
             this.uploadMessage = event.body.message || 'Erreur lors de l\'upload';
             this.productAdded.emit();  // Émettre l'événement même en cas d'erreur upload
           }
@@ -576,6 +685,7 @@ export class ProductsComponent implements OnInit {
       },
       error: (error) => {
         this.uploadSuccess = false;
+        this.lastAnalyzeSkipped = false;
         this.uploadMessage = 'Erreur lors de l\'upload: ' + (error.error?.message || error.message);
         console.error('Erreur upload:', error);
         this.productAdded.emit();  // Émettre l'événement même en cas d'erreur upload

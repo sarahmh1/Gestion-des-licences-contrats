@@ -1,4 +1,4 @@
-﻿<div class="master-detail-container">
+<div class="master-detail-container">
   <div class="header-row">
     <h2>Licences Bitdefender</h2>
     <div class="action-group">
@@ -8,38 +8,46 @@
       </div>
     </div>
   </div>
+
   <div class="md-layout" [class.detail-open]="selectedBitdefender">
     <div class="md-master">
       <div class="md-list">
-        <div *ngFor="let x of pagedBitdefenders" class="md-item"
-          [class.md-item-active]="selectedBitdefender?.bitdefenderId === x.bitdefenderId" (click)="selectBitdefender(x)">
+        <div *ngFor="let b of pagedBitdefenders" class="md-item"
+          [class.md-item-active]="selectedBitdefender?.bitdefenderId === b.bitdefenderId" (click)="selectBitdefender(b)">
           <div class="md-item-info">
-            <div class="md-item-client">{{ x.client }}</div>
+            <div class="md-item-client">{{ b.client }}</div>
             <div class="md-item-fields">
-              <span class="md-field"><strong>Durée :</strong> {{ x.dureeDeLicence || '-' }}</span>
-              <span *ngFor="let lic of x.licences" class="md-field"><strong>{{ lic.nomDesLicences }} :</strong> expire {{ lic.dateEx | date:'dd/MM/yyyy' }}</span>
+              <span class="md-field"><strong>Durée :</strong> {{ b.dureeDeLicence || '-' }}</span>
+              <span *ngFor="let lic of b.licences" class="md-field">
+                <strong>{{ lic.nomDesLicences }} :</strong> expire {{ lic.dateEx | date:'dd/MM/yyyy' }}
+              </span>
             </div>
           </div>
           <div class="md-item-actions" (click)="$event.stopPropagation()">
-            <button class="md-btn-icon md-btn-view" (click)="selectBitdefender(x)" title="Voir details"><i class="fas fa-eye"></i></button>
-            <button class="md-btn-icon md-btn-edit" (click)="updateBitdefender(x)" *ngIf="permissionService.canEditProduct('bitdefender')"><i class="fas fa-pen"></i></button>
-            <button class="md-btn-icon md-btn-delete" (click)="deleteBitdefender(x.bitdefenderId)" *ngIf="permissionService.canDeleteProduct('bitdefender')"><i class="fas fa-trash"></i></button>
-            <button class="md-btn-icon md-btn-approve" (click)="approveBitdefender(x.bitdefenderId)" *ngIf="permissionService.canEditProduct('bitdefender')"><i class="fas fa-check"></i></button>
+            <button class="md-btn-icon md-btn-view" (click)="selectBitdefender(b)" title="Voir détails"><i class="fas fa-eye"></i></button>
+            <button class="md-btn-icon md-btn-edit" (click)="updateBitdefender(b)" *ngIf="permissionService.canEditProduct('bitdefender')"><i class="fas fa-pen"></i></button>
+            <button class="md-btn-icon md-btn-delete" (click)="requestDeleteBitdefender(b)" *ngIf="permissionService.canDeleteProduct('bitdefender')"><i class="fas fa-trash"></i></button>
+            <button class="md-btn-icon md-btn-approve" (click)="approveBitdefender(b.bitdefenderId)" *ngIf="permissionService.canEditProduct('bitdefender')"><i class="fas fa-check"></i></button>
           </div>
         </div>
         <div *ngIf="pagedBitdefenders.length === 0" class="md-empty"><i class="fas fa-folder-open"></i><p>Aucun Bitdefender trouvé.</p></div>
       </div>
       <div class="md-pagination" *ngIf="totalPages > 1">
-        <button *ngFor="let page of pageNumbers; let i = index" (click)="changePage(i)" [class.active]="i === currentPage" class="btn btn-sm btn-outline-primary mx-1">{{ i + 1 }}</button>
+        <button *ngFor="let page of pageNumbers; let i = index" (click)="changePage(i)"
+          [class.active]="i === currentPage" class="btn btn-sm btn-outline-primary mx-1">{{ i + 1 }}</button>
       </div>
     </div>
+
     <div class="md-detail" *ngIf="selectedBitdefender">
       <div class="md-detail-card">
-        <div class="md-detail-header"><h4>{{ selectedBitdefender.client }}</h4><button class="md-detail-close" (click)="closeDetail()">&times;</button></div>
+        <div class="md-detail-header">
+          <h4>{{ selectedBitdefender.client }}</h4>
+          <button class="md-detail-close" (click)="closeDetail()">&times;</button>
+        </div>
         <div class="md-detail-body">
           <div class="md-detail-section-title">Licence</div>
           <div class="md-detail-row"><span class="md-label">Durée</span><span class="md-value">{{ selectedBitdefender.dureeDeLicence || '-' }}</span></div>
-          
+
           <div class="md-detail-divider"></div>
           <div class="md-detail-section-title">Licences</div>
           <div *ngFor="let lic of selectedBitdefender.licences" class="licence-block">
@@ -47,23 +55,27 @@
             <div class="md-detail-row"><span class="md-label">Quantité</span><span class="md-value">{{ lic.quantite }}</span></div>
             <div class="md-detail-row"><span class="md-label">Expiration</span><span class="md-value">{{ lic.dateEx | date:'dd/MM/yyyy' }}</span></div>
           </div>
+
           <div class="md-detail-divider"></div>
-          <div class="md-detail-section-title">Contact Client</div>
-          <div class="md-detail-row"><span class="md-label">Nom contact</span><span class="md-value">{{ selectedBitdefender.nomDuContact || '-' }}</span></div>
-          <div class="md-detail-row"><span class="md-label">N° Téléphone</span><span class="md-value">{{ selectedBitdefender.numero || '-' }}</span></div>
+          <div class="md-detail-section-title">Vis-à-vis client</div>
+          <div class="md-detail-row"><span class="md-label">Vis-à-vis client</span><span class="md-value">{{ selectedBitdefender.nomDuContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Numéro de téléphone</span><span class="md-value">{{ selectedBitdefender.numero || '-' }}</span></div>
           <div class="md-detail-row"><span class="md-label">Email client</span><span class="md-value">{{ selectedBitdefender.adresseEmailContact || '-' }}</span></div>
           <div class="md-detail-row"><span class="md-label">Email Commercial</span><span class="md-value">{{ selectedBitdefender.mailAdmin || '-' }}</span></div>
-          <div class="md-detail-row"><span class="md-label">CC Mail</span><span class="md-value">{{ selectedBitdefender.ccMail || '-' }}</span></div>
-          <div class="md-detail-row"><span class="md-label">Sous Contrat</span><span class="md-value"><span [class]="selectedBitdefender.sousContrat ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">{{ selectedBitdefender.sousContrat ? 'Oui' : 'Non' }}</span></span></div>
+          <div class="md-detail-row"><span class="md-label">CC Mail</span><span class="md-value">{{ formatCcMail(selectedBitdefender.ccMail) }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Sous Contrat</span>
+            <span class="md-value"><span [class]="selectedBitdefender.sousContrat ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">{{ selectedBitdefender.sousContrat ? 'Oui' : 'Non' }}</span></span></div>
           <div class="md-detail-row"><span class="md-label">Remarque</span><span class="md-value">{{ selectedBitdefender.remarque || '-' }}</span></div>
           <div class="md-detail-row"><span class="md-label">Commande par</span><span class="md-value">{{ getCommandePasserParLabel(selectedBitdefender.commandePasserPar) || '-' }}</span></div>
-          <div class="md-detail-row" *ngIf="selectedBitdefender.fichierOriginalName">
-            <span class="md-label">Fichier</span><span class="md-value"><a [href]="getFileDownloadUrl(selectedBitdefender.bitdefenderId)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa fa-download"></i> {{ selectedBitdefender.fichierOriginalName }}</a></span>
+
+          <div class="md-detail-row" *ngIf="selectedBitdefender.fichier">
+            <span class="md-label">Fichier</span>
+            <span class="md-value"><a [href]="getFileDownloadUrl(selectedBitdefender.bitdefenderId)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa fa-download"></i> {{ selectedBitdefender.fichierOriginalName || 'Télécharger' }}</a></span>
           </div>
           <div class="md-detail-divider"></div>
           <div class="md-detail-actions">
             <button (click)="updateBitdefender(selectedBitdefender)" class="btn btn-sm btn-primary" *ngIf="permissionService.canEditProduct('bitdefender')"><i class="fas fa-pen"></i> Modifier</button>
-            <button (click)="deleteBitdefender(selectedBitdefender.bitdefenderId)" class="btn btn-sm btn-danger" *ngIf="permissionService.canDeleteProduct('bitdefender')"><i class="fas fa-trash"></i> Supprimer</button>
+            <button (click)="requestDeleteBitdefender(selectedBitdefender)" class="btn btn-sm btn-danger" *ngIf="permissionService.canDeleteProduct('bitdefender')"><i class="fas fa-trash"></i> Supprimer</button>
             <button (click)="approveBitdefender(selectedBitdefender.bitdefenderId)" class="btn btn-sm btn-success" *ngIf="permissionService.canEditProduct('bitdefender')"><i class="fas fa-check"></i> Approuver</button>
           </div>
         </div>
@@ -72,5 +84,168 @@
   </div>
 </div>
 
+<!-- Modal ajouter Bitdefender -->
+<div class="modal-overlay" *ngIf="showAddModal" (click)="closeAddModal()">
+  <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-section">
+        <i class="fas fa-shield-alt modal-icon"></i>
+        <h4>Ajouter licence Bitdefender</h4>
+      </div>
+      <button type="button" class="close-btn" (click)="closeAddModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" (click)="onModalBodyClick($event)">
+      <app-ajouter-bitdefender (bitdefenderAdded)="onBitdefenderAdded()" (cancelled)="onAddCancelled()"></app-ajouter-bitdefender>
+    </div>
+  </div>
+</div>
 
+<!-- Modal modifier Bitdefender -->
+<div class="modal-overlay" *ngIf="showUpdateModal" (click)="onUpdateCancelled()">
+  <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-section">
+        <i class="fas fa-edit modal-icon"></i>
+        <h4>Modifier Bitdefender</h4>
+      </div>
+      <button type="button" class="close-btn" (click)="onUpdateCancelled()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" (click)="onModalBodyClick($event)">
+      <app-ajouter-bitdefender
+        *ngIf="selectedBitdefenderToUpdate"
+        [bitdefenderToEdit]="selectedBitdefenderToUpdate"
+        (bitdefenderAdded)="onBitdefenderAdded()"
+        (cancelled)="onUpdateCancelled()">
+      </app-ajouter-bitdefender>
+    </div>
+  </div>
+</div>
 
+<style>
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7));
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    max-height: 90vh;
+    overflow: visible;
+    animation: slideInUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    flex-direction: column;
+  }
+
+  @keyframes slideInUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-content.modal-lg {
+    max-width: 920px;
+    width: 95%;
+  }
+
+  .modal-header {
+    padding: 2rem;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px 12px 0 0;
+  }
+
+  .modal-title-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .modal-icon {
+    font-size: 1.8rem;
+    color: white;
+  }
+
+  .modal-header h4 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: white;
+    letter-spacing: 0.3px;
+  }
+
+  .close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: white;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+  }
+
+  .modal-body {
+    padding: 2rem;
+    background: #fafbfc;
+    overflow-y: auto;
+    flex: 1;
+    max-height: calc(90vh - 150px);
+  }
+
+  .modal-body ::ng-deep .form-wrapper {
+    overflow: visible !important;
+    max-height: none !important;
+    position: static !important;
+  }
+
+  .modal-body > * {
+    width: 100%;
+  }
+
+  .modal-body form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+</style>
+
+<app-confirm-delete-modal
+  [visible]="showDeleteModal"
+  message="Êtes-vous sûr de vouloir supprimer cette licence Bitdefender ?"
+  [detail]="deleteModalDetail"
+  [canConfirm]="permissionService.canDeleteProduct('bitdefender')"
+  (cancel)="closeDeleteModal()"
+  (confirm)="confirmDeleteBitdefender()">
+</app-confirm-delete-modal>

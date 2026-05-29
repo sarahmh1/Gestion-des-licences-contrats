@@ -3,9 +3,7 @@
       <div class="form-group mb-3">
         <label for="client" class="form-label">Client</label>
         <app-searchable-client-select formControlName="client" [clients]="clients"></app-searchable-client-select>
-        <div *ngIf="updateForm.get('client')?.touched && updateForm.get('client')?.invalid" class="text-danger">
-          Le nom du client est requis
-        </div>
+        <app-field-error [control]="updateForm.get('client')"></app-field-error>
       </div>
 
       <!-- Identifiant -->
@@ -18,9 +16,7 @@
           formControlName="identifiant"
           placeholder="Identifiant"
         />
-        <div *ngIf="updateForm.get('identifiant')?.touched && updateForm.get('identifiant')?.invalid" class="text-danger">
-          L'identifiant est requis
-        </div>
+        <app-field-error [control]="updateForm.get('identifiant')"></app-field-error>
       </div>
 
       <!-- Clé de Licence -->
@@ -33,9 +29,7 @@
           formControlName="cle_de_Licence"
           placeholder="Clé de licence"
         />
-        <div *ngIf="updateForm.get('cle_de_Licence')?.touched && updateForm.get('cle_de_Licence')?.invalid" class="text-danger">
-          La clé de licence est requise
-        </div>
+        <app-field-error [control]="updateForm.get('cle_de_Licence')"></app-field-error>
       </div>
 
       <!-- Nom du Produit -->
@@ -48,24 +42,22 @@
           formControlName="nom_produit"
           placeholder="Nom du produit"
         />
-        <div *ngIf="updateForm.get('nom_produit')?.touched && updateForm.get('nom_produit')?.invalid" class="text-danger">
-          Le nom du produit est requis
-        </div>
+        <app-field-error [control]="updateForm.get('nom_produit')"></app-field-error>
       </div>
 
-      <!-- Nombre -->
+      <!-- Quantité -->
       <div class="form-group mb-3">
         <label for="nombre" class="form-label">Quantité</label>
-        <input
-          type="number"
-          id="nombre"
-          class="form-control"
-          formControlName="nombre"
-          placeholder="Nombre"
-        />
-        <div *ngIf="updateForm.get('nombre')?.touched && updateForm.get('nombre')?.invalid" class="text-danger">
-          <div *ngIf="updateForm.get('nombre')?.errors?.['required']">Le nombre est requis</div>
-          <div *ngIf="updateForm.get('nombre')?.errors?.['min']">Le nombre doit être au moins 1</div>
+        <div class="form-field-stack">
+          <input
+            type="text"
+            id="nombre"
+            class="form-control"
+            formControlName="nombre"
+            placeholder="Quantité"
+            [class.is-invalid]="updateForm.get('nombre')?.invalid && (updateForm.get('nombre')?.dirty || updateForm.get('nombre')?.touched)"
+          />
+          <app-field-error [control]="updateForm.get('nombre')" field="quantity"></app-field-error>
         </div>
       </div>
 <!-- Type d'Achat -->
@@ -81,9 +73,7 @@
           <option value="DownGrade">DownGrade</option>
           <option value="licence_gratuit">Licence Gratuit</option>
         </select>
-        <div *ngIf="updateForm.get('typeAchat')?.touched && updateForm.get('typeAchat')?.invalid" class="text-danger">
-          Le type d'achat est requis
-        </div>
+        <app-field-error [control]="updateForm.get('typeAchat')"></app-field-error>
       </div>
       <div class="form-group mb-3">
       <label for="dureeDeLicence">Durée de la Licence</label>
@@ -98,9 +88,7 @@
           class="form-control"
           formControlName="dateEx"
         />
-        <div *ngIf="updateForm.get('dateEx')?.touched && updateForm.get('dateEx')?.invalid" class="text-danger">
-          La date d'expiration est requise
-        </div>
+        <app-field-error [control]="updateForm.get('dateEx')"></app-field-error>
       </div>
       <!-- Vis-a-Vis Client -->
       <div class="form-group mb-3">
@@ -289,10 +277,10 @@
             {{ option.label }}
           </option>
         </select>
-      </div>
+      <app-field-error [control]="updateForm.get('commandePasserPar')"></app-field-error></div>
 
       <!-- Boutons -->
-      <button type="submit" class="btn btn-primary" [disabled]="updateForm.invalid">
+      <button type="submit" class="btn btn-primary">
         Mettre à jour
       </button>
       <button type="button" class="btn btn-secondary ms-2" (click)="onCancel()">

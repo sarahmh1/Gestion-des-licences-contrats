@@ -13,6 +13,7 @@ export class ExpiredVaronisComponent implements OnInit {
   filteredExpiredVaroniss: Varonis[] = [];
   pagedExpiredVaroniss: Varonis[] = [];
   searchTerm: string = '';
+  selectedVaronis: Varonis | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -92,8 +93,19 @@ export class ExpiredVaronisComponent implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectVaronis(item: Varonis): void {
+    this.selectedVaronis = item;
+  }
+
+  closeDetail(): void {
+    this.selectedVaronis = null;
+  }
+
   desapprouve(id: number): void {
     this.varonisService.activate(id).subscribe(() => {
+      if (this.selectedVaronis?.varonisId === id) {
+        this.selectedVaronis = null;
+      }
       // Après désapprobation, retirer le Varonis de la liste approuvée locale
       this.expiredVaroniss = this.expiredVaroniss.filter(varonis => varonis.varonisId !== id);
       this.filteredExpiredVaroniss = this.filteredExpiredVaroniss.filter(varonis => varonis.varonisId !== id);

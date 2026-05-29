@@ -18,8 +18,8 @@ export class InfobloxService {
   }
 
   
-  addInfoblox(infoblox: Infoblox): Observable<Object> {
-    return this.http.post(`${this.baseUrl}/addInfoblox`, infoblox);
+  addInfoblox(infoblox: Infoblox): Observable<Infoblox> {
+    return this.http.post<Infoblox>(`${this.baseUrl}/addInfoblox`, infoblox);
   }
 
 

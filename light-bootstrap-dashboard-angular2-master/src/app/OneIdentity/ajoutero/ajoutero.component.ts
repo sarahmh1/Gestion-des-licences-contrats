@@ -1,182 +1,280 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, Output, EventEmitter, Input, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { OneIdentity } from 'app/Model/OneIdentity';
 import { OneIdentityService } from 'app/Services/oneIdentity.service';
 import { ClientService, Client } from '../../Services/client.service';
+import { SearchableClientSelectComponent } from '../../shared/searchable-client-select/searchable-client-select.component';
+
 @Component({
-  selector: 'app-ajoutero',
+  selector: 'app-ajouter-oneidentity',
   templateUrl: './ajoutero.component.html',
   styleUrls: ['./ajoutero.component.scss']
 })
-export class AjouteroComponent implements OnInit {
-  clients: Client[] = [];
-   oneIdentityForm!: FormGroup;
-   selectedFile: File | null = null;
-   commandePasserParOptions = [
-        { label: 'GI_TN', value: CommandePasserPar.GI_TN },
-        { label: 'GI_FR', value: CommandePasserPar.GI_FR },
-        { label: 'GI_CI', value: CommandePasserPar.GI_CI }
-      ];
-    constructor(
-      private fb: FormBuilder,
-      private router: Router,
-      private oneIdentityService: OneIdentityService,
-    private clientService: ClientService) {}
-  
-     ngOnInit(): void {
-    this.clientService.getAllClients().subscribe(data => this.clients = data);
-        this.oneIdentityForm= this.fb.group({
-          client: ['', Validators.required],
-          dureeDeLicence: [''],
-          nomDuContact: [''],
-          adresseEmailContact: [''],
-          sousContrat: [false],
-          mailAdmin: ['', [Validators.email]],
-           commandePasserPar: ['', Validators.required],
-          ccMail: this.fb.array([this.fb.control('', [Validators.email])]),
-          numero: [''],
-          remarque: [''],
-          licences: this.fb.array([
-            this.createLicenceGroup()
-          ])
-        });
-      }
-    
-      get ccMail(): FormArray {
-        return this.oneIdentityForm.get('ccMail') as FormArray;
-      }
-    
-      get licences(): FormArray {
-        return this.oneIdentityForm.get('licences') as FormArray;
-      }
-    
-      createLicenceGroup(): FormGroup {
-        return this.fb.group({
-          nomDesLicences: ['', Validators.required],
-          quantite: ['', Validators.required],
-          dateEx: ['', Validators.required]
-        });
-      }
-    
-      addLicence() {
-        this.licences.push(this.createLicenceGroup());
-      }
-    
-      removeLicence(index: number) {
-        this.licences.removeAt(index);
-      }
-    
-      addCcMail() {
-        this.ccMail.push(this.fb.control('', [Validators.email]));
-      }
-    
-      removeCcMail(index: number) {
-        this.ccMail.removeAt(index);
-      }
-    
-      setCcMail(ccMails: string[]) {
-        const ccMailFormArray = this.oneIdentityForm.get('ccMail') as FormArray;
-        ccMailFormArray.clear();
-        if (ccMails && ccMails.length > 0) {
-          ccMails.forEach(email => ccMailFormArray.push(this.fb.control(email, Validators.email)));
-        } else {
-          ccMailFormArray.push(this.fb.control('', Validators.email));
-        }
-      }
-    
-      loadOneIdentity(id: number) {
-        this.oneIdentityService.getOneIdentityById(id).subscribe(oneIdentity => {
-          this.oneIdentityForm.patchValue({
-            client: oneIdentity.client,
-            dureeDeLicence: oneIdentity.dureeDeLicence,
-            nomDuContact: oneIdentity.nomDuContact,
-             sousContrat: oneIdentity.sousContrat,
-             commandePasserPar: oneIdentity.commandePasserPar,
-            adresseEmailContact: oneIdentity.adresseEmailContact,
-            mailAdmin: oneIdentity.mailAdmin,
-            numero: oneIdentity.numero,
-            remarque: oneIdentity.remarque
-          });
-    
-          // Set licences (clear + patch)
-          this.licences.clear();
-          if (oneIdentity.licences && oneIdentity.licences.length > 0) {
-            oneIdentity.licences.forEach(lic => {
-              this.licences.push(this.fb.group({
-                nomDesLicences: [lic.nomDesLicences, Validators.required],
-                quantite: [lic.quantite, Validators.required],
-                dateEx: [this.formatDate(lic.dateEx), Validators.required]
-              }));
-            });
-          }
-    
-          this.setCcMail(oneIdentity.ccMail);
-        });
-      }
-    
-      formatDate(date: string | Date): string {
-        const d = new Date(date);
-        return d.toISOString().substring(0, 10); // 'yyyy-MM-dd'
-      }
+export class AjouteroComponent implements OnInit, OnChanges {
+  @Output() oneIdentityAdded = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
+  @Input() oneIdentityToEdit: OneIdentity | null = null;
 
-      onFileSelected(event: any): void {
-        const file = event.target.files[0];
-        if (file) {
-          this.selectedFile = file;
-        }
+  clients: Client[] = [];
+  oneIdentityForm!: FormGroup;
+  selectedFile: File | null = null;
+  isEditing = false;
+  currentOneIdentityId: number | null = null;
+
+  @ViewChild('clientSelect') clientSelect?: SearchableClientSelectComponent;
+
+  commandePasserParOptions = [
+    { label: 'GI_TN', value: CommandePasserPar.GI_TN },
+    { label: 'GI_FR', value: CommandePasserPar.GI_FR },
+    { label: 'GI_CI', value: CommandePasserPar.GI_CI }
+  ];
+
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private oneIdentityService: OneIdentityService,
+    private clientService: ClientService) {}
+
+  ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
+    this.initializeForm();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['oneIdentityToEdit']?.currentValue && this.oneIdentityForm) {
+      this.oneIdentityToEdit = changes['oneIdentityToEdit'].currentValue;
+      this.loadOneIdentityIntoForm();
+    }
+  }
+
+  initializeForm(): void {
+    this.oneIdentityForm = this.fb.group({
+      client: ['', Validators.required],
+      dureeDeLicence: [''],
+      nomDuContact: [''],
+      adresseEmailContact: ['', Validators.email],
+      sousContrat: [false],
+      mailAdmin: ['', Validators.email],
+      commandePasserPar: ['', Validators.required],
+      ccMail: this.fb.array([this.fb.control('', Validators.email)]),
+      numero: ['', AppValidators.optionalPhone],
+      remarque: [''],
+      licences: this.fb.array([this.createLicenceGroup()])
+    });
+    this.watchClientAutoFill();
+    if (this.oneIdentityToEdit) {
+      this.loadOneIdentityIntoForm();
+    }
+  }
+
+  private watchClientAutoFill(): void {
+    this.oneIdentityForm.get('client')!.valueChanges.subscribe((selectedName: string) => {
+      if (!selectedName) return;
+      const found = this.clients.find(c => c.nomClient === selectedName);
+      if (found) {
+        this.oneIdentityForm.patchValue({
+          nomDuContact: found.nosVisAVis?.[0] || '',
+          numero: found.numTel?.[0] || '',
+          adresseEmailContact: found.adressesMail?.[0] || ''
+        }, { emitEvent: false });
       }
-    
-      addOneIdentity() {
-        if (this.oneIdentityForm.valid) {
-          const newOneIdentity: OneIdentity = {
-            oneIdentityId: null!,
-            client: this.oneIdentityForm.value.client,
-            dureeDeLicence: this.oneIdentityForm.value.dureeDeLicence,
-            nomDuContact: this.oneIdentityForm.value.nomDuContact,
-            adresseEmailContact: this.oneIdentityForm.value.adresseEmailContact,
-            mailAdmin: this.oneIdentityForm.value.mailAdmin || '',
-            commandePasserPar: this.oneIdentityForm.value.commandePasserPar,
-            ccMail: this.ccMail.value,
-            sousContrat: this.oneIdentityForm.value.sousContrat,
-            numero: this.oneIdentityForm.value.numero,
-            approuve: false,
-            remarque: this.oneIdentityForm.value.remarque || '',
-            licences: this.licences.value
-          };
-    
-          this.oneIdentityService.addOneIdentity(newOneIdentity).subscribe(
-            (response: OneIdentity) => {
-              // Upload du fichier si sÈlectionnÈ
-              if (this.selectedFile && response.oneIdentityId) {
-                this.oneIdentityService.uploadFile(response.oneIdentityId, this.selectedFile).subscribe(
-                  () => {
-                    window.alert('OneIdentity ajoutÈ avec succËs avec le fichier');
-                    this.router.navigate(['/Affichero']);
-                  },
-                  (error) => {
-                    console.error('Erreur upload fichier:', error);
-                    window.alert('OneIdentity ajoutÈ mais erreur lors de l\'upload du fichier');
-                    this.router.navigate(['/Affichero']);
-                  }
-                );
-              } else {
-                window.alert('OneIdentity ajoutÈ avec succËs');
-                this.router.navigate(['/Affichero']);
-              }
-            },
-            error => {
-              console.error('Erreur lors de l\'ajout du oneIdentity', error);
-              window.alert('…chec de l\'ajout');
+    });
+  }
+
+  loadOneIdentityIntoForm(): void {
+    if (!this.oneIdentityToEdit) return;
+
+    this.isEditing = true;
+    this.currentOneIdentityId = this.oneIdentityToEdit.oneIdentityId;
+
+    this.oneIdentityForm.patchValue({
+      client: this.oneIdentityToEdit.client,
+      dureeDeLicence: this.oneIdentityToEdit.dureeDeLicence,
+      nomDuContact: this.oneIdentityToEdit.nomDuContact,
+      commandePasserPar: this.oneIdentityToEdit.commandePasserPar,
+      sousContrat: this.oneIdentityToEdit.sousContrat,
+      adresseEmailContact: this.oneIdentityToEdit.adresseEmailContact,
+      mailAdmin: this.oneIdentityToEdit.mailAdmin,
+      numero: this.oneIdentityToEdit.numero,
+      remarque: this.oneIdentityToEdit.remarque
+    }, { emitEvent: false });
+
+    this.licences.clear();
+    if (this.oneIdentityToEdit.licences?.length) {
+      this.oneIdentityToEdit.licences.forEach(lic => {
+        this.licences.push(this.fb.group({
+          nomDesLicences: [lic.nomDesLicences, Validators.required],
+          quantite: [lic.quantite, AppValidators.requiredQuantity],
+          dateEx: [this.formatDate(lic.dateEx), Validators.required]
+        }));
+      });
+    } else {
+      this.licences.push(this.createLicenceGroup());
+    }
+
+    this.setCcMail(this.oneIdentityToEdit.ccMail);
+  }
+
+  get ccMail(): FormArray {
+    return this.oneIdentityForm.get('ccMail') as FormArray;
+  }
+
+  get licences(): FormArray {
+    return this.oneIdentityForm.get('licences') as FormArray;
+  }
+
+  createLicenceGroup(): FormGroup {
+    return this.fb.group({
+      nomDesLicences: ['', Validators.required],
+      quantite: ['', AppValidators.requiredQuantity],
+      dateEx: ['', Validators.required]
+    });
+  }
+
+  addLicence(): void {
+    this.licences.push(this.createLicenceGroup());
+  }
+
+  removeLicence(index: number): void {
+    this.licences.removeAt(index);
+  }
+
+  addCcMail(): void {
+    this.ccMail.push(this.fb.control('', Validators.email));
+  }
+
+  removeCcMail(index: number): void {
+    this.ccMail.removeAt(index);
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) {
+      this.selectedFile = file;
+    }
+  }
+
+  setCcMail(ccMails: string[]): void {
+    this.ccMail.clear();
+    if (ccMails?.length) {
+      ccMails.forEach(email => this.ccMail.push(this.fb.control(email, Validators.email)));
+    } else {
+      this.ccMail.push(this.fb.control('', Validators.email));
+    }
+  }
+
+  formatDate(date: string | Date): string {
+    if (!date) return '';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '';
+    return d.toISOString().substring(0, 10);
+  }
+
+  addOneIdentity(): void {
+    if (!this.oneIdentityForm.valid) {
+      this.oneIdentityForm.markAllAsTouched();
+      return;
+    }
+
+    const payload: OneIdentity = {
+      oneIdentityId: this.isEditing ? this.currentOneIdentityId! : 0,
+      client: this.oneIdentityForm.value.client,
+      dureeDeLicence: this.oneIdentityForm.value.dureeDeLicence,
+      nomDuContact: this.oneIdentityForm.value.nomDuContact,
+      adresseEmailContact: this.oneIdentityForm.value.adresseEmailContact,
+      mailAdmin: this.oneIdentityForm.value.mailAdmin || '',
+      ccMail: this.ccMail.value.filter((e: string) => e?.trim()),
+      commandePasserPar: this.oneIdentityForm.value.commandePasserPar,
+      sousContrat: this.oneIdentityForm.value.sousContrat,
+      numero: this.oneIdentityForm.value.numero,
+      approuve: this.isEditing ? (this.oneIdentityToEdit?.approuve ?? false) : false,
+      remarque: this.oneIdentityForm.value.remarque || '',
+      licences: this.licences.value,
+      fichier: this.isEditing ? this.oneIdentityToEdit?.fichier : undefined,
+      fichierOriginalName: this.isEditing ? this.oneIdentityToEdit?.fichierOriginalName : undefined
+    };
+
+    const request$ = this.isEditing
+      ? this.oneIdentityService.updateOneIdentity(payload)
+      : this.oneIdentityService.addOneIdentity(payload);
+
+    request$.subscribe({
+      next: (response: OneIdentity) => {
+        const id = this.isEditing ? this.currentOneIdentityId! : response?.oneIdentityId;
+        if (this.selectedFile && id != null) {
+          this.oneIdentityService.uploadFile(id, this.selectedFile).subscribe({
+            next: () => this.finishSave(true),
+            error: () => {
+              window.alert(this.isEditing
+                ? 'OneIdentity mis √† jour mais erreur upload fichier'
+                : 'OneIdentity ajout√© mais erreur upload fichier');
+              this.finishSave(true);
             }
-          );
+          });
         } else {
-          window.alert('Le formulaire est invalide. Veuillez corriger les erreurs.');
+          this.finishSave(false);
         }
+      },
+      error: err => {
+        console.error('Erreur enregistrement OneIdentity', err);
+        window.alert(this.isEditing ? '√âchec de la mise √† jour' : '√âchec de l\'ajout');
       }
-      onCancel(): void {
+    });
+  }
+
+  private finishSave(fromUpload: boolean): void {
+    const msg = this.isEditing
+      ? (fromUpload ? 'OneIdentity et fichier mis √† jour' : 'OneIdentity mis √† jour avec succ√®s')
+      : (fromUpload ? 'OneIdentity et fichier ajout√©s' : 'OneIdentity ajout√© avec succ√®s');
+    window.alert(msg);
+    if (this.oneIdentityAdded.observers.length) {
+      this.oneIdentityAdded.emit();
+    } else {
       this.router.navigate(['/Affichero']);
     }
+  }
+
+  onReinitialiser(): void {
+    this.selectedFile = null;
+    const fileInput = document.getElementById('fichier-oneidentity') as HTMLInputElement | null;
+    if (fileInput) fileInput.value = '';
+
+    if (this.isEditing && this.oneIdentityToEdit) {
+      this.loadOneIdentityIntoForm();
+    } else {
+      this.isEditing = false;
+      this.currentOneIdentityId = null;
+      this.oneIdentityForm.reset({
+        client: '',
+        dureeDeLicence: '',
+        nomDuContact: '',
+        adresseEmailContact: '',
+        sousContrat: false,
+        mailAdmin: '',
+        commandePasserPar: '',
+        numero: '',
+        remarque: ''
+      });
+      this.licences.clear();
+      this.licences.push(this.createLicenceGroup());
+      this.ccMail.clear();
+      this.ccMail.push(this.fb.control('', Validators.email));
     }
-    
+  }
+
+  onCancel(): void {
+    if (this.cancelled.observers.length) {
+      this.cancelled.emit();
+    } else {
+      this.router.navigate(['/Affichero']);
+    }
+  }
+
+  closeClientDropdown(): void {
+    this.clientSelect?.closeDropdown();
+  }
+}

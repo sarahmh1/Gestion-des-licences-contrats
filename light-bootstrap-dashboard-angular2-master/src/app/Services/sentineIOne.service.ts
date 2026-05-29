@@ -18,8 +18,8 @@ export class SentineIOneService {
   }
 
  
-  addSentineIOne(sentineIOne: SentineIOne): Observable<Object> {
-    return this.http.post(`${this.baseUrl}/addSentineIOne`, sentineIOne);
+  addSentineIOne(sentineIOne: SentineIOne): Observable<SentineIOne> {
+    return this.http.post<SentineIOne>(`${this.baseUrl}/addSentineIOne`, sentineIOne);
   }
 
   getSentineIOneById(id: number): Observable<SentineIOne> {

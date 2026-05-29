@@ -1,0 +1,8 @@
+# Copiez ce fichier sous le nom : application-google.local.properties (dans ce même dossier).
+# Ce fichier local est ignoré par git et surcharge google.oauth.client-ids pour le dev.
+#
+# 1) Google Cloud Console → APIs et services → Identifiants → Créer des identifiants → ID client OAuth → Application Web
+# 2) Origines JavaScript autorisées : http://localhost:4200
+# 3) Collez l’ID client ci-dessous, enregistrez, redémarrez Spring Boot.
+
+google.oauth.client-ids=VOTRE-ID.apps.googleusercontent.com

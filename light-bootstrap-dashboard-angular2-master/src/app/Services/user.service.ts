@@ -24,8 +24,13 @@ export class UserService {
     return this.apiService.post(this.baseUrl, user);
   }
 
-  updateUser(id: number, user: User): Observable<User> {
+  updateUser(id: number, user: Partial<User>): Observable<User> {
     return this.apiService.put(`${this.baseUrl}/${id}`, user);
+  }
+
+  /** Changement de rôle uniquement (PUT /Users/{id}/role?role=ROLE_...) */
+  assignUserRole(id: number, role: string): Observable<User> {
+    return this.apiService.put(`${this.baseUrl}/${id}/role?role=${encodeURIComponent(role)}`, {});
   }
 
   deleteUser(id: number): Observable<void> {

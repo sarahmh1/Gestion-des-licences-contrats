@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { MicrosoftO365 } from 'app/Model/MicrosoftO365';
@@ -42,7 +43,7 @@ export class UpdateMicrosoftComponent implements OnInit {
         mailAdmin: ['', Validators.email],
         commandePasserPar: ['', Validators.required],
         ccMail: this.fb.array([]),
-        numero: [''],
+        numero: ['', AppValidators.optionalPhone],
         remarque: [''],
         sousContrat: [false],
         licences: this.fb.array([])  // ?? Ajout des licences dynamiques ici
@@ -63,7 +64,7 @@ export class UpdateMicrosoftComponent implements OnInit {
     createLicenceGroup(): FormGroup {
       return this.fb.group({
         nomDesLicences: ['', Validators.required],
-        quantite: ['', Validators.required],
+        quantite: ['', AppValidators.requiredQuantity],
         dateEx: ['', Validators.required]
       });
     }
@@ -77,7 +78,7 @@ export class UpdateMicrosoftComponent implements OnInit {
     }
      // Fonction pour convertir la valeur en enum CommandePasserPar
   private getCommandePasserParValue(value: any): CommandePasserPar {
-    if (!value) return CommandePasserPar.GI_TN; // Valeur par défaut
+    if (!value) return CommandePasserPar.GI_TN; // Valeur par dï¿½faut
     
     const stringValue = String(value).toUpperCase().trim();
     
@@ -90,7 +91,7 @@ export class UpdateMicrosoftComponent implements OnInit {
         return CommandePasserPar.GI_CI;
       default:
         console.warn('Valeur CommandePasserPar non reconnue:', value);
-        return CommandePasserPar.GI_TN; // Valeur par défaut
+        return CommandePasserPar.GI_TN; // Valeur par dï¿½faut
     }
   }
   
@@ -119,7 +120,7 @@ export class UpdateMicrosoftComponent implements OnInit {
             data.licences.forEach(lic => {
               this.licences.push(this.fb.group({
                 nomDesLicences: [lic.nomDesLicences, Validators.required],
-                quantite: [lic.quantite, Validators.required],
+                quantite: [lic.quantite, AppValidators.requiredQuantity],
                 dateEx: [this.formatDate(lic.dateEx), Validators.required]
               }));
             });
@@ -138,7 +139,7 @@ export class UpdateMicrosoftComponent implements OnInit {
           }
         },
         error => {
-          console.error('Erreur récupération MicrosoftO365:', error);
+          console.error('Erreur rï¿½cupï¿½ration MicrosoftO365:', error);
         }
       );
     }
@@ -150,12 +151,16 @@ export class UpdateMicrosoftComponent implements OnInit {
   
     updateMicrosoftO365(): void {
   if (!this.microsoftO365Id) {
-    console.error('Impossible de mettre à jour : ID manquant.');
+    console.error('Impossible de mettre ï¿½ jour : ID manquant.');
     return;
   }
 
-  if (this.updateForm.valid) {
-    const updatedMicrosoftO365: MicrosoftO365 = {
+  if (!this.updateForm.valid) {
+      this.updateForm.markAllAsTouched();
+      return;
+    }
+
+        const updatedMicrosoftO365: MicrosoftO365 = {
       microsoftO365Id: this.microsoftO365Id,
       ...this.updateForm.value,
       fichier: this.currentFileName,
@@ -164,16 +169,14 @@ export class UpdateMicrosoftComponent implements OnInit {
 
     this.microsoftO365Service.updateMicrosoftO365(updatedMicrosoftO365).subscribe(
       () => {
-        console.log('MicrosoftO365 mis à jour avec succès');
+        console.log('MicrosoftO365 mis ï¿½ jour avec succï¿½s');
         this.router.navigate(['/Affichermicro']);
       },
       error => {
-        console.error('Erreur mise à jour MicrosoftO365:', error);
+        console.error('Erreur mise ï¿½ jour MicrosoftO365:', error);
       }
     );
-  } else {
-    console.error('Formulaire invalide', this.updateForm);
-  }
+  
 }
 
   
@@ -193,7 +196,7 @@ export class UpdateMicrosoftComponent implements OnInit {
           (updatedMicrosoftO365) => {
             this.currentFileName = updatedMicrosoftO365.fichier || null;
             this.currentFileOriginalName = updatedMicrosoftO365.fichierOriginalName || null;
-            window.alert('Fichier uploadé avec succès');
+            window.alert('Fichier uploadï¿½ avec succï¿½s');
           },
           error => {
             console.error('Erreur upload fichier:', error);
@@ -213,7 +216,7 @@ export class UpdateMicrosoftComponent implements OnInit {
           () => {
             this.currentFileName = null;
             this.currentFileOriginalName = null;
-            window.alert('Fichier supprimé avec succès');
+            window.alert('Fichier supprimï¿½ avec succï¿½s');
           },
           error => {
             console.error('Erreur suppression fichier:', error);

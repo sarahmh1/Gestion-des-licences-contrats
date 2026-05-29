@@ -3,7 +3,9 @@ import { Observable } from 'rxjs';
 
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpEvent, HttpRequest } from '@angular/common/http';
+import { timeout } from 'rxjs/operators';
 import { Eset } from 'app/Model/Eset';
+import { EsetImportAnalyzeResponse } from 'app/Model/EsetImportAnalyzeResponse';
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +22,17 @@ addEset(eset: Eset): Observable<Object> {
   // Ajoutez des logs pour déboguer
   console.log('Envoi des données à l\'API:', eset);
   return this.http.post(`${this.baseUrl}/addESET`, eset);
+}
+
+/** Analyse PDF/TXT pour préremplir le formulaire d'ajout (Ollama côté serveur si activé). */
+analyzeImport(file: File): Observable<EsetImportAnalyzeResponse> {
+  const formData = new FormData();
+  formData.append('file', file);
+  // Aligné sur eset.import.ollama.read-timeout-ms (20 min) — la VM peut être lente
+  const analyzeTimeoutMs = 22 * 60 * 1000;
+  return this.http
+    .post<EsetImportAnalyzeResponse>(`${this.baseUrl}/import/analyze`, formData)
+    .pipe(timeout(analyzeTimeoutMs));
 }
 
 getEsetById(id: number): Observable<Eset> {

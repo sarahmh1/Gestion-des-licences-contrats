@@ -415,19 +415,38 @@ export class AfficherContratComponent implements OnInit {
     }
   }
 
-  deleteContrat(id: number | undefined): void {
-    if (id != null && confirm('Confirmer la suppression ?')) {
-      this.contratService.deleteContrat(id).subscribe(
-        () => {
-          this.getAllContrats();
-          alert('Contrat supprimé avec succès');
-        },
-        error => {
-          console.error('Erreur suppression Contrat', error);
-          alert('Échec suppression');
-        }
-      );
-    }
+  showDeleteModal = false;
+  deleteModalDetail = '';
+  private pendingDeleteId: number | null = null;
+
+  requestDeleteContrat(contrat: { contratId?: number; client?: string }): void {
+    const id = contrat?.contratId;
+    if (id == null) return;
+    this.pendingDeleteId = id;
+    this.deleteModalDetail = contrat.client ? 'Client : ' + contrat.client : '';
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.pendingDeleteId = null;
+    this.deleteModalDetail = '';
+  }
+
+  confirmDeleteContrat(): void {
+    const id = this.pendingDeleteId;
+    if (id == null) return;
+    this.contratService.deleteContrat(id).subscribe(
+      () => {
+        this.closeDeleteModal();
+        this.getAllContrats();
+        alert('Contrat supprimé avec succès');
+      },
+      error => {
+        console.error('Erreur suppression Contrat', error);
+        alert('Échec suppression');
+      }
+    );
   }
 
   get pageNumbers(): number[] {

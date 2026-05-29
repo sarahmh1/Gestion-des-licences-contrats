@@ -12,6 +12,7 @@ export class ExpiredFortinetComponent implements OnInit {
   filteredExpiredFortinets: Fortinet[] = [];
   pagedExpiredFortinets: Fortinet[] = [];
   searchTerm: string = '';
+  selectedFortinet: Fortinet | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -87,8 +88,19 @@ export class ExpiredFortinetComponent implements OnInit {
   }
 
   // MÊME MÉTHODE QUE ESET - utilisation de activate() pour désapprouver
+  selectFortinet(item: Fortinet): void {
+    this.selectedFortinet = item;
+  }
+
+  closeDetail(): void {
+    this.selectedFortinet = null;
+  }
+
   desapprouve(id: number): void {
     this.fortinetService.activate(id).subscribe(() => {
+      if (this.selectedFortinet?.fortinetId === id) {
+        this.selectedFortinet = null;
+      }
       // Après désapprobation, retirer le Fortinet de la liste approuvée locale
       this.expiredFortinets = this.expiredFortinets.filter(fortinet => fortinet.fortinetId !== id);
       this.filteredExpiredFortinets = this.filteredExpiredFortinets.filter(fortinet => fortinet.fortinetId !== id);

@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CrowdstrikeService } from 'app/Services/crowdstrike.service';
 import { Crowdstrike } from 'app/Model/Crowdstrike';
-import { Router } from '@angular/router';
 import { PermissionService } from 'app/Services/permission.service';
+import { AjouterCrowdstrikeComponent } from '../ajoutercr/ajoutercr.component';
 
 @Component({
   selector: 'app-afficher-crowdstrike',
@@ -10,7 +10,7 @@ import { PermissionService } from 'app/Services/permission.service';
   styleUrls: ['./affichercr.component.scss']
 })
 export class AfficherCrowdstrikeComponent implements OnInit {
-  searchTerm: string = '';
+  searchTerm = '';
   selectedCrowdstrike: Crowdstrike | null = null;
   crowdstrikes: Crowdstrike[] = [];
   filteredCrowdstrikes: Crowdstrike[] = [];
@@ -18,43 +18,46 @@ export class AfficherCrowdstrikeComponent implements OnInit {
 
   currentPage = 0;
   pageSize = 10;
-  totalPages: number = 0;
+  totalPages = 0;
   pagedCrowdstrikes: Crowdstrike[] = [];
 
-  constructor(private crowdstrikeService: CrowdstrikeService, private router: Router, public permissionService: PermissionService) {}
+  showAddModal = false;
+  showUpdateModal = false;
+  selectedCrowdstrikeToUpdate: Crowdstrike | null = null;
+
+  showDeleteModal = false;
+  deleteModalDetail = '';
+  private pendingDeleteId: number | null = null;
+
+  @ViewChild(AjouterCrowdstrikeComponent) ajouterComponent?: AjouterCrowdstrikeComponent;
+
+  constructor(
+    private crowdstrikeService: CrowdstrikeService,
+    public permissionService: PermissionService) {}
 
   ngOnInit(): void {
-    console.log('Initialisation du composant AfficherCrowdstrike');
     this.getAllCrowdstrikes();
   }
 
-  onSearch() {
+  onSearch(): void {
     this.filteredCrowdstrikes = this.filterCrowdstrikes();
     this.calculatePagination();
     this.changePage(0);
   }
 
   getAllCrowdstrikes(): void {
-    console.log('D�but de la r�cup�ration des CrowdStrikes');
-    this.crowdstrikeService.getAllCrowdstrikes().subscribe(
-      (data: Crowdstrike[]) => {
-        console.log('Donn�es re�ues du backend:', data);
-        
-        // Debug: V�rifiez les IDs
-        data.forEach((item, index) => {
-          console.log(`Item ${index}: ID =`, item.crowdstrikeid, 'Type:', typeof item.crowdstrikeid);
-        });
-        
+    this.crowdstrikeService.getAllCrowdstrikes().subscribe({
+      next: (data: Crowdstrike[]) => {
         this.crowdstrikes = data;
         this.filteredCrowdstrikes = data;
         this.calculatePagination();
         this.changePage(0);
       },
-      (error) => {
-        console.error('Erreur r�cup�ration Crowdstrikes', error);
-        alert('Erreur lors de la r�cup�ration des donn�es');
+      error: (error) => {
+        console.error('Erreur recuperation Crowdstrikes', error);
+        alert('Erreur lors de la recuperation des donnees');
       }
-    );
+    });
   }
 
   filterCrowdstrikes(): Crowdstrike[] {
@@ -78,93 +81,120 @@ export class AfficherCrowdstrikeComponent implements OnInit {
     });
   }
 
-  calculatePagination() {
+  calculatePagination(): void {
     this.totalPages = Math.ceil(this.filteredCrowdstrikes.length / this.pageSize);
   }
 
-  changePage(pageIndex: number) {
+  changePage(pageIndex: number): void {
     this.currentPage = pageIndex;
     const start = this.currentPage * this.pageSize;
-    const end = start + this.pageSize;
-    this.pagedCrowdstrikes = this.filteredCrowdstrikes.slice(start, end);
+    this.pagedCrowdstrikes = this.filteredCrowdstrikes.slice(start, start + this.pageSize);
   }
 
   approveCrowdstrike(id: number | undefined | null): void {
-    console.log('Tentative d\'approbation avec ID:', id);
-    
-    if (id == null || id === undefined) {
-      console.error('ID est null ou undefined');
+    if (id == null) {
       alert('Erreur: ID non valide pour l\'approbation');
       return;
     }
-
-    this.crowdstrikeService.activate(id).subscribe(
-      () => {
-        console.log('Approbation r�ussie pour ID:', id);
-        this.unapprovedCrowdstrikes = this.unapprovedCrowdstrikes.filter(crowdstrike => crowdstrike.crowdstrikeid !== id);
-        this.filteredCrowdstrikes = this.filteredCrowdstrikes.filter(crowdstrike => crowdstrike.crowdstrikeid !== id);
+    this.crowdstrikeService.activate(id).subscribe({
+      next: () => {
+        this.unapprovedCrowdstrikes = this.unapprovedCrowdstrikes.filter(c => c.crowdstrikeid !== id);
+        this.filteredCrowdstrikes = this.filteredCrowdstrikes.filter(c => c.crowdstrikeid !== id);
         this.calculatePagination();
         this.changePage(this.currentPage);
-        alert('CrowdStrike approuv� avec succ�s');
+        alert('CrowdStrike approuve avec succes');
       },
-      error => {
-        console.error('Erreur lors de l\'approbation:', error);
-        alert('Erreur lors de l\'approbation: ' + (error.message || 'Unknown error'));
+      error: err => {
+        console.error('Erreur lors de l\'approbation', err);
+        alert('Erreur lors de l\'approbation');
       }
-    );
+    });
   }
 
-  deleteCrowdstrike(id: number | undefined | null): void {
-    console.log('Tentative de suppression avec ID:', id);
-    
-    if (id == null || id === undefined) {
-      console.error('ID est null ou undefined');
-      alert('Erreur: ID non valide pour la suppression');
-      return;
-    }
+  requestDeleteCrowdstrike(item: { crowdstrikeid?: number; client?: string }): void {
+    const id = item?.crowdstrikeid;
+    if (id == null) return;
+    this.pendingDeleteId = id;
+    this.deleteModalDetail = item.client ? `Client : ${item.client}` : '';
+    this.showDeleteModal = true;
+  }
 
-    if (confirm('Confirmer la suppression ?')) {
-      this.crowdstrikeService.deleteCrowdstrike(id).subscribe(
-        () => {
-          console.log('Suppression r�ussie pour ID:', id);
-          this.getAllCrowdstrikes();
-          alert('CrowdStrike supprim� avec succ�s');
-        },
-        error => {
-          console.error('Erreur suppression CrowdStrike', error);
-          alert('Erreur lors de la suppression: ' + (error.message || 'Unknown error'));
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.pendingDeleteId = null;
+    this.deleteModalDetail = '';
+  }
+
+  confirmDeleteCrowdstrike(): void {
+    const id = this.pendingDeleteId;
+    if (id == null) return;
+    this.crowdstrikeService.deleteCrowdstrike(id).subscribe({
+      next: () => {
+        this.closeDeleteModal();
+        if (this.selectedCrowdstrike?.crowdstrikeid === id) {
+          this.selectedCrowdstrike = null;
         }
-      );
-    }
+        this.getAllCrowdstrikes();
+        alert('CrowdStrike supprime avec succes');
+      },
+      error: (error) => {
+        console.error('Erreur suppression CrowdStrike', error);
+        alert('Erreur lors de la suppression');
+      }
+    });
   }
 
   updateCrowdstrike(crowdstrike: Crowdstrike): void {
-    console.log('Tentative de mise à jour avec CrowdStrike:', crowdstrike);
-    
     if (!crowdstrike.crowdstrikeid) {
-      console.error('crowdstrikeid est manquant');
-      alert('Erreur: ID non valide pour la mise à jour');
+      alert('Erreur: ID non valide pour la mise a jour');
       return;
     }
-
-    // V�RIFIEZ QUE CETTE ROUTE EXISTE DANS VOTRE app-routing.module.ts
-    this.router.navigate(['/edit-crowdstrike', crowdstrike.crowdstrikeid]);
+    this.selectedCrowdstrikeToUpdate = crowdstrike;
+    this.showUpdateModal = true;
   }
 
-  goToAddCrowdstrike() {
-    this.router.navigate(['/AjouterCrowdstrike']);
+  goToAddCrowdstrike(): void {
+    this.showAddModal = true;
+  }
+
+  closeAddModal(): void {
+    this.showAddModal = false;
+  }
+
+  onCrowdstrikeAdded(): void {
+    this.showAddModal = false;
+    this.showUpdateModal = false;
+    this.selectedCrowdstrikeToUpdate = null;
+    this.getAllCrowdstrikes();
+  }
+
+  onAddCancelled(): void {
+    this.showAddModal = false;
+  }
+
+  onUpdateCancelled(): void {
+    this.showUpdateModal = false;
+    this.selectedCrowdstrikeToUpdate = null;
+  }
+
+  onModalBodyClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    const isClickedOnInteractive = target?.closest('input, button, select, textarea, .scs-dropdown');
+    if (!isClickedOnInteractive) {
+      this.ajouterComponent?.closeClientDropdown();
+    }
   }
 
   get pageNumbers(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i);
   }
 
-  getCommandePasserParLabel(value: any): string {
+  getCommandePasserParLabel(value: unknown): string {
     switch (value) {
       case 'GI_TN': return 'GI_TN';
       case 'GI_FR': return 'GI_FR';
       case 'GI_CI': return 'GI_CI';
-      default: return value;
+      default: return String(value ?? '');
     }
   }
 
@@ -172,7 +202,11 @@ export class AfficherCrowdstrikeComponent implements OnInit {
     return this.crowdstrikeService.getFileDownloadUrlById(crowdstrikeid);
   }
 
-  selectCrowdstrike(x: Crowdstrike): void { this.selectedCrowdstrike = this.selectedCrowdstrike?.crowdstrikeid === x.crowdstrikeid ? null : x; }
-  closeDetail(): void { this.selectedCrowdstrike = null; }
-}
+  selectCrowdstrike(x: Crowdstrike): void {
+    this.selectedCrowdstrike = this.selectedCrowdstrike?.crowdstrikeid === x.crowdstrikeid ? null : x;
+  }
 
+  closeDetail(): void {
+    this.selectedCrowdstrike = null;
+  }
+}

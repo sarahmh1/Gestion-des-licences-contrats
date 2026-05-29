@@ -1,101 +1,100 @@
-<div class="container">
-  <!-- En-tête avec titre et boutons alignés -->
+﻿<div class="master-detail-container">
   <div class="header-row">
     <h2>Licences Expirées Fortinet</h2>
     <div class="action-group">
       <div class="input-group search-box">
-        <input 
-          type="text" 
-          class="form-control" 
-          placeholder="Rechercher..." 
-          [(ngModel)]="searchTerm" 
-          (input)="onSearch()" 
-        />
+        <input type="text" class="form-control" placeholder="Rechercher..."
+          [(ngModel)]="searchTerm" (input)="onSearch()" />
       </div>
     </div>
   </div>
 
-  <!-- Show a message if no approved products are found -->
-  <div *ngIf="filteredExpiredFortinets.length === 0" class="text-center mt-4">
-    <p>Aucune licence Fortinet approuvée trouvée.</p>
-  </div>
-
-  <!-- Tableau responsive -->
-  <div *ngIf="filteredExpiredFortinets.length > 0" class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Client</th>
-          <th>Nom du Boîtier</th>
-          <th>Numéro de Série</th>
-          <th>Licences</th>
-          <th>Durée</th>
-          <th>Contact client</th>
-          <th>N° client</th>
-          <th>Email client</th>
-          <th>Email Commercial</th>
-          <th>Cc mail</th>
-          <th>Remarque</th>
-          <th>Sous Contrat</th>
-          <th>Commande Passer Par</th>
-          <th>Fichier</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let fortinet of pagedExpiredFortinets">
-          <td>{{ fortinet.client }}</td>
-          <td>{{ fortinet.nomDuBoitier }}</td>
-          <td>{{ fortinet.numeroSerie }}</td>
-
-          <!-- LICENCES (affichage groupé) -->
-          <td>
-            <div *ngFor="let lic of fortinet.licences" class="licence-block d-flex align-items-center gap-3 mb-2">
-              <div><strong>Licence:</strong> {{ lic.nomDesLicences }}</div>
-              <div><strong>Quantité:</strong> {{ lic.quantite }}</div>
-              <div><strong>Expire le:</strong> {{ lic.dateEx | date: 'dd/MM/yyyy' }}</div>
+  <div class="md-layout" [class.detail-open]="selectedFortinet">
+    <div class="md-master">
+      <div class="md-list">
+        <div *ngFor="let fortinet of pagedExpiredFortinets" class="md-item"
+          [class.md-item-active]="selectedFortinet?.fortinetId === fortinet.fortinetId"
+          (click)="selectFortinet(fortinet)">
+          <div class="md-item-info">
+            <div class="md-item-client">{{ fortinet.client }}</div>
+            <div class="md-item-fields">
+              <span class="md-field"><strong>Boîtier :</strong> {{ fortinet.nomDuBoitier || '-' }}</span>
+              <span class="md-field"><strong>N° série :</strong> {{ fortinet.numeroSerie || '-' }}</span>
+              <span class="md-field"><strong>Durée :</strong> {{ fortinet.dureeDeLicence || '-' }}</span>
+              <span *ngFor="let lic of fortinet.licences" class="md-field">
+                <strong>{{ lic.nomDesLicences }} :</strong> expire {{ lic.dateEx | date:'dd/MM/yyyy' }}
+              </span>
             </div>
-          </td>
+          </div>
+          <div class="md-item-actions" (click)="$event.stopPropagation()">
+            <button class="md-btn-icon md-btn-view" (click)="selectFortinet(fortinet)" title="Voir détails">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button class="md-btn-icon md-btn-unapprove" (click)="desapprouve(fortinet.fortinetId)" title="Désexpirer">
+              <i class="fas fa-times-circle"></i>
+            </button>
+          </div>
+        </div>
+        <div *ngIf="pagedExpiredFortinets.length === 0" class="md-empty">
+          <i class="fas fa-folder-open"></i>
+          <p>Aucune licence Fortinet approuvée trouvée.</p>
+        </div>
+      </div>
+      <div class="md-pagination" *ngIf="totalPages > 1">
+        <button *ngFor="let page of pageNumbers; let i = index" (click)="changePage(i)"
+          [class.active]="i === currentPage" class="btn btn-sm btn-outline-primary mx-1">
+          {{ i + 1 }}
+        </button>
+      </div>
+    </div>
 
-          <td>{{ fortinet.dureeDeLicence }}</td>
-          <td>{{ fortinet.nomDuContact }}</td>
-          <td>{{ fortinet.numero }}</td>
-          <td>{{ fortinet.adresseEmailContact }}</td>
-          <td>{{ fortinet.mailAdmin }}</td>
-          <td>{{ fortinet.ccMail }}</td>
-          <td>{{ fortinet.remarque }}</td>
-          <td>{{ fortinet.sousContrat }}</td>
-          <td>{{ getCommandePasserParLabel(fortinet.commandePasserPar) }}</td>
-
-          <td>
-            <a *ngIf="fortinet.fichier" [href]="getFileDownloadUrl(fortinet.fortinetId)" target="_blank" class="btn btn-sm btn-info">
-              <i class="fas fa-download"></i> {{ fortinet.fichierOriginalName || 'Télécharger' }}
-            </a>
-            <span *ngIf="!fortinet.fichier">-</span>
-          </td>
-
-          <td>
-            <div class="d-flex flex-column gap-1">
-              <button class="btn btn-sm btn-warning" (click)="desapprouve(fortinet.fortinetId)">
-                <i class="fas fa-times-circle"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Pagination -->
-  <div *ngIf="filteredExpiredFortinets.length > 0" class="text-center mt-3">
-    <ng-container *ngIf="totalPages > 1">
-      <button 
-        *ngFor="let page of pageNumbers; let i = index"
-        (click)="changePage(i)"
-        [class.active]="i === currentPage"
-        class="btn btn-sm btn-outline-primary mx-1">
-        {{ i + 1 }}
-      </button>
-    </ng-container>
+    <div class="md-detail" *ngIf="selectedFortinet">
+      <div class="md-detail-card">
+        <div class="md-detail-header">
+          <h4>{{ selectedFortinet.client }}</h4>
+          <button class="md-detail-close" (click)="closeDetail()">&times;</button>
+        </div>
+        <div class="md-detail-body">
+          <div class="md-detail-section-title">Équipement</div>
+          <div class="md-detail-row"><span class="md-label">Nom du boîtier</span><span class="md-value">{{ selectedFortinet.nomDuBoitier || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Numéro de série</span><span class="md-value">{{ selectedFortinet.numeroSerie || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Durée de licence</span><span class="md-value">{{ selectedFortinet.dureeDeLicence || '-' }}</span></div>
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-section-title">Licences</div>
+          <div *ngFor="let lic of selectedFortinet.licences" class="licence-block">
+            <div class="md-detail-row"><span class="md-label">Licence</span><span class="md-value">{{ lic.nomDesLicences }}</span></div>
+            <div class="md-detail-row"><span class="md-label">Quantité</span><span class="md-value">{{ lic.quantite }}</span></div>
+            <div class="md-detail-row"><span class="md-label">Expiration</span><span class="md-value">{{ lic.dateEx | date:'dd/MM/yyyy' }}</span></div>
+          </div>
+          <div class="md-detail-divider"></div>
+          
+          <div class="md-detail-section-title">Vis-à-vis client</div>
+          <div class="md-detail-row"><span class="md-label">Vis-à-vis client</span><span class="md-value">{{ selectedFortinet.nomDuContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">N° téléphone</span><span class="md-value">{{ selectedFortinet.numero || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Email client</span><span class="md-value">{{ selectedFortinet.adresseEmailContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Email commercial</span><span class="md-value">{{ selectedFortinet.mailAdmin || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">CC Mail</span><span class="md-value">{{ selectedFortinet.ccMail || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Sous contrat</span>
+            <span class="md-value"><span [class]="selectedFortinet.sousContrat ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">{{ selectedFortinet.sousContrat ? 'Oui' : 'Non' }}</span></span>
+          </div>
+          <div class="md-detail-row"><span class="md-label">Remarque</span><span class="md-value">{{ selectedFortinet.remarque || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Commande par</span><span class="md-value">{{ getCommandePasserParLabel(selectedFortinet.commandePasserPar) || '-' }}</span></div>
+          <div class="md-detail-row" *ngIf="selectedFortinet.fichier">
+            <span class="md-label">Fichier</span>
+            <span class="md-value">
+              <a [href]="getFileDownloadUrl(selectedFortinet.fortinetId)" target="_blank" class="btn btn-sm btn-outline-primary">
+                <i class="fa fa-download"></i> {{ selectedFortinet.fichierOriginalName || 'Télécharger' }}
+              </a>
+            </span>
+          </div>
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-actions">
+            <button class="btn btn-sm btn-warning" (click)="desapprouve(selectedFortinet.fortinetId)" title="Désexpirer">
+              <i class="fas fa-times-circle"></i> Désexpirer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

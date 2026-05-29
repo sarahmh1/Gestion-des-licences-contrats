@@ -18,8 +18,8 @@ export class BitdefenderService {
   }
 
   
-  addBitdefender(bitdefender: Bitdefender): Observable<Object> {
-    return this.http.post(`${this.baseUrl}/addBitdefender`, bitdefender);
+  addBitdefender(bitdefender: Bitdefender): Observable<Bitdefender> {
+    return this.http.post<Bitdefender>(`${this.baseUrl}/addBitdefender`, bitdefender);
   }
 
   

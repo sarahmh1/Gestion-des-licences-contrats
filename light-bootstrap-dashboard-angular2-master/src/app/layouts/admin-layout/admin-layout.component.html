@@ -14,4 +14,7 @@
       </div>
   </div>
 
+  <!-- Hors .main-panel : évite clip (overflow:auto) et transform mobile qui cassent position:fixed -->
+  <app-assistant-fab *ngIf="permission.canUseAssistant()"></app-assistant-fab>
+
 </div>

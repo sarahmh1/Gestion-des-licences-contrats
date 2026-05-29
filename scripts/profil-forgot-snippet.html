@@ -1,0 +1,49 @@
+            <div *ngIf="forgotOpen" class="panel panel-warning profil-forgot-panel">
+              <div class="panel-heading">
+                <h4 class="panel-title">
+                  <i class="glyphicon glyphicon-envelope"></i> Réinitialisation par e-mail
+                </h4>
+              </div>
+              <div class="panel-body">
+                <p class="text-muted" *ngIf="forgotStep === 'send'">
+                  Un code à 6 chiffres sera envoyé à votre adresse e-mail (valable 15 minutes).
+                </p>
+                <p class="text-muted" *ngIf="forgotStep === 'reset'">
+                  Saisissez le code reçu et choisissez un nouveau mot de passe.
+                </p>
+                <form [formGroup]="forgotForm">
+                  <div class="form-group">
+                    <label>E-mail du compte</label>
+                    <input type="email" class="form-control" formControlName="email" readonly />
+                  </div>
+                  <ng-container *ngIf="forgotStep === 'reset'">
+                    <div class="form-group">
+                      <label>Code reçu par e-mail *</label>
+                      <input type="text" class="form-control" formControlName="code" inputmode="numeric" maxlength="6" placeholder="000000" />
+                    </div>
+                    <div class="form-group">
+                      <label>Nouveau mot de passe *</label>
+                      <input type="password" class="form-control" formControlName="newPassword" autocomplete="new-password" />
+                    </div>
+                    <div class="form-group">
+                      <label>Confirmer le mot de passe *</label>
+                      <input type="password" class="form-control" formControlName="confirmPassword" autocomplete="new-password" />
+                    </div>
+                  </ng-container>
+                  <div *ngIf="forgotMessage" class="alert alert-success">{{ forgotMessage }}</div>
+                  <div *ngIf="forgotError" class="alert alert-danger">{{ forgotError }}</div>
+                  <div style="margin-top: 12px;">
+                    <button type="button" class="btn btn-warning" *ngIf="forgotStep === 'send'" [disabled]="isForgotSubmitting" (click)="sendResetCode()">
+                      {{ isForgotSubmitting ? 'Envoi…' : 'Envoyer le code' }}
+                    </button>
+                    <button type="button" class="btn btn-warning" *ngIf="forgotStep === 'reset'" [disabled]="isForgotSubmitting" (click)="submitNewPasswordByCode()" style="margin-left: 8px;">
+                      {{ isForgotSubmitting ? 'Mise à jour…' : 'Réinitialiser le mot de passe' }}
+                    </button>
+                    <button type="button" class="btn btn-default" *ngIf="forgotStep === 'reset'" (click)="forgotStep = 'send'; forgotError = null; forgotMessage = null" style="margin-left: 8px;">
+                      Renvoyer un code
+                    </button>
+                    <button type="button" class="btn btn-link" (click)="closeForgotPassword()" style="margin-left: 8px;">Annuler</button>
+                  </div>
+                </form>
+              </div>
+            </div>

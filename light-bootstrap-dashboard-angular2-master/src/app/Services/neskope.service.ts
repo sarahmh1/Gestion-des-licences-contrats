@@ -18,8 +18,8 @@ export class NetskopeService {
   }
 
   
-  addNetskope(netskope: Netskope): Observable<Object> {
-    return this.http.post(`${this.baseUrl}/addNetskope`, netskope);
+  addNetskope(netskope: Netskope): Observable<Netskope> {
+    return this.http.post<Netskope>(`${this.baseUrl}/addNetskope`, netskope);
   }
 
   

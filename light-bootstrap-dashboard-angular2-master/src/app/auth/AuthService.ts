@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from 'environments/environment';
+import { PermissionService } from 'app/Services/permission.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +15,8 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private permissionService: PermissionService
   ) {}
 
   // Méthode d'inscription
@@ -54,9 +56,56 @@ export class AuthService {
     );
   }
 
-  // Méthode de vérification d'email
-  verifyEmail(token: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/verify?token=${token}`).pipe(
+  /** Connexion / inscription via jeton « credential » Google (GIS, popup). */
+  loginWithGoogle(credential: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/google`, { credential }).pipe(
+      tap((response: any) => {
+        this.storeAuthData(response);
+        const redirect = this.redirectUrl || '/dashboard';
+        this.redirectUrl = null;
+        this.router.navigateByUrl(redirect);
+      }),
+      catchError((error: HttpErrorResponse) => {
+        let msg = 'Authentification Google refusée.';
+        if (error.status === 503) {
+          msg = error.error?.message || 'Connexion Google indisponible (configuration serveur).';
+        } else if (typeof error.error === 'object' && error.error?.message) {
+          msg = error.error.message;
+        } else if (error.status === 401) {
+          msg = error.error?.message || msg;
+        }
+        return throwError(() => msg);
+      })
+    );
+  }
+
+  requestPasswordReset(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/forgot-password`, { email }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  resetPasswordWithCode(payload: {
+    email: string;
+    code: string;
+    newPassword: string;
+  }): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/reset-password`, payload).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  resendVerificationEmail(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/resend-verification`, { email }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  // Méthode de vérification d'email (lien reçu après inscription)
+  verifyEmail(token: string): Observable<{ message: string }> {
+    return this.http.get<{ message: string }>(`${this.baseUrl}/verify`, {
+      params: { token }
+    }).pipe(
       catchError(this.handleError)
     );
   }
@@ -74,6 +123,7 @@ export class AuthService {
       } else if (authData.user) {
         localStorage.setItem('user', JSON.stringify(authData.user));
       }
+      this.permissionService.refreshUserRole();
     }
   }
 
@@ -134,21 +184,32 @@ export class AuthService {
       errorMessage = `Erreur: ${error.error.message}`;
     } else {
       // Erreur côté serveur
-      errorMessage = error.error?.message || error.message;
+      if (typeof error.error === 'string') {
+        errorMessage = error.error;
+      } else {
+        errorMessage = error.error?.message || error.message;
+      }
       
       // Messages d'erreur spécifiques selon le code HTTP
       switch (error.status) {
         case 400:
-          errorMessage = error.error.message || 'Requête invalide';
+          errorMessage =
+            (typeof error.error === 'object' && error.error?.message) ||
+            (typeof error.error === 'string' ? error.error : null) ||
+            'Requête invalide';
           break;
         case 401:
-          errorMessage = 'Email ou mot de passe incorrect';
+          errorMessage = error.error?.message || 'Email ou mot de passe incorrect';
           break;
         case 403:
-          errorMessage = 'Accès non autorisé';
+          errorMessage =
+            error.error?.message ||
+            "Votre compte n'est pas encore vérifié. Consultez votre boîte mail et cliquez sur le lien de confirmation.";
           break;
         case 404:
-          errorMessage = 'Ressource non trouvée';
+          errorMessage =
+            error.error?.message ||
+            'Service introuvable. Arrêtez le backend Java sur le port 8089, recompilez (mvn package) puis relancez spring-boot:run.';
           break;
         case 409:
           errorMessage = 'Un compte existe déjà avec cet email';
@@ -158,6 +219,9 @@ export class AuthService {
           break;
         case 500:
           errorMessage = 'Erreur interne du serveur';
+          break;
+        case 503:
+          errorMessage = error.error?.message || 'Service temporairement indisponible';
           break;
       }
     }

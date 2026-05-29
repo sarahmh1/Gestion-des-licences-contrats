@@ -13,6 +13,7 @@ export class ExpiredRapid7Component implements OnInit {
   filteredExpiredRapid7s: Rapid7[] = [];
   pagedExpiredRapid7s: Rapid7[] = [];
   searchTerm: string = '';
+  selectedRapid7: Rapid7 | null = null;
   
   // Propriétés pour la pagination
   currentPage: number = 0;
@@ -93,8 +94,19 @@ export class ExpiredRapid7Component implements OnInit {
   }
 
   // Méthode pour désapprouver
+  selectRapid7(item: Rapid7): void {
+    this.selectedRapid7 = item;
+  }
+
+  closeDetail(): void {
+    this.selectedRapid7 = null;
+  }
+
   desapprouve(id: number): void {
     this.rapid7Service.activate(id).subscribe(() => {
+      if (this.selectedRapid7?.rapid7Id === id) {
+        this.selectedRapid7 = null;
+      }
       // Après désapprobation, retirer le Rapid7 de la liste approuvée locale
       this.expiredRapid7s = this.expiredRapid7s.filter(rapid7 => rapid7.rapid7Id !== id);
       this.filteredExpiredRapid7s = this.filteredExpiredRapid7s.filter(rapid7 => rapid7.rapid7Id !== id);

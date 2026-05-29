@@ -199,23 +199,44 @@ export class AffichageComponent implements OnInit {
     this.selectedEset = null;
   }
 
-  deleteEset(id: number | undefined | null): void {
-    if (id != null && confirm("Are you sure you want to delete this ESET?")) {
-      this.esetService.deleteEset(id).subscribe(
-        () => {
-          // Retirer l'ESET supprimé de la liste
-          this.unapprovedEsets = this.unapprovedEsets.filter(eset => eset.esetid !== id);
-          this.filteredEsets = this.filteredEsets.filter(eset => eset.esetid !== id);
-          this.calculatePagination();
-          this.changePage(this.currentPage);
-          window.alert('Eset deleted successfully');
-        },
-        (error) => {
-          console.error('Error deleting ESET', error);
-          window.alert('Failed to delete ESET');
+  showDeleteModal = false;
+  deleteModalDetail = '';
+  private pendingDeleteId: number | null = null;
+
+  requestDeleteEset(item: { esetid?: number; client?: string }): void {
+    const id = item?.esetid;
+    if (id == null) return;
+    this.pendingDeleteId = id;
+    this.deleteModalDetail = item.client ? 'Client : ' + item.client : '';
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.pendingDeleteId = null;
+    this.deleteModalDetail = '';
+  }
+
+  confirmDeleteEset(): void {
+    const id = this.pendingDeleteId;
+    if (id == null) return;
+    this.esetService.deleteEset(id).subscribe(
+      () => {
+        this.unapprovedEsets = this.unapprovedEsets.filter(eset => eset.esetid !== id);
+        this.filteredEsets = this.filteredEsets.filter(eset => eset.esetid !== id);
+        this.calculatePagination();
+        this.changePage(this.currentPage);
+        if (this.selectedEset?.esetid === id) {
+          this.selectedEset = null;
         }
-      );
-    }
+        this.closeDeleteModal();
+        window.alert('Licence ESET supprimée avec succès');
+      },
+      (error) => {
+        console.error('Error deleting ESET', error);
+        window.alert('Échec de la suppression');
+      }
+    );
   }
 
   getProductName(nom_produit: string): string {

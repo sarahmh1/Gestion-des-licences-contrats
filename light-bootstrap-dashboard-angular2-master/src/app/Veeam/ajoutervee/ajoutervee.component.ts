@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { Router } from '@angular/router';
-import { CommandePasserPar } from 'app/Model/CommandePasserPar';
+import { SearchableClientSelectComponent } from '../../shared/searchable-client-select/searchable-client-select.component';
 import { Veeam } from 'app/Model/Veeam';
 import { VeeamService } from 'app/Services/veeam.service';
 import { ClientService, Client } from '../../Services/client.service';
@@ -12,39 +13,55 @@ import { ClientService, Client } from '../../Services/client.service';
   styleUrls: ['./ajoutervee.component.scss']
 })
 export class AjouterVeeComponent implements OnInit {
+  @Output() veeamAdded = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
+  @ViewChild('clientSelect') clientSelect?: SearchableClientSelectComponent;
+
   clients: Client[] = [];
   veeamForm!: FormGroup;
   selectedFile: File | null = null;
- commandePasserParOptions = [
-      { label: 'GI_TN', value: CommandePasserPar.GI_TN },
-      { label: 'GI_FR', value: CommandePasserPar.GI_FR },
-      { label: 'GI_CI', value: CommandePasserPar.GI_CI }
-    ];
+  commandePasserParOptions = [
+    { label: 'GI_TN', value: 'GI_TN' },
+    { label: 'GI_FR', value: 'GI_FR' },
+    { label: 'GI_CI', value: 'GI_CI' }
+  ];
    constructor(
      private fb: FormBuilder,
      private router: Router,
      private veeamService: VeeamService,
     private clientService: ClientService) {}
  
-   ngOnInit(): void {
+  ngOnInit(): void {
     this.clientService.getAllClients().subscribe(data => this.clients = data);
-     this.veeamForm= this.fb.group({
-       client: ['', Validators.required],
-       dureeDeLicence: [''],
-       nomDuContact: [''],
-       adresseEmailContact: [''],
-       sousContrat: [false],
-       mailAdmin: ['', [Validators.email]],
-       type: ['', [Validators.required]],
-       ccMail: this.fb.array([this.fb.control('', [Validators.email])]),
-       commandePasserPar: ['', Validators.required],
-       numero: [''],
-       remarque: [''],
-       licences: this.fb.array([
-         this.createLicenceGroup()
-       ])
-     });
-   }
+    this.veeamForm = this.fb.group({
+      client: ['', Validators.required],
+      dureeDeLicence: ['', Validators.required],
+      nomDuContact: [''],
+      adresseEmailContact: ['', Validators.email],
+      sousContrat: [false],
+      mailAdmin: ['', Validators.email],
+      ccMail: this.fb.array([this.fb.control('')]),
+      commandePasserPar: ['GI_TN', Validators.required],
+      numero: ['', AppValidators.optionalPhone],
+      remarque: [''],
+      licences: this.fb.array([this.createLicenceGroup()])
+    });
+    this.watchClientAutoFill();
+  }
+
+  private watchClientAutoFill(): void {
+    this.veeamForm.get('client')!.valueChanges.subscribe((selectedName: string) => {
+      if (!selectedName) return;
+      const found = this.clients.find(c => c.nomClient === selectedName);
+      if (found) {
+        this.veeamForm.patchValue({
+          nomDuContact: found.nosVisAVis?.[0] || '',
+          numero: found.numTel?.[0] || '',
+          adresseEmailContact: found.adressesMail?.[0] || ''
+        }, { emitEvent: false });
+      }
+    });
+  }
  
    get ccMail(): FormArray {
      return this.veeamForm.get('ccMail') as FormArray;
@@ -57,8 +74,8 @@ export class AjouterVeeComponent implements OnInit {
    createLicenceGroup(): FormGroup {
      return this.fb.group({
        nomDesLicences: ['', Validators.required],
-       quantite: ['', Validators.required],
-       dateEx: ['', Validators.required]
+       quantite: ['', AppValidators.requiredQuantity],
+       dateEx: ['']
      });
    }
  
@@ -70,9 +87,9 @@ export class AjouterVeeComponent implements OnInit {
      this.licences.removeAt(index);
    }
  
-   addCcMail() {
-     this.ccMail.push(this.fb.control('', [Validators.email]));
-   }
+  addCcMail(): void {
+    this.ccMail.push(this.fb.control(''));
+  }
  
    removeCcMail(index: number) {
      this.ccMail.removeAt(index);
@@ -89,10 +106,10 @@ export class AjouterVeeComponent implements OnInit {
      const ccMailFormArray = this.veeamForm.get('ccMail') as FormArray;
      ccMailFormArray.clear();
      if (ccMails && ccMails.length > 0) {
-       ccMails.forEach(email => ccMailFormArray.push(this.fb.control(email, Validators.email)));
-     } else {
-       ccMailFormArray.push(this.fb.control('', Validators.email));
-     }
+      ccMails.forEach(email => ccMailFormArray.push(this.fb.control(email, Validators.email)));
+    } else {
+      ccMailFormArray.push(this.fb.control(''));
+    }
    }
  
    loadVeeam(id: number) {
@@ -115,8 +132,8 @@ export class AjouterVeeComponent implements OnInit {
          veeam.licences.forEach(lic => {
            this.licences.push(this.fb.group({
              nomDesLicences: [lic.nomDesLicences, Validators.required],
-             quantite: [lic.quantite, Validators.required],
-             dateEx: [this.formatDate(lic.dateEx), Validators.required]
+             quantite: [lic.quantite, AppValidators.requiredQuantity],
+             dateEx: [this.formatDate(lic.dateEx)]
            }));
          });
        }
@@ -131,8 +148,12 @@ export class AjouterVeeComponent implements OnInit {
    }
  
    addVeeam() {
-     if (this.veeamForm.valid) {
-       const newVeeam: Veeam = {
+     if (!this.veeamForm.valid) {
+       this.veeamForm.markAllAsTouched();
+       return;
+     }
+
+     const newVeeam: Veeam = {
          veeamId: null!,
          client: this.veeamForm.value.client,
          dureeDeLicence: this.veeamForm.value.dureeDeLicence,
@@ -140,7 +161,7 @@ export class AjouterVeeComponent implements OnInit {
          commandePasserPar: this.veeamForm.value.commandePasserPar,
          adresseEmailContact: this.veeamForm.value.adresseEmailContact,
          mailAdmin: this.veeamForm.value.mailAdmin || '',
-         ccMail: this.ccMail.value,
+         ccMail: (this.ccMail.value as string[]).filter((e: string) => e && String(e).trim()),
          sousContrat: this.veeamForm.value.sousContrat,
          numero: this.veeamForm.value.numero,
          approuve: false,
@@ -150,35 +171,36 @@ export class AjouterVeeComponent implements OnInit {
  
        this.veeamService.addVeeam(newVeeam).subscribe(
          (response: any) => {
-           // Si un fichier a été sélectionné, l'uploader après la création
+           // Si un fichier a Ã©tÃ© sÃ©lectionnÃ©, l'uploader aprÃ¨s la crÃ©ation
            if (this.selectedFile && response.veeamId) {
              this.veeamService.uploadFile(response.veeamId, this.selectedFile).subscribe(
                () => {
-                 window.alert('Veeam ajouté avec fichier avec succès');
-                 this.router.navigate(['/Afficherveeam']);
+                 window.alert('Veeam ajoutÃ© avec fichier avec succÃ¨s');
+                 this.veeamAdded.emit();
                },
                (uploadError) => {
                  console.error('Erreur lors de l\'upload du fichier', uploadError);
-                 window.alert('Veeam ajouté mais erreur lors de l\'upload du fichier');
-                 this.router.navigate(['/Afficherveeam']);
+                 window.alert('Veeam ajoutÃ© mais erreur lors de l\'upload du fichier');
+                 this.veeamAdded.emit();
                }
              );
            } else {
-             window.alert('Veeam ajouté avec succès');
-             this.router.navigate(['/Afficherveeam']);
+             window.alert('Veeam ajoutÃ© avec succÃ¨s');
+             this.veeamAdded.emit();
            }
          },
          error => {
            console.error('Erreur lors de l\'ajout du Veeam', error);
-           window.alert('Échec de l\'ajout');
+           window.alert('Ã‰chec de l\'ajout');
          }
        );
-     } else {
-       window.alert('Le formulaire est invalide. Veuillez corriger les erreurs.');
-     }
    }
    onCancel(): void {
-     this.router.navigate(['/Afficherveeam']);
+     this.cancelled.emit();
+   }
+
+   closeClientDropdown(): void {
+     this.clientSelect?.closeDropdown();
    }
  }
  

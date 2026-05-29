@@ -1,7 +1,9 @@
 package com.example.projet2024.controller;
 
+import com.example.projet2024.DTO.eset.EsetImportAnalyzeResponse;
 import com.example.projet2024.entite.ESET;
 import com.example.projet2024.service.*;
+import com.example.projet2024.service.esetimport.EsetImportAnalyzeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -30,6 +32,8 @@ public class EsetController {
     private EsetServiceImpl esetService   ;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private EsetImportAnalyzeService esetImportAnalyzeService;
 
 
 //    @PostMapping("/addESET")
@@ -139,7 +143,34 @@ public ResponseEntity<?> addEset(@RequestBody ESET eset){
 
    
     // ==================== GESTION DES FICHIERS ESET ====================
-    
+
+    /** Ping pour vérifier que ce contrôleur (routes /import/*) est bien chargé (sans auth). */
+    @GetMapping("/import/ping")
+    public ResponseEntity<String> importPing() {
+        return ResponseEntity.ok("eset-import-ok");
+    }
+
+    /**
+     * Analyse un PDF/TXT pour proposer des valeurs de formulaire avant création d'un ESET (Ollama optionnel).
+     * Pas de {@code consumes} strict : certains clients envoient {@code multipart/form-data; boundary=...} et
+     * l’alignement strict pouvait empêcher la résolution du handler.
+     */
+    @PostMapping("/import/analyze")
+    public ResponseEntity<?> analyzeImport(@RequestParam("file") MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Fichier requis.");
+        }
+        try {
+            EsetImportAnalyzeResponse body = esetImportAnalyzeService.analyze(file);
+            return ResponseEntity.ok(body);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erreur lors de l'analyse: " + e.getMessage());
+        }
+    }
+
     private final Path fileStorageLocation = Paths.get("uploads/eset-files").toAbsolutePath().normalize();
 
     // Upload de fichier pour un ESET

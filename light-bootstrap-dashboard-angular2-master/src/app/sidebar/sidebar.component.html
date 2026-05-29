@@ -79,6 +79,14 @@
                 </a>
             </li>
             
+            <!-- Assistant IA - SUPER_ADMIN, ADMIN_TECHNIQUE, ADMIN_COMMERCIAL -->
+            <li routerLinkActive="active" *ngIf="!menuItem.children && menuItem.path === '/assistant' && permissionService.canUseAssistant()" class="{{menuItem.class}}">
+                <a [routerLink]="[menuItem.path]">
+                    <i class="{{menuItem.icon}}"></i>
+                    <p>{{menuItem.title}}</p>
+                </a>
+            </li>
+            
             <!-- Profil - visible pour tous -->
             <li routerLinkActive="active" *ngIf="!menuItem.children && menuItem.path === '/profile'" class="{{menuItem.class}}">
                 <a [routerLink]="[menuItem.path]">

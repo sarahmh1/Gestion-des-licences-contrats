@@ -2,7 +2,7 @@
   <div class="header-row">
     <h2>Licences Cisco</h2>
     <div class="action-group">
-      <button (click)="goToAddCisco()" class="btn btn-sm action-button" *ngIf="permissionService.canAddProduct('cisco')"><i class="fa fa-plus"></i></button>
+      <button (click)="goToAddCisco()" class="btn btn-sm action-button" *ngIf="permissionService.canAddProduct('Cisco')"><i class="fa fa-plus"></i></button>
       <div class="input-group search-box">
         <input type="text" class="form-control" placeholder="Rechercher..." [(ngModel)]="searchTerm" (input)="onSearch()" />
       </div>
@@ -12,7 +12,7 @@
     <div class="md-master">
       <div class="md-list">
         <div *ngFor="let x of pagedCiscos" class="md-item"
-          [class.md-item-active]="selectedCisco?.ciscoId === x.ciscoId" (click)="selectCisco(x)">
+          [class.md-item-active]="selectedCisco?.CiscoId === x.CiscoId" (click)="selectCisco(x)">
           <div class="md-item-info">
             <div class="md-item-client">{{ x.client }}</div>
             <div class="md-item-fields">
@@ -21,13 +21,13 @@
             </div>
           </div>
           <div class="md-item-actions" (click)="$event.stopPropagation()">
-            <button class="md-btn-icon md-btn-view" (click)="selectCisco(x)" title="Voir details"><i class="fas fa-eye"></i></button>
-            <button class="md-btn-icon md-btn-edit" (click)="updateCisco(x)" *ngIf="permissionService.canEditProduct('cisco')"><i class="fas fa-pen"></i></button>
-            <button class="md-btn-icon md-btn-delete" (click)="deleteCisco(x.ciscoId)" *ngIf="permissionService.canDeleteProduct('cisco')"><i class="fas fa-trash"></i></button>
-            <button class="md-btn-icon md-btn-approve" (click)="approveCisco(x.ciscoId)" *ngIf="permissionService.canEditProduct('cisco')"><i class="fas fa-check"></i></button>
+            <button class="md-btn-icon md-btn-view" (click)="selectCisco(x)" title="Voir détails"><i class="fas fa-eye"></i></button>
+            <button class="md-btn-icon md-btn-edit" (click)="updateCisco(x)" *ngIf="permissionService.canEditProduct('Cisco')"><i class="fas fa-pen"></i></button>
+            <button class="md-btn-icon md-btn-delete" (click)="requestDeleteCisco(x)" *ngIf="permissionService.canDeleteProduct('Cisco')"><i class="fas fa-trash"></i></button>
+            <button class="md-btn-icon md-btn-approve" (click)="approveCisco(x.CiscoId)" *ngIf="permissionService.canEditProduct('Cisco')"><i class="fas fa-check"></i></button>
           </div>
         </div>
-        <div *ngIf="pagedCiscos.length === 0" class="md-empty"><i class="fas fa-folder-open"></i><p>Aucun Cisco trouvé.</p></div>
+        <div *ngIf="pagedCiscos.length === 0" class="md-empty"><i class="fas fa-folder-open"></i><p>Aucune licence Cisco trouvée.</p></div>
       </div>
       <div class="md-pagination" *ngIf="totalPages > 1">
         <button *ngFor="let page of pageNumbers; let i = index" (click)="changePage(i)" [class.active]="i === currentPage" class="btn btn-sm btn-outline-primary mx-1">{{ i + 1 }}</button>
@@ -39,7 +39,7 @@
         <div class="md-detail-body">
           <div class="md-detail-section-title">Licence</div>
           <div class="md-detail-row"><span class="md-label">Durée</span><span class="md-value">{{ selectedCisco.dureeDeLicence || '-' }}</span></div>
-          
+
           <div class="md-detail-divider"></div>
           <div class="md-detail-section-title">Licences</div>
           <div *ngFor="let lic of selectedCisco.licences" class="licence-block">
@@ -48,23 +48,23 @@
             <div class="md-detail-row"><span class="md-label">Expiration</span><span class="md-value">{{ lic.dateEx | date:'dd/MM/yyyy' }}</span></div>
           </div>
           <div class="md-detail-divider"></div>
-          <div class="md-detail-section-title">Contact Client</div>
-          <div class="md-detail-row"><span class="md-label">Nom contact</span><span class="md-value">{{ selectedCisco.nomDuContact || '-' }}</span></div>
-          <div class="md-detail-row"><span class="md-label">N° Téléphone</span><span class="md-value">{{ selectedCisco.numero || '-' }}</span></div>
+          <div class="md-detail-section-title">Vis-à-vis client</div>
+          <div class="md-detail-row"><span class="md-label">Vis-à-vis client</span><span class="md-value">{{ selectedCisco.nomDuContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Numéro de téléphone</span><span class="md-value">{{ selectedCisco.numero || '-' }}</span></div>
           <div class="md-detail-row"><span class="md-label">Email client</span><span class="md-value">{{ selectedCisco.adresseEmailContact || '-' }}</span></div>
-          <div class="md-detail-row"><span class="md-label">Email Commercial</span><span class="md-value">{{ selectedCisco.mailAdmin || '-' }}</span></div>
-          <div class="md-detail-row"><span class="md-label">CC Mail</span><span class="md-value">{{ selectedCisco.ccMail || '-' }}</span></div>
-          <div class="md-detail-row"><span class="md-label">Sous Contrat</span><span class="md-value"><span [class]="selectedCisco.sousContrat ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">{{ selectedCisco.sousContrat ? 'Oui' : 'Non' }}</span></span></div>
+          <div class="md-detail-row"><span class="md-label">Email commercial</span><span class="md-value">{{ selectedCisco.mailAdmin || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">CC mail</span><span class="md-value">{{ formatCcMail(selectedCisco.ccMail) }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Sous contrat</span><span class="md-value"><span [class]="selectedCisco.sousContrat ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">{{ selectedCisco.sousContrat ? 'Oui' : 'Non' }}</span></span></div>
           <div class="md-detail-row"><span class="md-label">Remarque</span><span class="md-value">{{ selectedCisco.remarque || '-' }}</span></div>
           <div class="md-detail-row"><span class="md-label">Commande par</span><span class="md-value">{{ getCommandePasserParLabel(selectedCisco.commandePasserPar) || '-' }}</span></div>
           <div class="md-detail-row" *ngIf="selectedCisco.fichierOriginalName">
-            <span class="md-label">Fichier</span><span class="md-value"><a [href]="getFileDownloadUrl(selectedCisco.ciscoId)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa fa-download"></i> {{ selectedCisco.fichierOriginalName }}</a></span>
+            <span class="md-label">Fichier</span><span class="md-value"><a [href]="getFileDownloadUrl(selectedCisco.CiscoId)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa fa-download"></i> {{ selectedCisco.fichierOriginalName }}</a></span>
           </div>
           <div class="md-detail-divider"></div>
           <div class="md-detail-actions">
-            <button (click)="updateCisco(selectedCisco)" class="btn btn-sm btn-primary" *ngIf="permissionService.canEditProduct('cisco')"><i class="fas fa-pen"></i> Modifier</button>
-            <button (click)="deleteCisco(selectedCisco.ciscoId)" class="btn btn-sm btn-danger" *ngIf="permissionService.canDeleteProduct('cisco')"><i class="fas fa-trash"></i> Supprimer</button>
-            <button (click)="approveCisco(selectedCisco.ciscoId)" class="btn btn-sm btn-success" *ngIf="permissionService.canEditProduct('cisco')"><i class="fas fa-check"></i> Approuver</button>
+            <button (click)="updateCisco(selectedCisco)" class="btn btn-sm btn-primary" *ngIf="permissionService.canEditProduct('Cisco')"><i class="fas fa-pen"></i> Modifier</button>
+            <button (click)="requestDeleteCisco(selectedCisco)" class="btn btn-sm btn-danger" *ngIf="permissionService.canDeleteProduct('Cisco')"><i class="fas fa-trash"></i> Supprimer</button>
+            <button (click)="approveCisco(selectedCisco.CiscoId)" class="btn btn-sm btn-success" *ngIf="permissionService.canEditProduct('Cisco')"><i class="fas fa-check"></i> Approuver</button>
           </div>
         </div>
       </div>
@@ -72,5 +72,162 @@
   </div>
 </div>
 
+<!-- Modal ajouter -->
+<div class="modal-overlay" *ngIf="showAddModal" (click)="closeAddModal()">
+  <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-section">
+        <i class="fas fa-shield-alt modal-icon"></i>
+        <h4>Ajouter nouveau Cisco</h4>
+      </div>
+      <button type="button" class="close-btn" (click)="closeAddModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" (click)="onModalBodyClick($event)">
+      <app-ajouterc (ciscoAdded)="onCiscoAdded()" (cancelled)="onAddCancelled()"></app-ajouterc>
+    </div>
+  </div>
+</div>
 
+<!-- Modal modifier -->
+<div class="modal-overlay" *ngIf="showUpdateModal" (click)="onUpdateCancelled()">
+  <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-section">
+        <i class="fas fa-edit modal-icon"></i>
+        <h4>Modifier Cisco</h4>
+      </div>
+      <button type="button" class="close-btn" (click)="onUpdateCancelled()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" (click)="onModalBodyClick($event)">
+      <app-ajouterc
+        *ngIf="selectedCiscoToUpdate"
+        [ciscoToEdit]="selectedCiscoToUpdate"
+        (ciscoAdded)="onCiscoAdded()"
+        (cancelled)="onUpdateCancelled()">
+      </app-ajouterc>
+    </div>
+  </div>
+</div>
 
+<style>
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7));
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    max-height: 90vh;
+    overflow: visible;
+    animation: slideInUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    flex-direction: column;
+  }
+
+  @keyframes slideInUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-content.modal-lg {
+    max-width: 750px;
+    width: 95%;
+  }
+
+  .modal-header {
+    padding: 2rem;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px 12px 0 0;
+  }
+
+  .modal-title-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .modal-icon {
+    font-size: 1.8rem;
+    color: white;
+  }
+
+  .modal-header h4 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: white;
+    letter-spacing: 0.3px;
+  }
+
+  .close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: white;
+    transition: all 0.2s;
+  }
+
+  .close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .modal-body {
+    padding: 2rem;
+    max-height: calc(90vh - 150px);
+    overflow-y: auto;
+    display: block;
+    min-height: 300px;
+    background: #fafbfc;
+  }
+
+  .modal-body > * {
+    width: 100%;
+  }
+
+  .modal-body form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+</style>
+
+<app-confirm-delete-modal
+  [visible]="showDeleteModal"
+  message="Êtes-vous sûr de vouloir supprimer cette licence Cisco ?"
+  [detail]="deleteModalDetail"
+  [canConfirm]="permissionService.canDeleteProduct('Cisco')"
+  (cancel)="closeDeleteModal()"
+  (confirm)="confirmDeleteCisco()">
+</app-confirm-delete-modal>

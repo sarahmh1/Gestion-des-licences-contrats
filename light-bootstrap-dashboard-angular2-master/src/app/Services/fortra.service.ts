@@ -18,8 +18,8 @@ export class FortraService {
   }
 
   
-  addFortra(fortra: Fortra): Observable<Object> {
-    return this.http.post(`${this.baseUrl}/addFortra`, fortra);
+  addFortra(fortra: Fortra): Observable<Fortra> {
+    return this.http.post<Fortra>(`${this.baseUrl}/addFortra`, fortra);
   }
 
   

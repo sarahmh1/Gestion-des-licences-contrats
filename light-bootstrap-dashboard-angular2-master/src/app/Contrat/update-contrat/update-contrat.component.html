@@ -6,9 +6,7 @@
     <div class="form-group mb-3">
       <label for="client" class="form-label">Client</label>
       <app-searchable-client-select formControlName="client" [clients]="clients"></app-searchable-client-select>
-      <div *ngIf="contratForm.get('client')?.touched && contratForm.get('client')?.invalid" class="text-danger">
-        Ce champ est obligatoire.
-      </div>
+      <app-field-error [control]="contratForm.get('client')"></app-field-error>
     </div>
 
     <!-- Produit -->
@@ -62,18 +60,14 @@
     <div class="form-group mb-3">
       <label for="dateDebut" class="form-label">Date de Début</label>
       <input type="date" id="dateDebut" class="form-control" formControlName="dateDebut" />
-      <div *ngIf="contratForm.get('dateDebut')?.touched && contratForm.get('dateDebut')?.invalid" class="text-danger">
-        Ce champ est obligatoire.
-      </div>
+      <app-field-error [control]="contratForm.get('dateDebut')"></app-field-error>
     </div>
 
     <!-- Date Fin -->
     <div class="form-group mb-3">
       <label for="dateFin" class="form-label">Date de Fin</label>
       <input type="date" id="dateFin" class="form-control" formControlName="dateFin" />
-      <div *ngIf="contratForm.get('dateFin')?.touched && contratForm.get('dateFin')?.invalid" class="text-danger">
-        Ce champ est obligatoire.
-      </div>
+      <app-field-error [control]="contratForm.get('dateFin')"></app-field-error>
     </div>
 
     <!-- Renouvelable -->
@@ -155,7 +149,7 @@
     <!-- Boutons -->
     <div class="d-flex justify-content-between mt-4">
       <button type="button" class="btn btn-secondary" (click)="cancel()">Annuler</button>
-      <button type="submit" class="btn btn-primary" [disabled]="contratForm.invalid">Mettre à jour</button>
+      <button type="submit" class="btn btn-primary">Mettre à jour</button>
     </div>
   </form>
 </div>

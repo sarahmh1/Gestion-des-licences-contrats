@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { AppValidators } from 'app/shared/validators/app-validators';
 import { Router } from '@angular/router';
 import { ContratService } from 'app/Services/contrat.service';
 import { ClientService, Client } from '../../Services/client.service';
@@ -32,8 +33,8 @@ export class AjouterContratComponent implements OnInit {
     this.contratForm = this.fb.group({
       client: ['', Validators.required],
       objetContrat: ['', Validators.required],
-      nbInterventionsPreventives: ['', Validators.required],
-      nbInterventionsCuratives: ['', Validators.required],
+      nbInterventionsPreventives: ['', AppValidators.requiredDigits],
+      nbInterventionsCuratives: ['', AppValidators.requiredDigits],
       dateDebut: ['', Validators.required],
       dateFin: ['', Validators.required],
       renouvelable: [false],
@@ -42,8 +43,8 @@ export class AjouterContratComponent implements OnInit {
       ccMail: this.fb.array([]),
       nomProduit: [''],
       criticite: ['', Validators.required],
-      delaiMaxIntervention: ['', Validators.required],
-      delaiMaxResolution: ['', Validators.required]
+      delaiMaxIntervention: ['', AppValidators.requiredDigits],
+      delaiMaxResolution: ['', AppValidators.requiredDigits]
     });
   }
 
