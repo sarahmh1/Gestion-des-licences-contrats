@@ -34,15 +34,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build backend image
         uses: docker/build-push-action@v6
         with:
           context: ./projet2024
           push: false
+          load: true
           tags: |
             ${{ env.BACKEND_IMAGE }}:${{ needs.meta.outputs.image_tag }}
             ${{ env.BACKEND_IMAGE }}:latest
-          outputs: type=docker,dest=${{ runner.temp }}/backend-image.tar
+
+      - name: Save backend image tarball
+        run: |
+          docker save \
+            "${{ env.BACKEND_IMAGE }}:${{ needs.meta.outputs.image_tag }}" \
+            "${{ env.BACKEND_IMAGE }}:latest" \
+            -o "${{ runner.temp }}/backend-image.tar"
 
       - name: Upload backend image artifact
         uses: actions/upload-artifact@v4
@@ -58,15 +68,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build frontend image
         uses: docker/build-push-action@v6
         with:
           context: ./light-bootstrap-dashboard-angular2-master
           push: false
+          load: true
           tags: |
             ${{ env.FRONTEND_IMAGE }}:${{ needs.meta.outputs.image_tag }}
             ${{ env.FRONTEND_IMAGE }}:latest
-          outputs: type=docker,dest=${{ runner.temp }}/frontend-image.tar
+
+      - name: Save frontend image tarball
+        run: |
+          docker save \
+            "${{ env.FRONTEND_IMAGE }}:${{ needs.meta.outputs.image_tag }}" \
+            "${{ env.FRONTEND_IMAGE }}:latest" \
+            -o "${{ runner.temp }}/frontend-image.tar"
 
       - name: Upload frontend image artifact
         uses: actions/upload-artifact@v4
