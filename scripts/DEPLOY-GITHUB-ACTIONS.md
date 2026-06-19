@@ -1,111 +1,89 @@
-# Déploiement automatisé (GitHub Actions + VM SOC)
-
-## 1. Secrets GitHub
-
-Dans le dépôt : **Settings → Secrets and variables → Actions → New repository secret**
-
-| Nom | Valeur |
-|-----|--------|
-| `DOCKERHUB_USERNAME` | `sarahmhadhbi` |
-| `DOCKERHUB_TOKEN` | Token Docker Hub (voir ci-dessous) |
-
-### Erreur `access token has insufficient scopes`
-
-Le secret doit être un **Access Token Docker Hub**, pas un token GitHub.
-
-1. [hub.docker.com](https://hub.docker.com) → **Account Settings** → **Security** → **New Access Token**
-2. Description : `github-actions`
-3. Permissions : **Read, Write, Delete** (au minimum **Read & Write**)
-4. Copier le token → mettre à jour le secret `DOCKERHUB_TOKEN` sur GitHub
-5. Relancer le workflow (**Actions** → run en échec → **Re-run jobs**)
-
-Le workflow sépare **build** (sans login) et **push** (login uniquement dans le job `push`).
-
-## Tests automatisés (CI)
-
-Le workflow [`.github/workflows/docker-build-push.yml`](../.github/workflows/docker-build-push.yml) exécute dans l’ordre :
-
-1. **build-backend** + **build-frontend** (parallèle)
-2. **test-backend** + **test-frontend** (après build)
-3. **push** Docker Hub (uniquement sur push `main`, si tests OK)
-4. **deploy** sur la VM via runner self-hosted (après push Hub)
-
-## 2. Runner self-hosted sur la VM
-
-Connexion : VPN SOC → PuTTY → SSH sur la VM.
-
-```bash
-curl -I https://github.com
-curl -I https://hub.docker.com
-docker ps
-```
-
-Sur GitHub : **Settings → Actions → Runners → New self-hosted runner** → Linux x64.
-
-Sur la VM :
-
-```bash
-cd /home/srv-app
-mkdir -p actions-runner && cd actions-runner
-# Coller la commande curl de la page GitHub, puis :
-tar xzf ./actions-runner-linux-x64-*.tar.gz
-
-./config.sh \
-  --url https://github.com/VOTRE_ORG/gestion-des-licences-et-contrats \
-  --token TOKEN_AFFICHE_SUR_GITHUB \
-  --name vm-soc-runner \
-  --labels self-hosted,linux,vm-soc \
-  --workfolder _work \
-  --unattended
-
-sudo ./svc.sh install
-sudo ./svc.sh start
-sudo ./svc.sh status
-```
-
-L’utilisateur du service doit être dans le groupe `docker` :
-
-```bash
-sudo usermod -aG docker $USER
-```
-
-## 3. Fichiers sur la VM (`/home/srv-app`)
-
-| Fichier | Rôle |
-|---------|------|
-| `.env` | Mail SMTP, `APP_FRONTEND_BASE_URL` (copier depuis `.env.example`) |
-| `docker-compose.yml` | Copié automatiquement par le workflow |
-| `docker-compose.prod.yml` | Idem |
-| `uploads/` | Fichiers uploadés backend (créé par le workflow si absent) |
-
-**Ne pas** commiter `.env`.
-
-Si vous utilisiez `./projet2024/uploads`, migrez une fois :
-
-```bash
-cp -a /home/srv-app/projet2024/uploads/. /home/srv-app/uploads/ 2>/dev/null || true
-```
-
-## 4. Déclenchement
-
-- Push sur `main` → build → tests → push Hub → **deploy VM**
-- Ou **Actions → CI/CD Build, test and deploy → Run workflow**
-
-Le job **deploy** attend un runner **Idle** (`self-hosted`, `linux`, `vm-soc`).
-
-## 5. Vérification
-
-- GitHub : onglet **Actions** → workflow vert
-- VM : `docker compose ps`
-- Navigateur : `http://192.168.1.50:4200`
-
-## 6. Secours (sans runner)
-
-Après un push qui a build les images sur Hub :
-
-```bash
-cd /home/srv-app
-export IMAGE_TAG=latest
-docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-build
-```
+# Déploiement automatisé (GitHub Actions + VM SOC)
+
+Workflow : [`.github/workflows/ci-cd.yml`](../.github/workflows/ci-cd.yml)
+
+## Pipeline CI/CD (bonnes pratiques)
+
+```text
+Pull Request  →  CI · tests uniquement (fail fast)
+Push main     →  test → build → publish Hub → deploy VM
+```
+
+| Phase | Job GitHub | Rôle |
+|-------|------------|------|
+| Prepare | `Prepare · Image Tag` | Tag immuable `sha-xxxxxxx` |
+| CI | `CI · Backend Tests` / `CI · Frontend Tests` | Maven + Karma (parallèle) |
+| Build | `Build · Backend/Frontend Docker Image` | Images Docker (après tests) |
+| Publish | `Publish · Docker Hub` | Push registry |
+| Deploy | `Deploy · VM Production` | Runner self-hosted SOC |
+
+## 1. Secrets GitHub
+
+**Settings → Secrets and variables → Actions**
+
+| Secret | Valeur |
+|--------|--------|
+| `DOCKERHUB_USERNAME` | `sarahmhadhbi` |
+| `DOCKERHUB_TOKEN` | Token Docker Hub **Read & Write** |
+
+## 2. Runner self-hosted sur la VM
+
+VPN SOC → PuTTY → SSH sur la VM.
+
+```bash
+curl -I https://github.com
+curl -I https://hub.docker.com
+docker ps
+sudo usermod -aG docker $USER   # puis reconnecter PuTTY
+```
+
+Installation :
+
+```bash
+cd /home/srv-app
+mkdir -p actions-runner && cd actions-runner
+# Télécharger depuis GitHub : Settings → Actions → Runners → New self-hosted runner
+tar xzf ./actions-runner-linux-x64-*.tar.gz
+
+./config.sh \
+  --url https://github.com/sarahmh1/Gestion-des-licences-contrats \
+  --token TOKEN_GITHUB \
+  --name vm-soc-runner \
+  --labels self-hosted,linux,vm-soc \
+  --work _work \
+  --unattended
+
+sudo ./svc.sh install && sudo ./svc.sh start
+# Si pas de sudo : nohup ./run.sh > runner.log 2>&1 &
+```
+
+## 3. Fichiers sur la VM (`/home/srv-app`)
+
+| Fichier | Rôle |
+|---------|------|
+| `.env` | Mail SMTP, `APP_FRONTEND_BASE_URL=http://192.168.1.50:4200` |
+| `docker-compose.yml` | Copié par le workflow |
+| `docker-compose.prod.yml` | Idem |
+| `uploads/` | Fichiers uploadés backend |
+
+## 4. Déclenchement
+
+- **PR** vers `main` : tests seulement
+- **Push** sur `main` : pipeline complet + deploy
+- **Actions → CI/CD Pipeline → Run workflow**
+
+## 5. Vérification
+
+- GitHub **Actions** → tous les jobs verts
+- VM : `docker compose ps`
+- Navigateur : `http://192.168.1.50:4200`
+
+## 6. Secours manuel
+
+```bash
+cd /home/srv-app
+export IMAGE_TAG=latest
+docker compose -f docker-compose.yml -f docker-compose.prod.yml pull backend frontend
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-build
+```
+

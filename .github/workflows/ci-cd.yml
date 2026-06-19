@@ -1,0 +1,266 @@
+# CI/CD — bonnes pratiques :
+#   PR        → tests uniquement (fail fast, pas de build Docker)
+#   main      → test → build → publish Hub → deploy VM
+# Réf. : https://docs.github.com/en/actions/deployment/about-deployments
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'projet2024/**'
+      - 'light-bootstrap-dashboard-angular2-master/**'
+      - 'docker-compose.yml'
+      - 'docker-compose.prod.yml'
+      - '.github/workflows/ci-cd.yml'
+  pull_request:
+    branches:
+      - main
+      - master
+    paths:
+      - 'projet2024/**'
+      - 'light-bootstrap-dashboard-angular2-master/**'
+      - '.github/workflows/ci-cd.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: sarahmhadhbi
+  BACKEND_IMAGE: sarahmhadhbi/gestion-licences-backend
+  FRONTEND_IMAGE: sarahmhadhbi/gestion-licences-frontend
+  JAVA_VERSION: '17'
+  NODE_VERSION: '18'
+
+jobs:
+  # ── Phase 1 : préparation (tag immuable du commit) ─────────────────────────
+  prepare-version:
+    name: Prepare · Image Tag
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - name: Compute immutable image tag
+        id: version
+        run: echo "tag=sha-$(echo "${GITHUB_SHA}" | cut -c1-7)" >> "$GITHUB_OUTPUT"
+
+  # ── Phase 2 : CI — tests en parallèle (fail fast) ─────────────────────────
+  test-backend:
+    name: CI · Backend Tests
+    needs: prepare-version
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: projet2024
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Run Maven unit and integration tests
+        run: mvn -B test
+
+      - name: Upload test reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-backend
+          path: projet2024/target/surefire-reports/
+          retention-days: 7
+
+  test-frontend:
+    name: CI · Frontend Tests
+    needs: prepare-version
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: light-bootstrap-dashboard-angular2-master
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install npm dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Run Karma unit tests (ChromeHeadless)
+        run: npm run test:ci
+
+  # ── Phase 3 : build images (uniquement main / dispatch, après tests OK) ───
+  build-docker-backend:
+    name: Build · Backend Docker Image
+    needs: [prepare-version, test-backend, test-frontend]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./projet2024
+          push: false
+          load: true
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:${{ needs.prepare-version.outputs.image_tag }}
+            ${{ env.BACKEND_IMAGE }}:latest
+
+      - name: Save image as artifact
+        run: |
+          docker save \
+            "${{ env.BACKEND_IMAGE }}:${{ needs.prepare-version.outputs.image_tag }}" \
+            "${{ env.BACKEND_IMAGE }}:latest" \
+            -o "${{ runner.temp }}/backend-image.tar"
+
+      - name: Upload backend image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image-backend
+          path: ${{ runner.temp }}/backend-image.tar
+          retention-days: 1
+
+  build-docker-frontend:
+    name: Build · Frontend Docker Image
+    needs: [prepare-version, test-backend, test-frontend]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./light-bootstrap-dashboard-angular2-master
+          push: false
+          load: true
+          tags: |
+            ${{ env.FRONTEND_IMAGE }}:${{ needs.prepare-version.outputs.image_tag }}
+            ${{ env.FRONTEND_IMAGE }}:latest
+
+      - name: Save image as artifact
+        run: |
+          docker save \
+            "${{ env.FRONTEND_IMAGE }}:${{ needs.prepare-version.outputs.image_tag }}" \
+            "${{ env.FRONTEND_IMAGE }}:latest" \
+            -o "${{ runner.temp }}/frontend-image.tar"
+
+      - name: Upload frontend image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image-frontend
+          path: ${{ runner.temp }}/frontend-image.tar
+          retention-days: 1
+
+  # ── Phase 4 : publication registry ────────────────────────────────────────
+  publish-docker-hub:
+    name: Publish · Docker Hub
+    needs: [prepare-version, build-docker-backend, build-docker-frontend]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download backend image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image-backend
+          path: ${{ runner.temp }}/images
+
+      - name: Download frontend image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image-frontend
+          path: ${{ runner.temp }}/images
+
+      - name: Load images into Docker daemon
+        run: |
+          docker load -i "${{ runner.temp }}/images/backend-image.tar"
+          docker load -i "${{ runner.temp }}/images/frontend-image.tar"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push backend image tags
+        run: |
+          docker push "${{ env.BACKEND_IMAGE }}:${{ needs.prepare-version.outputs.image_tag }}"
+          docker push "${{ env.BACKEND_IMAGE }}:latest"
+
+      - name: Push frontend image tags
+        run: |
+          docker push "${{ env.FRONTEND_IMAGE }}:${{ needs.prepare-version.outputs.image_tag }}"
+          docker push "${{ env.FRONTEND_IMAGE }}:latest"
+
+      - name: Publish summary
+        run: |
+          echo "Published to Docker Hub:"
+          echo "  ${{ env.BACKEND_IMAGE }}:${{ needs.prepare-version.outputs.image_tag }}"
+          echo "  ${{ env.FRONTEND_IMAGE }}:${{ needs.prepare-version.outputs.image_tag }}"
+
+  # ── Phase 5 : déploiement production (runner VM SOC) ──────────────────────
+  deploy-production-vm:
+    name: Deploy · VM Production
+    needs: [prepare-version, publish-docker-hub]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: [self-hosted, linux, vm-soc]
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: http://192.168.1.50:4200
+    env:
+      DEPLOY_DIR: /home/srv-app
+      IMAGE_TAG: ${{ needs.prepare-version.outputs.image_tag }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Sync Docker Compose files
+        run: |
+          mkdir -p "${DEPLOY_DIR}/uploads"
+          cp docker-compose.yml docker-compose.prod.yml "${DEPLOY_DIR}/"
+
+      - name: Pull and restart application containers
+        working-directory: /home/srv-app
+        run: |
+          export IMAGE_TAG="${IMAGE_TAG}"
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml pull backend frontend
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-build --remove-orphans
+          docker compose ps
+
+      - name: Verify backend is responding
+        run: |
+          sleep 20
+          curl -f --max-time 60 http://127.0.0.1:8089/ \
+            || curl -f --max-time 60 http://127.0.0.1:8089/login
+
+      - name: Verify frontend is responding
+        run: |
+          curl -f --max-time 30 http://127.0.0.1:4200/
