@@ -23,17 +23,11 @@ Le workflow sépare **build** (sans login) et **push** (login uniquement dans le
 
 ## Tests automatisés (CI)
 
-Le workflow [`.github/workflows/docker-build-push.yml`](../.github/workflows/docker-build-push.yml) exécute :
+Le workflow [`.github/workflows/docker-build-push.yml`](../.github/workflows/docker-build-push.yml) exécute dans l’ordre :
 
-| Job | Outil | Détail |
-|-----|--------|--------|
-| `test-backend` | Maven + JUnit | `mvn test` — H2 en mémoire (profil `test`) |
-| `test-frontend` | Karma + Jasmine | `npm run test:ci` — ChromeHeadless |
-
-Les jobs **build** et **push** ne démarrent que si les tests passent.
-
-- **Pull request** vers `main` : tests uniquement
-- **Push** sur `main` : tests → build → push Docker Hub
+1. **build-backend** + **build-frontend** (parallèle)
+2. **test-backend** + **test-frontend** (après build)
+3. **push** Docker Hub (uniquement sur push `main`, si tests OK)
 
 ## 2. Runner self-hosted sur la VM
 
