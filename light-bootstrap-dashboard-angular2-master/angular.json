@@ -117,7 +117,7 @@
               "src/assets",
               "src/dd.png"
             ],
-            "tsConfig": "src/tsconfig.json"
+            "tsConfig": "src/tsconfig.spec.json"
           }
         },
         "lint": {
