@@ -11,6 +11,14 @@ on:
       - 'docker-compose.yml'
       - 'docker-compose.prod.yml'
       - '.github/workflows/docker-build-push.yml'
+  pull_request:
+    branches:
+      - main
+      - master
+    paths:
+      - 'projet2024/**'
+      - 'light-bootstrap-dashboard-angular2-master/**'
+      - '.github/workflows/docker-build-push.yml'
   workflow_dispatch:
 
 env:
@@ -18,7 +26,59 @@ env:
   FRONTEND_IMAGE: sarahmhadhbi/gestion-licences-frontend
 
 jobs:
+  test-backend:
+    name: Tests backend (Maven)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projet2024
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Run unit and integration tests
+        run: mvn -B test
+
+      - name: Upload Surefire reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: projet2024/target/surefire-reports/
+          retention-days: 7
+
+  test-frontend:
+    name: Tests frontend (Karma)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: light-bootstrap-dashboard-angular2-master
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: npm
+          cache-dependency-path: light-bootstrap-dashboard-angular2-master/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run unit tests (ChromeHeadless)
+        run: npm run test:ci
+
   meta:
+    needs: [test-backend, test-frontend]
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.tag.outputs.tag }}
@@ -28,7 +88,8 @@ jobs:
         run: echo "tag=sha-$(echo "${GITHUB_SHA}" | cut -c1-7)" >> "$GITHUB_OUTPUT"
 
   build-backend:
-    needs: meta
+    needs: [meta, test-backend, test-frontend]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -62,7 +123,8 @@ jobs:
           retention-days: 1
 
   build-frontend:
-    needs: meta
+    needs: [meta, test-backend, test-frontend]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -97,6 +159,7 @@ jobs:
 
   push:
     needs: [meta, build-backend, build-frontend]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Download backend image
@@ -135,7 +198,7 @@ jobs:
 
       - name: Summary
         run: |
-          echo "Images poussées sur Docker Hub :"
+          echo "Tests OK — images poussées sur Docker Hub :"
           echo "  ${{ env.BACKEND_IMAGE }}:${{ needs.meta.outputs.image_tag }}"
           echo "  ${{ env.BACKEND_IMAGE }}:latest"
           echo "  ${{ env.FRONTEND_IMAGE }}:${{ needs.meta.outputs.image_tag }}"

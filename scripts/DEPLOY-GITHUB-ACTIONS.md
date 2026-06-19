@@ -21,6 +21,20 @@ Le secret doit être un **Access Token Docker Hub**, pas un token GitHub.
 
 Le workflow sépare **build** (sans login) et **push** (login uniquement dans le job `push`).
 
+## Tests automatisés (CI)
+
+Le workflow [`.github/workflows/docker-build-push.yml`](../.github/workflows/docker-build-push.yml) exécute :
+
+| Job | Outil | Détail |
+|-----|--------|--------|
+| `test-backend` | Maven + JUnit | `mvn test` — H2 en mémoire (profil `test`) |
+| `test-frontend` | Karma + Jasmine | `npm run test:ci` — ChromeHeadless |
+
+Les jobs **build** et **push** ne démarrent que si les tests passent.
+
+- **Pull request** vers `main` : tests uniquement
+- **Push** sur `main` : tests → build → push Docker Hub
+
 ## 2. Runner self-hosted sur la VM
 
 Connexion : VPN SOC → PuTTY → SSH sur la VM.
