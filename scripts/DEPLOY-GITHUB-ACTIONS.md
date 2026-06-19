@@ -28,6 +28,7 @@ Le workflow [`.github/workflows/docker-build-push.yml`](../.github/workflows/doc
 1. **build-backend** + **build-frontend** (parallèle)
 2. **test-backend** + **test-frontend** (après build)
 3. **push** Docker Hub (uniquement sur push `main`, si tests OK)
+4. **deploy** sur la VM via runner self-hosted (après push Hub)
 
 ## 2. Runner self-hosted sur la VM
 
@@ -87,12 +88,10 @@ cp -a /home/srv-app/projet2024/uploads/. /home/srv-app/uploads/ 2>/dev/null || t
 
 ## 4. Déclenchement
 
-**Actuellement** : workflow **Build and push Docker images** uniquement (pas de deploy VM).
+- Push sur `main` → build → tests → push Hub → **deploy VM**
+- Ou **Actions → CI/CD Build, test and deploy → Run workflow**
 
-- Push sur `main` ou `master` (chemins `projet2024/`, frontend, compose, workflow)
-- Ou **Actions → Build and push Docker images → Run workflow**
-
-Le job deploy VM (`runs-on: self-hosted`) sera réactivé plus tard dans un workflow séparé.
+Le job **deploy** attend un runner **Idle** (`self-hosted`, `linux`, `vm-soc`).
 
 ## 5. Vérification
 

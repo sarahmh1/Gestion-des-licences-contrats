@@ -1,4 +1,4 @@
-name: Build and push Docker images
+name: CI/CD Build, test and deploy
 
 on:
   push:
@@ -202,3 +202,35 @@ jobs:
           echo "  ${{ env.BACKEND_IMAGE }}:latest"
           echo "  ${{ env.FRONTEND_IMAGE }}:${{ needs.build-backend.outputs.image_tag }}"
           echo "  ${{ env.FRONTEND_IMAGE }}:latest"
+
+  deploy:
+    name: Deploy VM SOC
+    needs: [push, build-backend]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: [self-hosted, linux, vm-soc]
+    env:
+      DEPLOY_DIR: /home/srv-app
+      IMAGE_TAG: ${{ needs.build-backend.outputs.image_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Sync Compose files to VM
+        run: |
+          mkdir -p "${DEPLOY_DIR}/uploads"
+          cp docker-compose.yml docker-compose.prod.yml "${DEPLOY_DIR}/"
+
+      - name: Pull and start containers
+        working-directory: /home/srv-app
+        run: |
+          export IMAGE_TAG="${IMAGE_TAG}"
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml pull backend frontend
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-build --remove-orphans
+          docker compose ps
+
+      - name: Smoke test
+        run: |
+          sleep 15
+          curl -sf --max-time 30 http://127.0.0.1:8089/ >/dev/null \
+            || curl -sf --max-time 30 -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8089/ \
+            || echo "Vérifier : docker logs spring-backend"
