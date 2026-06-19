@@ -231,7 +231,7 @@ jobs:
     needs: [prepare-version, publish-docker-hub]
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, linux, vm-soc]
-    timeout-minutes: 15
+    timeout-minutes: 25
     environment:
       name: production
       url: http://192.168.1.50:4200
@@ -255,12 +255,37 @@ jobs:
           docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-build --remove-orphans
           docker compose ps
 
-      - name: Verify backend is responding
+      - name: Wait for backend API
+        working-directory: /home/srv-app
         run: |
-          sleep 20
-          curl -f --max-time 60 http://127.0.0.1:8089/ \
-            || curl -f --max-time 60 http://127.0.0.1:8089/login
+          echo "Waiting for Spring Boot on :8089 (VM can be slow)..."
+          for i in $(seq 1 36); do
+            if curl -sf --max-time 10 http://127.0.0.1:8089/api/auth/google-client-id >/dev/null 2>&1; then
+              echo "Backend OK after $((i * 5))s"
+              exit 0
+            fi
+            if curl -sf --max-time 10 http://127.0.0.1:8089/Eset/import/ping >/dev/null 2>&1; then
+              echo "Backend OK (ping) after $((i * 5))s"
+              exit 0
+            fi
+            echo "Attempt ${i}/36 — backend not ready yet..."
+            sleep 5
+          done
+          echo "Backend did not respond in time. Container logs:"
+          docker logs spring-backend --tail 100 || true
+          docker compose ps
+          exit 1
 
-      - name: Verify frontend is responding
+      - name: Wait for frontend
         run: |
-          curl -f --max-time 30 http://127.0.0.1:4200/
+          for i in $(seq 1 12); do
+            if curl -sf --max-time 10 http://127.0.0.1:4200/ >/dev/null 2>&1; then
+              echo "Frontend OK after $((i * 5))s"
+              exit 0
+            fi
+            echo "Attempt ${i}/12 — frontend not ready yet..."
+            sleep 5
+          done
+          echo "Frontend did not respond. Container logs:"
+          docker logs angular-frontend --tail 50 || true
+          exit 1
