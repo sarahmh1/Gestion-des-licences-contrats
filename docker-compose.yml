@@ -59,7 +59,7 @@ services:
 
   # 4. Frontend Service
   frontend:
-    image: sarahmhadhbi/gestion-licences-frontend:v10
+    image: sarahmhadhbi/gestion-licences-frontend:latest
     container_name: angular-frontend
     restart: always
     ports:
