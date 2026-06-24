@@ -10,7 +10,7 @@
   font-family: inherit;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--lc-orange-deep, #ff8a4c);
+  color: var(--lc-blue-deep, #1d4ed8);
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -33,14 +33,14 @@
   font-family: inherit;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--lc-orange-deep, #ff8a4c);
+  color: var(--lc-blue-deep, #1d4ed8);
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .lc-forgot-link:hover {
-  color: #ffb380;
+  color: var(--lc-orange-deep, #ea580c);
 }
 
 .lc-forgot-overlay {
@@ -61,25 +61,37 @@
   max-height: 90vh;
   overflow-y: auto;
   border-radius: 16px;
-  background: linear-gradient(165deg, #2a3462 0%, #252f5c 100%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.25);
 }
 
 .lc-forgot-modal__head {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   padding: 1.1rem 1.25rem;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.lc-forgot-modal__head::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 16px 16px 0 0;
+  background: linear-gradient(90deg, #2563eb 0%, #f36e24 100%);
 }
 
 .lc-forgot-modal__title {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 800;
-  color: #fff;
+  color: #0f172a;
 }
 
 .lc-forgot-modal__close {
@@ -90,14 +102,14 @@
   justify-content: center;
   border: none;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #cbd5e1;
+  background: #f1f5f9;
+  color: #64748b;
   cursor: pointer;
 }
 
 .lc-forgot-modal__close:hover {
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
+  background: #e2e8f0;
+  color: #0f172a;
 }
 
 .lc-forgot-modal__body {
@@ -108,7 +120,7 @@
   margin: 0 0 1rem;
   font-size: 0.85rem;
   line-height: 1.5;
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .lc-forgot-modal__actions {
@@ -125,11 +137,11 @@
   font-family: inherit;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: #64748b;
   cursor: pointer;
   text-align: center;
 }
 
 .lc-forgot-modal__back:hover {
-  color: var(--lc-orange-deep, #ff8a4c);
+  color: var(--lc-blue-deep, #1d4ed8);
 }
